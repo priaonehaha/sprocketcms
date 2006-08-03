@@ -1,0 +1,14 @@
+
+		#region JSON Methods
+		
+		/// <summary>
+		/// Writes this entity out as a JSON formatted string
+		/// </summary>
+		public void WriteJSON(StringWriter writer)
+		{
+			writer.Write("{");
+			[json-writes]
+			writer.Write("}");
+		}
+		
+		#endregion
