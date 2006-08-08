@@ -8,7 +8,13 @@ Since this is a very quick and dirty alpha release, here are the steps you need 
 
 4) Modify the connection string in the Web.config file so that it points at your SQL Server database. Feel free to make any other changes that blow your skirt up.
 
-5) Point your browser at your the admin folder of your Sprocket location (e.g. http://localhost/Sprocket/admin) and hey presto, you're away! Initially there's nothing configured for the root location of Sprocket so you'll get a 404. Point it at /admin. (Yes I know there's not actually an admin folder, but don't worry about that, Sprocket will pretend it's there) Oh I almost forgot. The default username is admin and the password is password.
+5) Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for
+basic stored procedures and whatnot to be created.
+
+6) Next point your browser at your the admin folder of your Sprocket location (e.g. http://localhost/Sprocket/admin) and hey presto, you're away! Initially there's nothing configured for the root location of Sprocket so you'll get a 404. Point it at /admin. (Yes I know there's not actually an admin folder, but don't worry about that, Sprocket will pretend it's there) Oh I almost forgot. The default username is admin and the password is password.
+
+Note: There's this whole nifty CMS page serving engine developed that I haven't even remotely finished documenting yet. Check out Documentation\Sprocket Page Content System.doc for more
+information. We'll include a demo site in the source code soon.
 
 Got questions? Email me at snowdevil@gmail.com.
 
