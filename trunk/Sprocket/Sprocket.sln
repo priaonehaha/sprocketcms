@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.System", "Sprocket
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "http://localhost/SprocketWeb/", "http://localhost/SprocketWeb", "{20D074A2-ABF7-4F67-B8A3-AA757AA7684C}"
 	ProjectSection(WebsiteProperties) = preProject
-		ProjectReferences = "{903AD3DC-FA63-4C6C-9D1F-A80B50A19E4E}|Sprocket.Data.dll;{6941A8A2-614E-4FD8-B006-038E60191405}|Sprocket.Mail.dll;{C4A4A15A-4756-4AF2-8F5D-E246B04265E2}|Sprocket.Security.dll;{89365EEE-E053-4B19-A0E0-4015DC50CCF0}|Sprocket.Web.DatabaseSetup.dll;{E8DB933F-621D-4980-8BE7-B7AAAFE705FC}|Sprocket.Web.FileManager.dll;{8BE3F644-9B56-4D93-9FE8-797CE35061AE}|Sprocket.Web.CMS.dll;{08E2E62C-7B42-4313-85C5-5F7A283A82F2}|Sprocket.Web.CMS.Pages.dll;{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}|Sprocket.Web.Merchant.dll;"
+		ProjectReferences = "{903AD3DC-FA63-4C6C-9D1F-A80B50A19E4E}|Sprocket.Data.dll;{6941A8A2-614E-4FD8-B006-038E60191405}|Sprocket.Mail.dll;{C4A4A15A-4756-4AF2-8F5D-E246B04265E2}|Sprocket.Security.dll;{89365EEE-E053-4B19-A0E0-4015DC50CCF0}|Sprocket.Web.DatabaseSetup.dll;{E8DB933F-621D-4980-8BE7-B7AAAFE705FC}|Sprocket.Web.FileManager.dll;{8BE3F644-9B56-4D93-9FE8-797CE35061AE}|Sprocket.Web.CMS.dll;{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}|Sprocket.Web.Merchant.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/SprocketWeb"
 		Debug.AspNetCompiler.PhysicalPath = "..\Website\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\SprocketWeb\"
@@ -41,9 +41,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.Mail", "Sprocket.M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.Web.Merchant", "Sprocket.Web.Merchant\Sprocket.Web.Merchant.csproj", "{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.Web.CMS.Pages", "Sprocket.Web.CMS.Pages\Sprocket.Web.CMS.Pages.csproj", "{08E2E62C-7B42-4313-85C5-5F7A283A82F2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.Web.DatabaseSetup", "Sprocket.Web.DatabaseSetup\Sprocket.Web.DatabaseSetup.csproj", "{89365EEE-E053-4B19-A0E0-4015DC50CCF0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.Web.CMS.Pages", "Sprocket.Web.CMS.Pages\Sprocket.Web.CMS.Pages.csproj", "{08E2E62C-7B42-4313-85C5-5F7A283A82F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -165,16 +165,6 @@ Global
 		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|.NET.ActiveCfg = Debug|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|.NET.ActiveCfg = Release|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{89365EEE-E053-4B19-A0E0-4015DC50CCF0}.Debug|.NET.ActiveCfg = Debug|Any CPU
 		{89365EEE-E053-4B19-A0E0-4015DC50CCF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{89365EEE-E053-4B19-A0E0-4015DC50CCF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
@@ -185,6 +175,16 @@ Global
 		{89365EEE-E053-4B19-A0E0-4015DC50CCF0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89365EEE-E053-4B19-A0E0-4015DC50CCF0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{89365EEE-E053-4B19-A0E0-4015DC50CCF0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|.NET.ActiveCfg = Debug|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|.NET.ActiveCfg = Release|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{08E2E62C-7B42-4313-85C5-5F7A283A82F2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
