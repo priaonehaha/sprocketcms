@@ -29,14 +29,16 @@ namespace Sprocket.Web.CMS.Pages
 
 		private void Init()
 		{
-			pagesDocPath = WebUtility.MapPath("resources/definitions/pages.xml");
-			pagesDoc = new XmlDocument();
-			pagesDoc.Load(pagesDocPath);
 			pages = new List<PageEntry>();
 			requestPaths = new Dictionary<string, PageEntry>();
 			pageCodes = new Dictionary<string, PageEntry>();
 			pageIDs = new Dictionary<Guid, PageEntry>();
 			contentFiles = new Dictionary<string, PageEntry>();
+			pagesDocPath = WebUtility.MapPath("resources/definitions/pages.xml");
+			pagesDoc = new XmlDocument();
+			if (!File.Exists(pagesDocPath))
+				return;
+			pagesDoc.Load(pagesDocPath);
 			fileDate = File.GetLastWriteTime(pagesDocPath);
 			foreach (XmlElement node in pagesDoc.DocumentElement.ChildNodes)
 				LoadEntry(node, null);
