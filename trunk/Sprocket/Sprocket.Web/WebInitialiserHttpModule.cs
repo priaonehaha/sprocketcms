@@ -40,9 +40,54 @@ namespace Sprocket.Web
 
 		void app_BeginRequest(object sender, EventArgs e)
 		{
-			if (((HttpApplication)sender).Application["Sprocket_SystemCore_Instance"] == null)
-				InitialiseSystemCore((HttpApplication)sender);
+			int c = 0;
+			switch (InitState)
+			{
+				case InitialisationState.InProgress:
+					while (InitState == InitialisationState.InProgress)
+					{
+						System.Threading.Thread.Sleep(500);
+						if (++c > 30)
+						{
+							HttpContext.Current.Response.Write("The website is being initialised. Please try again in a minute or so.");
+							HttpContext.Current.Response.End();
+						}
+					}
+					break;
+
+				case InitialisationState.None:
+					InitState = InitialisationState.InProgress;
+					if (((HttpApplication)sender).Application["Sprocket_SystemCore_Instance"] == null)
+						InitialiseSystemCore((HttpApplication)sender);
+					InitState = InitialisationState.Complete;
+					break;
+
+			}
 			((WebEvents)SystemCore.Instance["WebEvents"]).FireBeginRequest(sender, e);
+		}
+
+		enum InitialisationState
+		{
+			None,
+			InProgress,
+			Complete
+		}
+
+		InitialisationState InitState
+		{
+			get
+			{
+				InitialisationState state;
+				if (HttpContext.Current.Application["Sprocket_InitialisationState"] == null)
+					state = InitialisationState.None;
+				else
+					state = (InitialisationState)HttpContext.Current.Application["Sprocket_InitialisationState"];
+				return state;
+			}
+			set
+			{
+				HttpContext.Current.Application["Sprocket_InitialisationState"] = value;
+			}
 		}
 
 		/// <summary>

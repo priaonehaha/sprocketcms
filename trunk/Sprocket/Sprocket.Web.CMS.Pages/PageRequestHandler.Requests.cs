@@ -112,35 +112,73 @@ namespace Sprocket.Web.CMS.Pages
 			handled.Set();
 		}
 
-		private static Dictionary<string, XmlDocument> xmlCache = null;
 		public static Dictionary<string, XmlDocument> XmlCache
 		{
-			get { return PageRequestHandler.xmlCache; }
+			get
+			{
+				Dictionary<string, XmlDocument> xc;
+				HttpApplicationState app = HttpContext.Current.Application;
+				app.Lock();
+				if (app["Sprocket_PGREQ_XmlCache"] == null)
+				{
+					xc = new Dictionary<string, XmlDocument>();
+					app["Sprocket_PGREQ_XmlCache"] = xc;
+				}
+				else
+					xc = (Dictionary<string, XmlDocument>)app["Sprocket_PGREQ_XmlCache"];
+				app.UnLock();
+				return xc;
+			}
 		}
 
 		internal XmlDocument GetXmlDocument(string sprocketPath)
 		{
+			HttpContext.Current.Application.Lock();
 			if (XmlCache.ContainsKey(sprocketPath))
+			{
+				HttpContext.Current.Application.UnLock();
 				return XmlCache[sprocketPath];
+			}
 			XmlDocument doc = new XmlDocument();
 			string path = WebUtility.MapPath(sprocketPath);
 			if (!File.Exists(path))
 				return null;
 			doc.Load(path);
 			XmlCache.Add(sprocketPath, doc);
+			HttpContext.Current.Application.UnLock();
 			return doc;
 		}
 
-		void OnEndHttpRequest(HttpApplication app)
+		void OnBeginHttpRequest(HttpApplication appInst, HandleFlag handled)
 		{
-			if (xmlCache != null)
-				xmlCache.Clear();
-			xmlCache = null;
+			HttpApplicationState app = HttpContext.Current.Application;
+			app.Lock();
+			if (app["Sprocket_PGREQ_XmlCache_Count"] == null)
+				app["Sprocket_PGREQ_XmlCache_Count"] = 1;
+			else
+				app["Sprocket_PGREQ_XmlCache_Count"] = (int)app["Sprocket_PGREQ_XmlCache_Count"] + 1;
+			app.UnLock();
 		}
 
-		void OnBeginHttpRequest(HttpApplication app, HandleFlag handled)
+		void OnEndHttpRequest(HttpApplication appInst)
 		{
-			xmlCache = new Dictionary<string, XmlDocument>();
+			HttpApplicationState app = HttpContext.Current.Application;
+			app.Lock();
+			bool k = false;
+			if (app["Sprocket_PGREQ_XmlCache_Count"] == null)
+				k = true;
+			else
+			{
+				app["Sprocket_PGREQ_XmlCache_Count"] = (int)app["Sprocket_PGREQ_XmlCache_Count"] - 1;
+				if ((int)app["Sprocket_PGREQ_XmlCache_Count"] <= 0)
+					k = true;
+			}
+			if (k)
+			{
+				app["Sprocket_PGREQ_XmlCache_Count"] = null;
+				app["Sprocket_PGREQ_XmlCache"] = null;
+			}
+			app.UnLock();
 		}
 
 		XmlDocument PagesXml
