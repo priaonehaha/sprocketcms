@@ -185,7 +185,7 @@ namespace Sprocket.Web
 				if (flag.Handled)
 				{
 					// stop the browser from caching the page
-					HttpContext.Current.Response.Cache.SetCacheability(HttpCacheability.Server);
+					// HttpContext.Current.Response.Cache.SetCacheability(HttpCacheability.NoCache);
 
 					// if one of the modules handled the request event, then we can stop
 					// doing stuff now. The OnEndRequest event will still be called though.

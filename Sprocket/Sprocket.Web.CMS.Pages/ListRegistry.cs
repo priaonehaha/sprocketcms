@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.IO;
+using System.Web;
 
 using Sprocket.Web;
 
@@ -39,6 +40,7 @@ namespace Sprocket.Web.CMS.Pages
 		{
 			get
 			{
+				HttpContext.Current.Application.Lock();
 				if (File.GetLastWriteTime(listsDocPath) > fileDate)
 					Init();
 
@@ -51,8 +53,10 @@ namespace Sprocket.Web.CMS.Pages
 					lists.Add(name, null);
 					return null;
 				}
+
 				ListDefinition list = new ListDefinition((XmlElement)node);
 				lists.Add(name, list);
+				HttpContext.Current.Application.UnLock();
 				return list;
 			}
 		}
