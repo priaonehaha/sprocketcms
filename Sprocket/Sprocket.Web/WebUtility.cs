@@ -75,10 +75,14 @@ namespace Sprocket.Web
 		{
 			string path = HttpContext.Current.Request.PhysicalApplicationPath + '\\' + sprocketPath.Replace('/', '\\').Trim('\\');
 			DateTime modified = new FileInfo(path).LastWriteTime;
+			HttpContext.Current.Application.Lock();
 			if (txtFileCache.ContainsKey(path))
 			{
 				if (txtFileCache[path].FileDate == modified)
+				{
+					HttpContext.Current.Application.UnLock();
 					return txtFileCache[path].FileText;
+				}
 				txtFileCache.Remove(path);
 			}
 			StreamReader sr = new StreamReader(path, Encoding.Default);
@@ -88,6 +92,7 @@ namespace Sprocket.Web
 			file.FileDate = modified;
 			file.FileText = condenseJavaScript ? JavaScriptCondenser.Condense(txt) : txt;
 			txtFileCache.Add(path, file);
+			HttpContext.Current.Application.UnLock();
 			return txt;
 		}
 

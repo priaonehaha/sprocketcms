@@ -59,6 +59,7 @@ namespace Sprocket.Web
 		private string GetAjaxMethodsScript(ModuleRegistry registry)
 		{
 			Hashtable modules = new Hashtable();
+
 			foreach (RegisteredModule module in registry)
 			{
 				if (module.Module.GetType().GetCustomAttributes(typeof(AjaxMethodHandlerAttribute), false).Length != 1)
