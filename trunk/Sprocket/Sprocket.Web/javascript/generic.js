@@ -69,13 +69,20 @@ function Event() {
 	this.handlers = [];
 }
 
-Event.prototype.AddHandler = function(funcRef) {
-	this.handlers[this.handlers.length] = funcRef;
+Event.prototype.AddHandler = function(funcRef, context) {
+	this.handlers[this.handlers.length] = {
+		funcRef : funcRef,
+		context : context
+	};
 }
 
 Event.prototype.Fire = function() {
-	for(var i=0; i<this.handlers.length; i++)
-		this.handlers[i](arguments);
+	for(var i=0; i<this.handlers.length; i++) {
+		if(this.handlers[i].context)
+			this.handlers[i].funcRef.call(this.handlers[i].context, arguments);
+		else
+			this.handlers[i].funcRef(arguments);
+	}
 }
 
 // timer class
