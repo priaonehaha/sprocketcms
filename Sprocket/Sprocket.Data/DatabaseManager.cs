@@ -86,11 +86,11 @@ namespace Sprocket.Data
 			if (!db.TestConnectionString(out errorMessage))
 			{
 				string msg = errorMessage;
-				if (msg.ToLower().Contains("password")
-					|| msg.ToLower().Contains("pwd")
-					|| msg.ToLower().Contains("pass")
-					|| msg.ToLower().Contains("pword"))
-					msg = "[error message hidden because it contains password information]";
+				//if (msg.ToLower().Contains("password")
+				//    || msg.ToLower().Contains("pwd")
+				//    || msg.ToLower().Contains("pass")
+				//    || msg.ToLower().Contains("pword"))
+				//    msg = "[error message hidden because it contains password information]";
 				errors.Add("DatabaseManager", "The supplied connection string didn't work. The error was: " + msg);
 				errors.SetCriticalError();
 				return;

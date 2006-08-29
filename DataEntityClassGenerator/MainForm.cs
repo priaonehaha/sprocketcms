@@ -118,6 +118,7 @@ namespace ClassGenerator
 
 			string sField = ResourceLoader.LoadTextResource("field.txt");
 			string sProperty = ResourceLoader.LoadTextResource("property.txt");
+			string sPropertyReadOnly = ResourceLoader.LoadTextResource("property-readonly.txt");
 			string sClass = ResourceLoader.LoadTextResource("class.txt");
 			string sRow = ResourceLoader.LoadTextResource("fromrow.txt");
 			string sProcs = ResourceLoader.LoadTextResource("procs.txt");
@@ -132,9 +133,9 @@ namespace ClassGenerator
 			string classIDField = primaryKey.Substring(0, 1).ToLower() + primaryKey.Substring(1, primaryKey.Length - 1);
 			string classIDFieldType = GetTypeName(ds.Tables[0].PrimaryKey[0], false);
 
-			string fields = "", properties = "", classconstructorparams = "", constructorFieldsFromParams = "", constructorFieldAssignsFromDataRow = "";
+			string classFields = "", classProperties = "", classconstructorparams = "", constructorFieldsFromParams = "", constructorFieldAssignsFromDataRow = "";
 			string insertProcParams = "", updateProcParams = "", updateSqlSets = "", updateExplicitSqlSets = "";
-			string sqlfieldlistbycommas = "", sqlvaluelistbycommas = "", prms = "", filterCommandParams = "", cases = "";
+			string sqlInsertFieldsListByCommas = "", sqlInsertValuesListByCommas = "", prms = "", filterCommandParams = "", cases = "";
 			string filterProcSelectConditions = "", filterProcParams = "", filterMethodParams = "", filterMethodParamsValsOnly = "";
 			string updateExplicitProcParams = "", fieldNameCaseStatements = "", enumFieldNames = "", filterOrderByClause = "";
 			string jsonWrites = "";
@@ -142,6 +143,7 @@ namespace ClassGenerator
 			foreach (DataColumn c in ds.Tables[0].Columns)
 			{
 				bool columnIsID = object.ReferenceEquals(ds.Tables[0].PrimaryKey[0], c);
+				bool isIdentity = c.AutoIncrement;
 				string fldtype = GetTypeName(c, false);
 				string defVal = GetDefaultValue(c);
 				string fldName = c.ColumnName.Substring(0, 1).ToLower() + c.ColumnName.Substring(1);
@@ -202,8 +204,11 @@ namespace ClassGenerator
 						filterOrderByClause += "WHEN '" + prName + "' THEN [" + c.ColumnName + "]";
 				}
 
-				if (prms.Length > 0) prms += Environment.NewLine + "\t\t\t";
-				prms += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", DbType." + DbTypeFromType(c.DataType).ToString() + ");";
+				if (!isIdentity)
+				{
+					if (prms.Length > 0) prms += Environment.NewLine + "\t\t\t";
+					prms += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", DbType." + DbTypeFromType(c.DataType).ToString() + ");";
+				}
 
 				if (filterCommandParams.Length > 0) filterCommandParams += Environment.NewLine + "\t\t\t";
 				if (c.DataType.Name == "DateTime")
@@ -215,16 +220,25 @@ namespace ClassGenerator
 				else
 					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", DbType." + DbTypeFromType(c.DataType).ToString() + ");";
 
-				if (insertProcParams.Length > 0) insertProcParams += "," + Environment.NewLine + "\t";
-				insertProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
-				if (!columnIsID && c.AllowDBNull) insertProcParams += " = null";
+				if (!isIdentity)
+				{
+					if (insertProcParams.Length > 0) insertProcParams += "," + Environment.NewLine + "\t";
+					insertProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
+					if (!columnIsID && c.AllowDBNull) insertProcParams += " = null";
+				}
 
-				if (updateProcParams.Length > 0) updateProcParams += "," + Environment.NewLine + "\t";
-				updateProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
-				if (!columnIsID) updateProcParams += " = null";
+				if (!isIdentity)
+				{
+					if (updateProcParams.Length > 0) updateProcParams += "," + Environment.NewLine + "\t";
+					updateProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
+					if (!columnIsID) updateProcParams += " = null";
+				}
 
-				if (updateExplicitProcParams.Length > 0) updateExplicitProcParams += "," + Environment.NewLine + "\t";
-				updateExplicitProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
+				if (!isIdentity)
+				{
+					if (updateExplicitProcParams.Length > 0) updateExplicitProcParams += "," + Environment.NewLine + "\t";
+					updateExplicitProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
+				}
 
 				if (filterProcParams.Length > 0) filterProcParams += "," + Environment.NewLine + "\t";
 				if (c.DataType.Name == "DateTime")
@@ -235,14 +249,14 @@ namespace ClassGenerator
 				else
 					filterProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c) + " = null";
 
-				if (!columnIsID)
+				if (!columnIsID && !isIdentity)
 				{
 					if (updateSqlSets.Length > 0)
 						updateSqlSets += "," + Environment.NewLine + "\t\t";
 					updateSqlSets += c.ColumnName + " = COALESCE(@" + c.ColumnName + ", " + c.ColumnName + ")";
 				}
 
-				if (!columnIsID)
+				if (!columnIsID && !isIdentity)
 				{
 					if (updateExplicitSqlSets.Length > 0)
 						updateExplicitSqlSets += "," + Environment.NewLine + "\t\t";
@@ -279,32 +293,44 @@ namespace ClassGenerator
 					filterMethodParamsValsOnly += fldName;
 
 				//full list of table fields separated by commas
-				if (sqlfieldlistbycommas.Length > 0) sqlfieldlistbycommas += ", ";
-				sqlfieldlistbycommas += c.ColumnName;
+				if (!isIdentity)
+				{
+					if (sqlInsertFieldsListByCommas.Length > 0) sqlInsertFieldsListByCommas += ", ";
+					sqlInsertFieldsListByCommas += c.ColumnName;
+				}
 
 				//full list of parameters for table fields separated by commas
-				if (sqlvaluelistbycommas.Length > 0) sqlvaluelistbycommas += ", ";
-				sqlvaluelistbycommas += "@" + c.ColumnName;
+				if (!isIdentity)
+				{
+					if (sqlInsertValuesListByCommas.Length > 0) sqlInsertValuesListByCommas += ", ";
+					sqlInsertValuesListByCommas += "@" + c.ColumnName;
+				}
 
-				if (fields.Length > 0) fields += Environment.NewLine + "\t\t";
-				fields += sField
+				if (classFields.Length > 0) classFields += Environment.NewLine + "\t\t";
+				classFields += sField
 					.Replace("[datatype]", fldtype)
 					.Replace("[defaultvalue]", defVal)
 					.Replace("[fieldname]", fldName)
 					;
 
-				if (properties.Length > 0) properties += Environment.NewLine + Environment.NewLine;
-				properties += sProperty
+				if (classProperties.Length > 0) classProperties += Environment.NewLine + Environment.NewLine;
+				classProperties += (isIdentity ? sPropertyReadOnly : sProperty)
 					.Replace("[datatype]", fldtype)
 					.Replace("[propertyname]", prName)
 					.Replace("[fieldname]", fldName)
 					;
 
-				if (classconstructorparams.Length > 0) classconstructorparams += ", ";
-				classconstructorparams += fldtype + " " + fldName;
+				if (!isIdentity)
+				{
+					if (classconstructorparams.Length > 0) classconstructorparams += ", ";
+					classconstructorparams += fldtype + " " + fldName;
+				}
 
-				if (constructorFieldsFromParams.Length > 0) constructorFieldsFromParams += Environment.NewLine + "\t\t\t";
-				constructorFieldsFromParams += "this." + fldName + " = " + fldName + ";";
+				if (!isIdentity)
+				{
+					if (constructorFieldsFromParams.Length > 0) constructorFieldsFromParams += Environment.NewLine + "\t\t\t";
+					constructorFieldsFromParams += "this." + fldName + " = " + fldName + ";";
+				}
 
 				if (constructorFieldAssignsFromDataRow.Length > 0) constructorFieldAssignsFromDataRow += Environment.NewLine + "\t\t\t";
 				constructorFieldAssignsFromDataRow += sRow
@@ -333,10 +359,10 @@ namespace ClassGenerator
 				.Replace("[classidfield]", classIDField)
 				.Replace("[classidfieldtype]", classIDFieldType)
 				.Replace("[namespace]", Namespace.Text)
-				.Replace("[fields]", fields)
+				.Replace("[fields]", classFields)
 				.Replace("[commandparameters]", prms)
 				.Replace("[filtercommandparameters]", filterCommandParams)
-				.Replace("[properties]", properties)
+				.Replace("[properties]", classProperties)
 				.Replace("[fieldlistparams]", classconstructorparams)
 				.Replace("[fieldparamassignments]", constructorFieldsFromParams)
 				.Replace("[rowassigns]", constructorFieldAssignsFromDataRow)
@@ -355,8 +381,8 @@ namespace ClassGenerator
 				.Replace("[primarykey]", primaryKey)
 				.Replace("[classname]", className)
 				.Replace("[tablename]", tableName)
-				.Replace("[fieldnames]", sqlfieldlistbycommas)
-				.Replace("[fieldvalues]", sqlvaluelistbycommas)
+				.Replace("[fieldnames]", sqlInsertFieldsListByCommas)
+				.Replace("[fieldvalues]", sqlInsertValuesListByCommas)
 				.Replace("[insertparameters]", insertProcParams)
 				.Replace("[updateparameters]", updateProcParams)
 				.Replace("[filterparameters]", filterProcParams)
@@ -578,6 +604,8 @@ namespace ClassGenerator
 			string[] sqlarr = Regex.Split(sqltext, @"\sgo\s", RegexOptions.IgnoreCase);
 			foreach (string sql in sqlarr)
 			{
+				if (sql == "")
+					continue;
 				SqlCommand cmd = conn.CreateCommand();
 				cmd.CommandText = sql;
 				cmd.CommandType = CommandType.Text;
