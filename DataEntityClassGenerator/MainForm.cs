@@ -198,7 +198,9 @@ namespace ClassGenerator
 						filterOrderByClause += Environment.NewLine + "\t\t\t";
 					if(c.DataType.Name == "DateTime")
 						filterOrderByClause += "WHEN '" + prName + "' THEN Convert(varchar,[" + c.ColumnName + "],121)";
-					else if(c.DataType.Name == "Boolean")
+					else if (c.DataType.Name == "Boolean")
+						filterOrderByClause += "WHEN '" + prName + "' THEN Convert(varchar,[" + c.ColumnName + "])";
+					else if (c.DataType.Name.StartsWith("Int") || c.DataType.Name.StartsWith("UInt"))
 						filterOrderByClause += "WHEN '" + prName + "' THEN Convert(varchar,[" + c.ColumnName + "])";
 					else
 						filterOrderByClause += "WHEN '" + prName + "' THEN [" + c.ColumnName + "]";
