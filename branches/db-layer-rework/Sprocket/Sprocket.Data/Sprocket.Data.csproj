@@ -37,7 +37,7 @@
   <ItemGroup>
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="DataEntity.cs" />
-    <Compile Include="IDataHandlerModule.cs" />
+    <Compile Include="Interfaces.cs" />
     <Compile Include="SqlDatabase.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="FirebirdDatabase.cs" />

@@ -14,19 +14,19 @@ namespace Sprocket.Data
 		/// any new or altered tables.
 		/// </summary>
 		/// <param name="engine">The database engine being used.</param>
-		void ExecuteDataScripts(DatabaseEngine engine);
+		void ExecuteDataScripts();
+
+		IDatabaseInitialiser GetDatabaseInitialiser();
 		/// <summary>
-		/// This method is only called when the module is to be removed. It should remove any
-		/// database objects used by the module.
+		/// 
 		/// </summary>
-		/// <param name="engine">The database engine being used.</param>
-		void DeleteDatabaseStructure(DatabaseEngine engine);
-		/// <summary>
-		/// This should return a value indicating whether or not the module is compatible with the
-		/// specified database engine.
-		/// </summary>
-		/// <param name="engine">The database engine being used.</param>
-		/// <returns>True or false</returns>
-		bool SupportsDatabaseEngine(DatabaseEngine engine);
+		/// <param name="engine"></param>
+		/// <returns></returns>
+		bool SelectDatabaseEngine(DatabaseEngine engine);
+	}
+
+	public interface IDatabaseInitialiser
+	{
+		void Execute();
 	}
 }

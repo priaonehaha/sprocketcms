@@ -13,7 +13,8 @@ namespace Sprocket.Data
 {
 	public enum DatabaseEngine
 	{
-		SqlServer
+		SqlServer = 0,
+		SQLite = 1
 	}
 
 	public abstract class Database
