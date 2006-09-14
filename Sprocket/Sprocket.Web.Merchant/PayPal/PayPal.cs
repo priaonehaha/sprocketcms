@@ -141,19 +141,10 @@ namespace Sprocket.Web.Merchant.PayPal
 
 		#region IDataHandlerModule Members
 
-		public void ExecuteDataScripts(DatabaseEngine engine)
+		public void ExecuteDataScripts()
 		{
 			((SqlDatabase)Database.Main).ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Web.Merchant.PayPal.Database.tables.sql"));
 			((SqlDatabase)Database.Main).ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Web.Merchant.PayPal.Database.procs.sql"));
-		}
-
-		public void DeleteDatabaseStructure(DatabaseEngine engine)
-		{
-		}
-
-		public bool SupportsDatabaseEngine(DatabaseEngine engine)
-		{
-			return engine == DatabaseEngine.SqlServer;
 		}
 
 		#endregion

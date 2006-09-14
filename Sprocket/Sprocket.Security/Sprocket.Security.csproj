@@ -33,11 +33,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ISecurityProviderDataProxy.cs" />
+    <Compile Include="ISecurityProvider.cs" />
     <Compile Include="ObjectActions.cs" />
     <Compile Include="Objects.cs" />
     <Compile Include="ProcList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecurityProvider.cs" />
+    <Compile Include="SqlServer\SecurityProviderSqlServerDataProxy.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sprocket.Data\Sprocket.Data.csproj">

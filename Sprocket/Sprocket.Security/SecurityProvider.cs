@@ -28,16 +28,7 @@ namespace Sprocket.Security
 
 		#region IDataHandlerModule Members
 
-		public void DeleteDatabaseStructure(DatabaseEngine engine)
-		{
-		}
-
-		public bool SupportsDatabaseEngine(DatabaseEngine engine)
-		{
-			return engine == DatabaseEngine.SqlServer;
-		}
-
-		public void ExecuteDataScripts(DatabaseEngine engine)
+		public void ExecuteDataScripts()
 		{
 			SqlDatabase db = (SqlDatabase)Database.Main;
 			db.ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Security.DatabaseScripts.sqlserver_tables_001.sql"));
@@ -49,6 +40,11 @@ namespace Sprocket.Security
 			sql = sql.Replace("{ClientID}", client.ClientID.ToString());
 			sql = sql.Replace("{password-hash}", Crypto.EncryptOneWay("password").Replace("'", "''"));
 			db.ExecuteScript(sql);
+		}
+
+		bool SelectDatabaseEngine(DatabaseEngine engine)
+		{
+
 		}
 
 		#endregion

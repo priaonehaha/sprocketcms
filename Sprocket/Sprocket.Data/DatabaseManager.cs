@@ -120,7 +120,7 @@ namespace Sprocket.Data
 		{
 			foreach (RegisteredModule module in SystemCore.Instance.ModuleRegistry)
 				if (module.Module is IDataHandlerModule)
-					((IDataHandlerModule)module.Module).ExecuteDataScripts(engine);
+					((IDataHandlerModule)module.Module).ExecuteDataScripts(); //engine);
 		}
 	}
 }

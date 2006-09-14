@@ -15,19 +15,10 @@ namespace Sprocket.Web.CMS.Security
 {
 	public partial class WebSecurity : IDataHandlerModule
 	{
-		public void ExecuteDataScripts(DatabaseEngine engine)
+		public void ExecuteDataScripts()
 		{
 			string sql = ResourceLoader.LoadTextResource("Sprocket.Web.CMS.Security.DatabaseScripts.sqlserver_data_001.sql");
 			((SqlDatabase)Database.Main).ExecuteScript(sql);
-		}
-
-		public void DeleteDatabaseStructure(DatabaseEngine engine)
-		{
-		}
-
-		public bool SupportsDatabaseEngine(DatabaseEngine engine)
-		{
-			return engine == DatabaseEngine.SqlServer;
 		}
 	}
 }
