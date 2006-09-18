@@ -26,9 +26,9 @@ function $childrenWithAttribute(parentElement, attributeName, attributeValue) {
 // finds the parent element that has the specified attribute, optionally with a specific
 // value. If it doesn't exist, null is returned.
 function $parentWithAttribute(element, attributeName, attributeValue) {
-	if(!element.getAttribute)
+	if(!element.attributes)
 		return null;
-	var val = element.getAttribute(attributeName);
+	var val = element.attributes[attributeName] ? element.attributes[attributeName].nodeValue : '';
 	if(val != '' && (val == attributeValue || !attributeValue))
 		return element;
 	if(!element.parentNode)
