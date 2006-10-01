@@ -1221,8 +1221,8 @@ namespace Sprocket.Web.Merchant.PayPal
 				case "mc_amount2": if(value.Length > 0) mc_amount2 = Decimal.Parse(value); return true;
 				case "mc_amount3": if(value.Length > 0) mc_amount3 = Decimal.Parse(value); return true;
 				case "mc_currency": mc_currency = value; return true;
-				case "recurring": if(value.Length > 0) recurring = Boolean.Parse(value); return true;
-				case "reattempt": if(value.Length > 0) reattempt = Boolean.Parse(value); return true;
+				case "recurring": if(value.Length > 0) recurring = Utilities.BoolFromString(value); return true;
+				case "reattempt": if(value.Length > 0) reattempt = Utilities.BoolFromString(value); return true;
 				case "retry_at": if(value.Length > 0) retry_at = ParseDateTime(value); return true;
 				case "recur_times": if(value.Length > 0) recur_times = Int32.Parse(value); return true;
 				case "username": username = value; return true;
@@ -1240,7 +1240,7 @@ namespace Sprocket.Web.Merchant.PayPal
 			if (value.Length > 4 && value[value.Length - 4] == ' ')
 				fmt += value.Substring(value.Length - 4, 4);
 			return DateTime.ParseExact(value, new string[] { fmt, "r", "u", "s", "U", "y" }, new CultureInfo("en-US", true), DateTimeStyles.None);
-		}		
+		}
 
 		#endregion
 	}

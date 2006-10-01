@@ -116,7 +116,7 @@ namespace Sprocket.Web.CMS.Pages
 					if (node.FirstChild.NodeType == XmlNodeType.Text || node.FirstChild.NodeType == XmlNodeType.CDATA)
 						selectExpr = node.FirstChild.Value.Trim();
 			if (selectExpr == null && xmlDefinition.HasAttribute("ParentPageCode"))
-				selectExpr = "//Page[@Name='" + xmlDefinition.GetAttribute("ParentPageCode") + "']/Page";
+				selectExpr = "//*[@Name='" + xmlDefinition.GetAttribute("ParentPageCode") + "']/Page";
 		}
 	}
 }

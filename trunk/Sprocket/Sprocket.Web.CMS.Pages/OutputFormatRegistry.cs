@@ -29,6 +29,7 @@ namespace Sprocket.Web.CMS.Pages
 		private void Init()
 		{
 			outputFormatsDocPath = WebUtility.MapPath("resources/definitions/outputformats.xml");
+			if (!File.Exists(outputFormatsDocPath)) return;
 			outputFormatsDoc = new XmlDocument();
 			outputFormatsDoc.Load(outputFormatsDocPath);
 			outputFormats = new Dictionary<string, XmlElement>();

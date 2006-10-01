@@ -50,11 +50,14 @@ namespace Sprocket.Web
 		}
 
 		/// <summary>
-		/// Gets the URL serving the current request, e.g. http://localhost
+		/// Gets the URL serving the current request, e.g. http://localhost/applicationpath/
 		/// </summary>
 		public static string BaseURL
 		{
-			get { return HttpContext.Current.Request.Url.Host.ToString(); }
+			get
+			{
+				return HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + WebUtility.BasePath;
+			}
 		}
 
 		private class CachedFile

@@ -28,6 +28,7 @@ namespace Sprocket.Web.CMS.Pages
 			if (nodes.Count == 0)
 			{
 				containsCacheableContent = false;
+				return "[No content found in " + pageEntry.ContentFile + " for XPath " + xpath + "]";
 				return null;
 			}
 			bool cacheable = true;

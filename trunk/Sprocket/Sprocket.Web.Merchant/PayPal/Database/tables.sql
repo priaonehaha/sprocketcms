@@ -2,7 +2,7 @@ if not exists (select id from sysobjects where name='PayPalTransactionResponses'
 create table dbo.PayPalTransactionResponses
 (
 	TransactionID			uniqueidentifier PRIMARY KEY,
-	txn_id					varchar(17) UNIQUE NOT NULL,
+	txn_id					varchar(17) NOT NULL,
 	txn_type				varchar(40),
 	auth_amount				money,
 	auth_id					varchar(40),

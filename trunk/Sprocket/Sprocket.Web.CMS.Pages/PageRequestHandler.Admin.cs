@@ -14,29 +14,29 @@ namespace Sprocket.Web.CMS.Pages
 {
 	public partial class PageRequestHandler
 	{
-		void OnAdminRequest(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled)
-		{
-			admin.AddMainMenuLink(new AdminMenuLink("Website Pages", WebUtility.MakeFullPath("admin/pages"), 0));
+		//void OnAdminRequest(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled)
+		//{
+		//    admin.AddMainMenuLink(new AdminMenuLink("Website Pages", WebUtility.MakeFullPath("admin/pages"), 0));
 
-			if(handled.Handled) return;
+		//    if(handled.Handled) return;
 
-			switch (sprocketPath)
-			{
-				case "admin/pages":
-					admin.ContentHeading = "Website Page List";
-					admin.AddContentSection(new RankedString(GetPageList(), 0));
-					break;
+		//    switch (sprocketPath)
+		//    {
+		//        case "admin/pages":
+		//            admin.ContentHeading = "Website Page List";
+		//            admin.AddContentSection(new RankedString(GetPageList(), 0));
+		//            break;
 
-				default:
-					return;
-			}
+		//        default:
+		//            return;
+		//    }
 
-			handled.Set();
-		}
+		//    handled.Set();
+		//}
 
-		string GetPageList()
-		{
-			return "";
-		}
+		//string GetPageList()
+		//{
+		//    return "";
+		//}
 	}
 }

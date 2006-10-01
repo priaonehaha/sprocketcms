@@ -144,6 +144,7 @@ SprocketAjax = {
 		var req = this.CreateRequest();
 		req.onreadystatechange = function() { // define the callback function
 			if(req.readyState == 4) {
+				if(!SprocketAjax) return;
 				var contextArgs = context ? context : [];
 				var callnum = cnum;
 				SprocketAjax.WriteConsole('&lt;-[' + cnum + ']: ' + moduleName +
