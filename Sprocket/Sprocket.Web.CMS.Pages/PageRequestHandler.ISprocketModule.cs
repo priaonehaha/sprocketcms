@@ -14,8 +14,6 @@ namespace Sprocket.Web.CMS.Pages
 {
 	[ModuleDependency("WebEvents")]
 	[ModuleDependency("DatabaseManager")]
-	[ModuleDependency("SecurityProvider")]
-	[ModuleDependency("FileManager")]
 	public partial class PageRequestHandler : ISprocketModule
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -24,7 +22,7 @@ namespace Sprocket.Web.CMS.Pages
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(OnEndHttpRequest);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);
 			WebEvents.Instance.OnPathNotFound += new WebEvents.RequestedPathEventHandler(OnPathNotFound);
-			WebsiteAdmin.Instance.OnAdminRequest += new WebsiteAdmin.AdminRequestHandler(OnAdminRequest);
+			//WebsiteAdmin.Instance.OnAdminRequest += new WebsiteAdmin.AdminRequestHandler(OnAdminRequest);
 		}
 
 		public void Initialise(ModuleRegistry registry)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Data;
 using System.Reflection;
 using System.Globalization;
@@ -12,7 +13,7 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.Merchant.PayPal
 {
-	public partial class PayPalTransactionResponse
+	public partial class PayPalTransactionResponse : IDisposable
 	{
 		public void LoadFromResponseText(string text)
 		{
@@ -24,6 +25,10 @@ namespace Sprocket.Web.Merchant.PayPal
 				string[] kv = s.Split('=');
 				Populate(kv[0], HttpUtility.UrlDecode(kv[1]));
 			}
+		}
+
+		public void Dispose()
+		{
 		}
 	}
 }

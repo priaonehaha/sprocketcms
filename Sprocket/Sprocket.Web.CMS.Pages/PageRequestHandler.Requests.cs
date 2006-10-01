@@ -43,6 +43,7 @@ namespace Sprocket.Web.CMS.Pages
 			placeHolderRenderers.Add("list", new ListPlaceHolderRenderer());
 			placeHolderRenderers.Add("pageentry", new PageEntryPlaceHolderRenderer());
 			placeHolderRenderers.Add("path", new PathPlaceHolderRenderer());
+			placeHolderRenderers.Add("name", new NamePlaceHolderRenderer());
 			if (OnRegisteringPlaceHolderRenderers != null)
 				OnRegisteringPlaceHolderRenderers(placeHolderRenderers);
 		}

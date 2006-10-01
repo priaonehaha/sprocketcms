@@ -84,15 +84,19 @@ namespace Sprocket.Web.Merchant.PayPal
 		/// <summary>
 		/// A Buy Now or Donations button
 		/// </summary>
-		XClick,
+		BuyNowOrDonation,
 		/// <summary>
 		/// A shopping cart
 		/// </summary>
-		Cart,
+		ShoppingCart,
 		/// <summary>
 		/// For prepopulating PayPal account signup. Requires use of the redirect_cmd hidden field.
 		/// </summary>
-		ExtEnter
+		PrePopulatePaypalAccountSignup,
+		/// <summary>
+		/// Used for creating or modifying PayPal subscriptions
+		/// </summary>
+		Subscription
 	}
 
 	public enum PayPalPaymentStatus
@@ -151,5 +155,49 @@ namespace Sprocket.Web.Merchant.PayPal
 		/// This authorization has been voided.
 		/// </summary>
 		Voided
+	}
+
+	public enum PayPalSubscriptionPeriodUnit
+	{
+		Day,
+		Week,
+		Month,
+		Year
+	}
+
+	public static class PayPalEnumToString
+	{
+		public static string From(PayPalCommand cmd)
+		{
+			switch (cmd)
+			{
+				case PayPalCommand.ShoppingCart:
+					return "_cart";
+				case PayPalCommand.BuyNowOrDonation:
+					return "_xclick";
+				case PayPalCommand.PrePopulatePaypalAccountSignup:
+					return "_ext-enter";
+				case PayPalCommand.Subscription:
+					return "_xclick-subscriptions";
+				default:
+					return null;
+			}
+		}
+
+		public static string From(PayPalSubscriptionPeriodUnit unit)
+		{
+			switch (unit)
+			{
+				case PayPalSubscriptionPeriodUnit.Day:
+					return "D";
+				case PayPalSubscriptionPeriodUnit.Week:
+					return "W";
+				case PayPalSubscriptionPeriodUnit.Month:
+					return "M";
+				case PayPalSubscriptionPeriodUnit.Year:
+					return "Y";
+			}
+			return null;
+		}
 	}
 }

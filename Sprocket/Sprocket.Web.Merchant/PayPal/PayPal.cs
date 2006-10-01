@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Web;
+using System.Diagnostics;
 
+using Sprocket.Web.CMS.Pages;
 using Sprocket;
 using Sprocket.Data;
 using Sprocket.SystemBase;
@@ -15,6 +17,7 @@ namespace Sprocket.Web.Merchant.PayPal
 	public sealed class PayPal : ISprocketModule, IDataHandlerModule
 	{
 		public event NotificationEventHandler<PayPalTransactionResponse> OnTransactionResponse;
+		public event NotificationEventHandler<PayPalTransactionResponse> OnInstantPaymentNotification;
 
 		void WebEvents_OnLoadRequestedPath(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
 		{
@@ -24,10 +27,20 @@ namespace Sprocket.Web.Merchant.PayPal
 			switch (sprocketPath)
 			{
 				case "paypal-ipn-process":
+					using (PayPalTransactionResponse resp = InstantPaymentNotification.Authenticate())
+					{
+						if (OnInstantPaymentNotification != null && resp != null)
+							OnInstantPaymentNotification(resp);
+					}
+
 					break;
 
 				case "paypal-trans-return":
-					TransactionReturn();
+					using (PayPalTransactionResponse resp = TransactionReturn())
+					{
+						if (OnTransactionResponse != null && resp != null)
+							OnTransactionResponse(resp);
+					}
 					break;
 
 				default:
@@ -36,16 +49,20 @@ namespace Sprocket.Web.Merchant.PayPal
 			handled.Set();
 		}
 
-		void TransactionReturn()
+		PayPalTransactionResponse TransactionReturn()
 		{
 			HttpContext c = HttpContext.Current;
 			PaymentDataTransfer pdt = new PaymentDataTransfer();
 			pdt.ReadInitialResponse();
 			if (!pdt.AuthenticateResponse())
-				return;
+				return null;
 			pdt.StoreResponseToDatabase();
-			if (OnTransactionResponse != null)
-				OnTransactionResponse(pdt.TransactionResponse);
+			return pdt.TransactionResponse;
+		}
+
+		void PageRequestHandler_OnRegisteringPlaceHolderRenderers(Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers)
+		{
+			placeHolderRenderers.Add("paypal", new PayPalPlaceHolderRenderer());
 		}
 
 		#region Settings Properties
@@ -73,6 +90,17 @@ namespace Sprocket.Web.Merchant.PayPal
 		{
 			get { return _ppsetting("IdentityToken"); }
 		}
+
+		public static string PayPalPostURL
+		{
+			get { return "https://www." + (TestMode ? "sandbox." : "") + "paypal.com/cgi-bin/webscr"; }
+		}
+
+		public static PayPal Instance
+		{
+			get { return (PayPal)SystemCore.Instance["PayPal"]; }
+		}
+
 		#endregion
 
 		#region SprockSettings OnCheckSettings
@@ -116,6 +144,8 @@ namespace Sprocket.Web.Merchant.PayPal
 		{
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			SprocketSettings.Instance.OnCheckingSettings += new SprocketSettings.CheckSettingsHandler(Settings_OnCheckingSettings);
+			if (registry.IsRegistered("PageRequestHandler"))
+				PageRequestHandler.Instance.OnRegisteringPlaceHolderRenderers += new PageRequestHandler.RegisteringPlaceHolderRenderers(PageRequestHandler_OnRegisteringPlaceHolderRenderers);
 		}
 
 		public void Initialise(ModuleRegistry registry)

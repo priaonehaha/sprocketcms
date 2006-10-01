@@ -46,9 +46,7 @@ namespace Sprocket.Web.Merchant.PayPal
 		private PayPalTransactionResponse ppresponse = null;
 		public bool AuthenticateResponse()
 		{
-			WebRequest w = WebRequest.Create(PayPal.TestMode ?
-				"https://www.sandbox.paypal.com/cgi-bin/webscr" :
-				"https://www.paypal.com/cgi-bin/webscr");
+			WebRequest w = WebRequest.Create(PayPal.PayPalPostURL);
 			w.ContentType = "application/x-www-form-urlencoded";
 			w.Method = "POST";
 			string data
