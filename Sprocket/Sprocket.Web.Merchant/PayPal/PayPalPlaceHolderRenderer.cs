@@ -17,6 +17,7 @@ namespace Sprocket.Web.Merchant.PayPal
 					return PayPal.PayPalPostURL;
 
 				case "subscribetest":
+
 					PaypalSubscription pps = new PaypalSubscription();
 					pps.CustomValue = Guid.NewGuid().ToString();
 					pps.ItemName = "Test Subscription";
@@ -26,6 +27,7 @@ namespace Sprocket.Web.Merchant.PayPal
 					pps.SubscriptionPeriodUnit = PayPalSubscriptionPeriodUnit.Day;
 					pps.SubscriptionPrice = 10;
 					pps.TrialPeriodSize = 0;
+					pps.EditMode = PayPalSubscriptionEditMode.ModifyOnly;
 					return pps.GetFormFields();
 
 				default:

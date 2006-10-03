@@ -21,7 +21,17 @@ namespace Sprocket.Web.Merchant.PayPal
 		private string customValue = "";
 		private int itemNumber = 0;
 		private string logoURL = "";
+		private PayPalSubscriptionEditMode editMode = PayPalSubscriptionEditMode.CreateOrModify;
 
+		public PayPalSubscriptionEditMode EditMode
+		{
+			get { return editMode; }
+			set { editMode = value; }
+		}
+
+		/// <summary>
+		/// The URL which will receive instant payment notifications automatically when aspects of the subscription change
+		/// </summary>
 		public string NotifyURL
 		{
 			get { return notifyURL; }
@@ -164,7 +174,7 @@ namespace Sprocket.Web.Merchant.PayPal
 			list.Add(new KeyValuePair<string, object>("sra",		1)); // payments will retry twice more after failure
 			list.Add(new KeyValuePair<string, object>("no_note",	1)); // required internall by paypal
 			list.Add(new KeyValuePair<string, object>("custom",		customValue));
-			list.Add(new KeyValuePair<string, object>("modify",		1));
+			list.Add(new KeyValuePair<string, object>("modify",		PayPalEnumToString.From(editMode)));
 
 			return list;
 		}
@@ -175,6 +185,11 @@ namespace Sprocket.Web.Merchant.PayPal
 			foreach (KeyValuePair<string, object> kvp in GetPostVars())
 				sb.AppendFormat("<input type=\"hidden\" name=\"{0}\" value=\"{1}\" />", kvp.Key, HttpUtility.HtmlEncode(kvp.Value.ToString()));
 			return sb.ToString();
+		}
+
+		public static string GetCancelLink(string paypalMerchantEmail)
+		{
+			return PayPal.PayPalPostURL + "?cmd=_subscr-find&alias=" + paypalMerchantEmail;
 		}
 	}
 }
