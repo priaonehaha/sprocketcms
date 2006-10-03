@@ -30,7 +30,10 @@ namespace Sprocket.Web.CMS.Pages
 
 		private Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers = new Dictionary<string, IPlaceHolderRenderer>();
 		public delegate void RegisteringPlaceHolderRenderers(Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers);
+		public delegate void BeforeRenderPage(PageEntry page, string sprocketPath, string[] pathSections);
 		public event RegisteringPlaceHolderRenderers OnRegisteringPlaceHolderRenderers;
+		public event BeforeRenderPage OnBeforeRenderPage;
+
 		internal Dictionary<string, IPlaceHolderRenderer> PlaceHolderRenderers
 		{
 			get { return placeHolderRenderers; }
@@ -85,6 +88,8 @@ namespace Sprocket.Web.CMS.Pages
 					PageEntry page = PageRegistry.Pages.FromPath(sprocketPath);
 					if(page == null)
 						return;
+					if (OnBeforeRenderPage != null)
+						OnBeforeRenderPage(page, sprocketPath, pathSections);
 					string output = page.Render();
 					if (output == null)
 						return;

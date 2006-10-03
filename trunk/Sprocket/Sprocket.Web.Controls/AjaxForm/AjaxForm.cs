@@ -441,9 +441,11 @@ namespace Sprocket.Web.Controls
 			writer.Write("}");
 		}
 
-		public void ReadPostedForm()
+		public bool ReadPostedForm()
 		{
 			HttpRequest Request = HttpContext.Current.Request;
+			if (Request.Form["RecordID"] == null)
+				return false;
 			formName = Request.Form["FormName"];
 			recordID = Request.Form["RecordID"] == "" ? (Guid?)null : new Guid(Request.Form["RecordID"]);
 			foreach (string blockName in Request.Form.GetValues("_BlockName"))
@@ -454,6 +456,7 @@ namespace Sprocket.Web.Controls
 				if(block.Fields.Count > 0)
 					blocks.Add(blockName, block);
 			}
+			return true;
 		}
 	}
 

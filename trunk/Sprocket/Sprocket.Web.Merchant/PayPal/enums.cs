@@ -165,6 +165,13 @@ namespace Sprocket.Web.Merchant.PayPal
 		Year
 	}
 
+	public enum PayPalSubscriptionEditMode
+	{
+		CreateOnly,
+		CreateOrModify,
+		ModifyOnly
+	}
+
 	public static class PayPalEnumToString
 	{
 		public static string From(PayPalCommand cmd)
@@ -179,9 +186,8 @@ namespace Sprocket.Web.Merchant.PayPal
 					return "_ext-enter";
 				case PayPalCommand.Subscription:
 					return "_xclick-subscriptions";
-				default:
-					return null;
 			}
+			return null;
 		}
 
 		public static string From(PayPalSubscriptionPeriodUnit unit)
@@ -196,6 +202,20 @@ namespace Sprocket.Web.Merchant.PayPal
 					return "M";
 				case PayPalSubscriptionPeriodUnit.Year:
 					return "Y";
+			}
+			return null;
+		}
+
+		public static string From(PayPalSubscriptionEditMode type)
+		{
+			switch (type)
+			{
+				case PayPalSubscriptionEditMode.CreateOnly:
+					return "0";
+				case PayPalSubscriptionEditMode.CreateOrModify:
+					return "1";
+				case PayPalSubscriptionEditMode.ModifyOnly:
+					return "2";
 			}
 			return null;
 		}
