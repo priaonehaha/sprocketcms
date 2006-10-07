@@ -76,6 +76,11 @@ namespace Sprocket.Web.Merchant.PayPal
 			get { return SprocketSettings.GetBooleanValue("PayPalTestMode"); }
 		}
 
+		public static string PayPalIpnUrl
+		{
+			get { return SprocketSettings.GetValue("PayPal-IPN-URL"); }
+		}
+
 		public static bool IntegrationEnabled
 		{
 			get { return SprocketSettings.GetBooleanValue("PayPalIntegration"); }
