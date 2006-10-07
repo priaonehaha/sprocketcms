@@ -11,7 +11,7 @@ namespace Sprocket.Web.Merchant.PayPal
 		private string itemName = "";
 		private string returnURL = WebUtility.BaseURL;
 		private string cancelURL = WebUtility.BaseURL + "paypal-cancel/";
-		private string notifyURL = WebUtility.BaseURL + "paypal-ipn-process/";
+		private string notifyURL = PayPal.PayPalIpnUrl;
 		private double trialPeriodPrice = 0;
 		private int trialPeriodSize = 1;
 		private PayPalSubscriptionPeriodUnit trialPeriodUnit = PayPalSubscriptionPeriodUnit.Month;
@@ -153,6 +153,7 @@ namespace Sprocket.Web.Merchant.PayPal
 			list.Add(new KeyValuePair<string, object>("cmd",			PayPalEnumToString.From(PayPalCommand.Subscription)));
 			list.Add(new KeyValuePair<string, object>("business",		PayPal.AccountAddress));
 			list.Add(new KeyValuePair<string, object>("item_name",		itemName));
+			list.Add(new KeyValuePair<string, object>("item_number",	itemNumber));
 			list.Add(new KeyValuePair<string, object>("return",			returnURL));
 			list.Add(new KeyValuePair<string, object>("notify_url",		notifyURL));
 			list.Add(new KeyValuePair<string, object>("cancel_return",	cancelURL));

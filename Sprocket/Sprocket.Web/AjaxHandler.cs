@@ -190,6 +190,8 @@ namespace Sprocket.Web
 						}
 						else if (t.IsAssignableFrom(typeof(Guid)) || t.IsAssignableFrom(typeof(Guid?)))
 							prmValuesForMethod[i] = parsedArguments[i] == null ? (Guid?)null : new Guid(parsedArguments[i].ToString());
+						else if (t.Name.StartsWith("Nullable`"))
+							prmValuesForMethod[i] = Convert.ChangeType(parsedArguments[i], t.GetGenericArguments()[0]);
 						else
 							prmValuesForMethod[i] = Convert.ChangeType(parsedArguments[i], t);
 					}
