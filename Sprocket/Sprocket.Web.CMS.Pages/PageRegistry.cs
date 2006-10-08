@@ -34,12 +34,9 @@ namespace Sprocket.Web.CMS.Pages
 
 		private void Init()
 		{
-<<<<<<< .mine
 			pagesDocPath = WebUtility.MapPath(XmlFilePath);
 			pagesDoc = new XmlDocument();
 			pagesDoc.Load(pagesDocPath);
-=======
->>>>>>> .r19
 			pages = new List<PageEntry>();
 			requestPaths = new Dictionary<string, PageEntry>();
 			pageCodes = new Dictionary<string, PageEntry>();
