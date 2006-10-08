@@ -18,6 +18,7 @@ namespace Sprocket.Web.CMS.Pages
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			if (!File.Exists(PageRegistry.XmlFilePath)) return;
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(OnBeginHttpRequest);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(OnEndHttpRequest);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);

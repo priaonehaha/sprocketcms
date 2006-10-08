@@ -69,6 +69,14 @@ namespace Sprocket.Web
 		public event RequestedPathEventHandler OnLoadRequestedPath;
 
 		/// <summary>
+		/// If Sprocket has not internally served up a response to the requested path, then a check is
+		/// performed to see if the path corresponds to an actual existing file. If it does, then this
+		/// event is called to provide a last chance opportunity to alter the response before the file
+		/// is served.
+		/// </summary>
+		public event RequestedPathEventHandler OnBeforeLoadExistingFile;
+
+		/// <summary>
 		/// This event allows you to "have the last word" and do your own custom error page handling
 		/// before a standard ASP.Net 404 page is served. Naturally, use the "handled" flag to let
 		/// Sprocket know you handled the 404 page and prevent it from serving the standard 404 page.
@@ -201,6 +209,17 @@ namespace Sprocket.Web
 			// files.
 			if (!flag.Handled && File.Exists(pg.Request.PhysicalPath))
 			{
+				// here we provide a last chance opportunity to alter the response before the
+				// file is served.
+				if (OnBeforeLoadExistingFile != null)
+				{
+					OnBeforeLoadExistingFile((HttpApplication)sender, sprocketPath, pathSections, flag);
+					if (flag.Handled)
+					{
+						pg.Response.End();
+						return;
+					}
+				}
 				HttpContext.Current.RewritePath(pg.Request.Path);
 				return;
 			}

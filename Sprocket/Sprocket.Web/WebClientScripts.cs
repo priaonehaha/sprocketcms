@@ -143,6 +143,7 @@ namespace Sprocket.Web
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
 		}
 
 		public string RegistrationCode
@@ -158,6 +159,16 @@ namespace Sprocket.Web
 		public string ShortDescription
 		{
 			get { return "Handles javascript aggregation and rendering to the page."; }
+		}
+
+		void Instance_OnBeforeLoadExistingFile(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		{
+			if(sprocketPath.EndsWith(".js"))
+				if (SprocketSettings.GetBooleanValue("CompressJavaScript"))
+				{
+					HttpContext.Current.Response.Write(WebUtility.CacheTextFile(sprocketPath, true));
+					handled.Set();
+				}
 		}
 	}
 
@@ -225,7 +236,7 @@ namespace Sprocket.Web
 					js = js.Replace(key.Key, key.Value.ToString());
 				sb.Append("<script language=\"JavaScript\">");
 				sb.Append(Environment.NewLine);
-				if (SprocketSettings.GetValue("CompressJavaScript").ToLower() == "true")
+				if (SprocketSettings.GetBooleanValue("CompressJavaScript"))
 					js = JavaScriptCondenser.Condense(js);
 				sb.Append(js);
 				sb.Append(Environment.NewLine);

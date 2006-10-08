@@ -70,6 +70,8 @@ namespace Sprocket.Web.CMS.Pages
 		{
 			if (handled.Handled) return;
 
+			if (!File.Exists(PageRegistry.XmlFilePath)) return;
+
 			switch (sprocketPath)
 			{
 				case "$reset":
@@ -102,6 +104,7 @@ namespace Sprocket.Web.CMS.Pages
 
 		void OnPathNotFound(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
 		{
+			if (handled.Handled) return;
 			if (!sprocketPath.Contains(".")) return;
 			string urlpath;
 			if (pathSections.Length == 1)
