@@ -70,7 +70,7 @@ namespace Sprocket.Web.CMS.Pages
 		{
 			if (handled.Handled) return;
 
-			if (!File.Exists(PageRegistry.XmlFilePath)) return;
+			if (!File.Exists(WebUtility.MapPath(PageRegistry.XmlFilePath))) return;
 
 			switch (sprocketPath)
 			{
