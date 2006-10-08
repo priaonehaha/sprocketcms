@@ -27,8 +27,19 @@ namespace Sprocket.Web.CMS.Pages
 			instance = new PageRegistry();
 		}
 
+		public static string XmlFilePath
+		{
+			get { return "resources/definitions/pages.xml"; }
+		}
+
 		private void Init()
 		{
+<<<<<<< .mine
+			pagesDocPath = WebUtility.MapPath(XmlFilePath);
+			pagesDoc = new XmlDocument();
+			pagesDoc.Load(pagesDocPath);
+=======
+>>>>>>> .r19
 			pages = new List<PageEntry>();
 			requestPaths = new Dictionary<string, PageEntry>();
 			pageCodes = new Dictionary<string, PageEntry>();
