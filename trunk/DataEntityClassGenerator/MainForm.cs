@@ -604,12 +604,12 @@ namespace ClassGenerator
 				return;
 			}
 			string[] sqlarr = Regex.Split(sqltext, @"\sgo\s", RegexOptions.IgnoreCase);
-			foreach (string sql in sqlarr)
+			for (int i=0; i<sqlarr.Length; i++)
 			{
-				if (sql == "")
+				if (sqlarr[i] == "")
 					continue;
 				SqlCommand cmd = conn.CreateCommand();
-				cmd.CommandText = sql;
+				cmd.CommandText = sqlarr[i];
 				cmd.CommandType = CommandType.Text;
 				try
 				{

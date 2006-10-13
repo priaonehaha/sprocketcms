@@ -69,9 +69,28 @@ END
 
 go
 
+IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Count' AND type='P')
+	DROP PROCEDURE [classname]_Count
+
+go
+
+CREATE PROCEDURE dbo.[classname]_Count
+	[filterparameters],
+	@Count int = NULL OUTPUT
+AS
+BEGIN
+	SELECT @Count = COUNT(*)
+	  FROM [tablename]
+	 WHERE [filterconditions]
+END
+
+go
+
 IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Filter' AND type='P')
 	DROP PROCEDURE [classname]_Filter
+
 go
+
 CREATE PROCEDURE dbo.[classname]_Filter
 	[filterparameters],
 	@OrderByFieldName nvarchar(150) = null,
