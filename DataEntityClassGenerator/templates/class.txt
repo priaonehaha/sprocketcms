@@ -172,6 +172,17 @@ namespace [namespace]
 			return results;
 		}
 		
+		public static int Count([filterparams])
+		{
+			Database.Main.RememberOpenState();
+			IDbCommand cmd = Database.Main.CreateCommand("[classname]_Count", CommandType.StoredProcedure);
+			[filtercommandparameters]
+			IDataParameter outPrm = Database.Main.AddOutputParameter(cmd, "@Count", DbType.Int32);
+			cmd.ExecuteNonQuery();
+			Database.Main.CloseIfWasntOpen();
+			return (int)outPrm.Value;
+		}
+		
 		public static List<[classname]> FilterSorted([filterparams], Field orderByField, OrderDirection direction)
 		{
 			int? tmp;
