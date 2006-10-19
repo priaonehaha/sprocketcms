@@ -12,7 +12,7 @@ namespace Sprocket
 	/// <summary>
 	/// Handles discovery, loading, registration and dependency checking of Sprocket modules.
 	/// </summary>
-	public class ModuleCore
+	public class ModuleHandler
 	{
 		private ModuleRegistry registry = new ModuleRegistry();
 		/// <summary>
