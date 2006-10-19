@@ -13,13 +13,9 @@ namespace Sprocket.Web
 	/// the application, which is both annoying and useful. :P
 	/// </summary>
 	[ModuleDescription("Provides a mechanism for storing global data confined to the scope of the current request.")]
+	[ModuleTitle("Current Request State Handler")]
 	public class CurrentRequest : ISprocketModule
 	{
-		public string Title
-		{
-			get { return "Current Request State Handler"; }
-		}
-
 		private static CurrentRequest cr = null;
 		public static CurrentRequest Value
 		{

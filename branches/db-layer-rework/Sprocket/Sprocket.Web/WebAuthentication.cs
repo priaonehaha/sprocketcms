@@ -8,8 +8,9 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web
 {
-	[ModuleDependency("WebClientScripts")]
+	[ModuleDependency(typeof(WebClientScripts))]
 	[ModuleDescription("Provides an interface for authenticating web requests.")]
+	[ModuleTitle("Web Authentication Manager")]
 	public class WebAuthentication : ISprocketModule
 	{
 		public delegate void AjaxAuthKeyStoredHandler(string username, Guid authKey);
@@ -20,7 +21,7 @@ namespace Sprocket.Web
 
 		public static WebAuthentication Instance
 		{
-			get { return (WebAuthentication)Core.Instance["WebAuthentication"]; }
+			get { return (WebAuthentication)Core.Instance[typeof(WebAuthentication)].Module; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -35,13 +36,13 @@ namespace Sprocket.Web
 			string psl = SprocketSettings.GetValue("PreventSimultaneousLogins");
 			if (psl == null)
 			{
-				errors.Add(GetType().FullName, "The Web.config file is missing a value for \"PreventSimultaneousLogins\". The value should be \"True\" or \"False\".");
+				errors.Add(Core.Instance[this].Title , "The Web.config file is missing a value for \"PreventSimultaneousLogins\". The value should be \"True\" or \"False\".");
 				errors.SetCriticalError();
 				return;
 			}
 			if (psl.ToLower() != "true" && psl.ToLower() != "false")
 			{
-				errors.Add(GetType().FullName, "The Web.config file value for \"PreventSimultaneousLogins\" is invalid. The value should be \"True\" or \"False\".");
+				errors.Add(Core.Instance[this].Title, "The Web.config file value for \"PreventSimultaneousLogins\" is invalid. The value should be \"True\" or \"False\".");
 				errors.SetCriticalError();
 				return;
 			}
@@ -50,11 +51,6 @@ namespace Sprocket.Web
 		bool AllowSimultaneousLogins
 		{
 			get { return !bool.Parse(SprocketSettings.GetValue("PreventSimultaneousLogins")); }
-		}
-
-		public string Title
-		{
-			get { return "Web Authentication Manager"; }
 		}
 
 		public bool CheckAjaxAuthKey(Guid key)

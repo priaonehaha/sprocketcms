@@ -5,7 +5,6 @@ using System.IO;
 
 using Sprocket;
 using Sprocket.Utility;
-using Sprocket;
 
 namespace Sprocket.Web
 {
@@ -19,9 +18,10 @@ namespace Sprocket.Web
 	/// WebInitialiserHttpModule class, which implements the IHttpModule interface required for Sprocket
 	/// to hook into the ASP.Net pipeline.
 	/// </summary>
-	[ModuleDependency("SprocketSettings")]
-	[ModuleDependency("SystemEvents")]
+	[ModuleDependency(typeof(SprocketSettings))]
+	[ModuleDependency(typeof(SystemEvents))]
 	[ModuleDescription("Provides the interface by which Sprocket hooks into the ASP.Net pipeline and associated events.")]
+	[ModuleTitle("HttpApplication Event Manager")]
 	public class WebEvents : ISprocketModule
 	{
 		public delegate void HttpApplicationEventHandler(HttpApplication app);
@@ -271,7 +271,7 @@ namespace Sprocket.Web
 		private void ShowErrorPage()
 		{
 			string html = ResourceLoader.LoadTextResource("Sprocket.Web.html.errorpage.htm");
-			SprocketSettings.SettingsErrors errors = ((SprocketSettings)Core.Instance["SprocketSettings"]).ErrorList;
+			SprocketSettings.SettingsErrors errors = SprocketSettings.Instance.ErrorList;
 			string str = "";
 			foreach (KeyValuePair<string, List<string>> error in errors.List)
 			{
@@ -287,17 +287,12 @@ namespace Sprocket.Web
 
 		public static WebEvents Instance
 		{
-			get { return (WebEvents)Core.Instance["WebEvents"]; }
+			get { return (WebEvents)Core.Instance[typeof(WebEvents)].Module; }
 		}
 
 		#region ISprocketModule
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-		}
-
-		public string Title
-		{
-			get { return "HttpApplication Event Manager"; }
 		}
 
 		#endregion

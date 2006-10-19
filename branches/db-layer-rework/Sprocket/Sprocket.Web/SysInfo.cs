@@ -9,14 +9,13 @@ using System.IO;
 using System.Reflection;
 
 using Sprocket;
-using Sprocket;
 using Sprocket.Utility;
-using Sprocket.Data;
 
 namespace Sprocket.Web
 {
-	[ModuleDependency("WebEvents")]
+	[ModuleDependency(typeof(WebEvents))]
 	[ModuleDescription("Displays information relating to the current Sprocket installation and setup")]
+	[ModuleTitle("Sprocket System Information Viewer")]
 	class SysInfo : ISprocketModule
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -51,7 +50,7 @@ namespace Sprocket.Web
 						pos++;
 						maxpos = maxpos < pos ? pos : maxpos;
 					}
-					modulePositions[m.Module.GetType().FullName] = pos;
+					modulePositions[m.Namespace] = pos;
 					levelCounts[levels] = pos;
 				}
 
@@ -60,9 +59,9 @@ namespace Sprocket.Web
 				int heightGap = 25;
 				int widthGap = 15;
 				int lineGap = 10;
-				int bmpWidth = maxpos * rectWidth + (maxpos-1) * widthGap + 11;
+				int bmpWidth = maxpos * rectWidth + (maxpos - 1) * widthGap + 11;
 				//  bmpHeight = top/bottom margins + combined height of boxes + the gaps between the levels
-				int bmpHeight = (heightGap * 2) + (rectHeight * (levels+1)) + (levels * heightGap) + 1;
+				int bmpHeight = (heightGap * 2) + (rectHeight * (levels + 1)) + (levels * heightGap) + 1;
 
 				Bitmap bmp = new Bitmap(bmpWidth, bmpHeight);
 				Graphics gfx = Graphics.FromImage(bmp);
@@ -79,7 +78,7 @@ namespace Sprocket.Web
 				// draw rectangles
 				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
-					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.GetType().FullName], levels, levelCounts[m.Importance], bmpWidth);
+					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Namespace], levels, levelCounts[m.Importance], bmpWidth);
 					gfx.FillRectangle(greyBrush, rect);
 					gfx.DrawRectangle(pen, rect);
 				}
@@ -87,20 +86,20 @@ namespace Sprocket.Web
 				// draw lines
 				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
-					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.GetType().FullName], levels, levelCounts[m.Importance], bmpWidth);
+					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Namespace], levels, levelCounts[m.Importance], bmpWidth);
 
-					ModuleDependencyAttribute[] atts = (ModuleDependencyAttribute[])Attribute.GetCustomAttributes(m.GetType(), typeof(ModuleDependencyAttribute), true);
+					ModuleDependencyAttribute[] atts = (ModuleDependencyAttribute[])Attribute.GetCustomAttributes(m.Module.GetType(), typeof(ModuleDependencyAttribute), true);
 					int attnum = 0;
 					foreach (ModuleDependencyAttribute att in atts)
 					{
 						attnum++;
-						RegisteredModule dm = Core.Modules.ModuleRegistry[att.Value];
+						RegisteredModule dm = Core.Modules.ModuleRegistry[att.ModuleType.FullName];
 						int xmodstart = (rectWidth / 2) - ((atts.Length - 1) * lineGap) / 2 + ((attnum - 1) * lineGap);
 						int xmodend = Math.Max(bmpWidth / 2 - (levelCounts[dm.Importance] * rectWidth + (levelCounts[dm.Importance] - 1) * widthGap) / 2, 0);
 						int level = dm.Importance + 1;
-						int dmxpos = modulePositions[dm.Module.GetType().FullName];
+						int dmxpos = modulePositions[dm.Namespace];
 						Point start = new Point(rect.X + xmodstart, rect.Y);
-						Point end = new Point(xmodend + (dmxpos-1)*rectWidth + (dmxpos-1)*widthGap + rectWidth/2,
+						Point end = new Point(xmodend + (dmxpos - 1) * rectWidth + (dmxpos - 1) * widthGap + rectWidth / 2,
 							heightGap + level * rectHeight + (level - 1) * heightGap);
 						Color color;
 						switch (attnum % 7)
@@ -120,11 +119,15 @@ namespace Sprocket.Web
 				}
 
 				// write words
+				StringFormat fmt = new StringFormat();
+				fmt.Alignment = StringAlignment.Center;
+				fmt.LineAlignment = StringAlignment.Center;
+				fmt.Trimming = StringTrimming.Character;
 				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
-					string name = m.Module.GetType().FullName;
-					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[name], levels, levelCounts[m.Importance], bmpWidth);
-					gfx.DrawString(name, font, blackBrush, new PointF(rect.X + 3, rect.Y + 3));
+					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Namespace],
+						levels, levelCounts[m.Importance], bmpWidth);
+					gfx.DrawString(m.Title, font, blackBrush, new Rectangle(rect.X + 3, rect.Y + 3, rect.Width - 6, rect.Height - 6), fmt);
 				}
 
 				bmp.Save(app.Context.Response.OutputStream, ImageFormat.Jpeg);
@@ -151,16 +154,15 @@ namespace Sprocket.Web
 			HttpResponse Response = HttpContext.Current.Response;
 			string modules = "<tr>" +
 				"<th nowrap=\"true\">Assembly</th>" +
-				"<th nowrap=\"true\">Module Code</th>" +
+				"<th nowrap=\"true\">Module Namespace</th>" +
 				"<th nowrap=\"true\">Module Name</th>" +
 				"<th>Description</th>" +
 				"<th>Optional</th>" +
-				"<th>DataHandler</th>" +
 				"</tr>";
 			bool alt = false;
 			List<ISprocketModule> bydll = new List<ISprocketModule>();
-			foreach (ISprocketModule module in Core.Instance.ModuleRegistry)
-				bydll.Add(module);
+			foreach (RegisteredModule module in Core.Instance.ModuleRegistry)
+				bydll.Add(module.Module);
 
 			bydll.Sort(delegate(ISprocketModule x, ISprocketModule y)
 			{
@@ -190,31 +192,24 @@ namespace Sprocket.Web
 					filename = "&nbsp;";
 					newdllrow = false;
 				}
-				ModuleDescriptionAttribute att = (ModuleDescriptionAttribute)Attribute.GetCustomAttribute(module.GetType(), typeof(ModuleDescriptionAttribute));
-				string descr = att == null ? "&nbsp;" : att.Description;
-				string name = module.GetType().FullName;
+				RegisteredModule m = Core.Instance[module];
+
 				modules += string.Format(
 					"<tr class=\"row-{0}{2}\">" +
 					"<td valign=\"top\" class=\"assembly-{1}\">" + filename + "</td>" +
-					"<td valign=\"top\" class=\"module-code-{0}\"><strong>" + name + "</strong></td>" +
-					"<td valign=\"top\" nowrap=\"true\" class=\"module-title-{0}\">" + module.Title + "</td>" +
-					"<td valign=\"top\">" + descr + "</td>" +
+					"<td valign=\"top\" class=\"module-code-{0}\"><strong>" + m.Namespace + "</strong></td>" +
+					"<td valign=\"top\" nowrap=\"true\" class=\"module-title-{0}\">" + m.Title + "</td>" +
+					"<td valign=\"top\">" + m.Description + "</td>" +
 					"<td valign=\"top\">" + (module is IOptionalModule ? "x" : "&nbsp;") + "</td>" +
-					"<td valign=\"top\">" + (module is IDataHandlerModule ? "x" : "&nbsp;") + "</td>" +
 					"</tr>",
 					alt ? "alt2" : "alt1",
 					altf ? "alt2" : "alt1",
 					newdllrow ? " newdllrow" : "");
 				alt = !alt;
 			}
-			
+
 			html = html.Replace("{modules}", modules);
 			Response.Write(html);
-		}
-
-		public string Title
-		{
-			get { return "Sprocket System Information Viewer"; }
 		}
 	}
 }

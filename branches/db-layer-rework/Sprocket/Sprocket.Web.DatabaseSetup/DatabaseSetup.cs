@@ -8,9 +8,10 @@ using Sprocket;
 
 namespace Sprocket.Web.DatabaseSetup
 {
-	[ModuleDependency("DatabaseManager")]
-	[ModuleDependency("WebEvents")]
+	[ModuleDependency(typeof(DatabaseManager))]
+	[ModuleDependency(typeof(WebEvents))]
 	[ModuleDescription("Provides a web interface for database setip and initialisation")]
+	[ModuleTitle("Database Setup Interface")]
 	public class DatabaseSetup : ISprocketModule
 	{
 		void Instance_OnLoadRequestedPath(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
@@ -26,7 +27,7 @@ namespace Sprocket.Web.DatabaseSetup
 
 		public static DatabaseSetup Instance
 		{
-			get { return (DatabaseSetup)Core.Instance["DatabaseSetup"]; }
+			get { return (DatabaseSetup)Core.Instance[typeof(DatabaseSetup)].Module; }
 		}
 
 		#region ISprocketModule Members
@@ -34,11 +35,6 @@ namespace Sprocket.Web.DatabaseSetup
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(Instance_OnLoadRequestedPath);
-		}
-
-		public string Title
-		{
-			get { return "Database Setup Interface"; }
 		}
 
 		#endregion

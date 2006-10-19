@@ -12,16 +12,17 @@ using Sprocket.Data;
 
 namespace Sprocket.Web.CMS.Pages
 {
-	[ModuleDependency("WebEvents")]
-	[ModuleDependency("DatabaseManager")]
-	[ModuleDependency("SecurityProvider")]
-	[ModuleDependency("FileManager")]
+	[ModuleDependency(typeof(WebEvents))]
+	[ModuleDependency(typeof(DatabaseManager))]
+	//[ModuleDependency(typeof(SecurityProvider))]
+	//[ModuleDependency(typeof(FileManager))]
 	[ModuleDescription("Handles requests website pages and performs other page-related tasks")]
+	[ModuleTitle("Web Page Request Handler")]
 	public partial class PageRequestHandler : ISprocketModule
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			Core.Instance.OnInitialise += new EmptyEventHandler(Instance_OnInitialise);
+			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Instance_OnInitialise);
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(OnBeginHttpRequest);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(OnEndHttpRequest);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);
@@ -29,15 +30,10 @@ namespace Sprocket.Web.CMS.Pages
 			WebsiteAdmin.Instance.OnAdminRequest += new WebsiteAdmin.AdminRequestHandler(OnAdminRequest);
 		}
 
-		void Instance_OnInitialise()
+		void Instance_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
 		{
 			RegisterPlaceHolderRenderers();
 			RegisterOutputFormatters();
-		}
-
-		public string Title
-		{
-			get { return "Web Page Request Handler"; }
 		}
 	}
 }
