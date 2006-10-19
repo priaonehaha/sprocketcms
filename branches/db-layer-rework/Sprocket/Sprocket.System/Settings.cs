@@ -4,7 +4,7 @@ using System.Configuration;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 using System.Xml;
 
@@ -69,7 +69,7 @@ namespace Sprocket
 		/// <returns>The settings value</returns>
 		public static string GetValue(string key)
 		{
-			return ((SprocketSettings)SystemCore.Instance["SprocketSettings"])[key];
+			return ((SprocketSettings)Core.Instance["SprocketSettings"])[key];
 		}
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace Sprocket
 		/// <returns>A boolean representation of the settings value</returns>
 		public static bool GetBooleanValue(string key)
 		{
-			string val = ((SprocketSettings)SystemCore.Instance["SprocketSettings"])[key];
+			string val = ((SprocketSettings)Core.Instance["SprocketSettings"])[key];
 			if (val == null) return false;
 			return Utilities.MatchesAny(val.ToLower(), "true", "yes", "on", "1");
 		}
@@ -97,7 +97,7 @@ namespace Sprocket
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			SystemCore.Instance.OnEventsAttached += new EmptyEventHandler(OnEventsAttached);
+			Core.Instance.OnEventsAttached += new EmptyEventHandler(OnEventsAttached);
 		}
 
 		/// <summary>

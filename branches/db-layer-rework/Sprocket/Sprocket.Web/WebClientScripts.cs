@@ -46,7 +46,7 @@ namespace Sprocket.Web
 
 		public static WebClientScripts Instance
 		{
-			get { return (WebClientScripts)SystemCore.Instance["WebClientScripts"]; }
+			get { return (WebClientScripts)Core.Instance["WebClientScripts"]; }
 		}
 
 		/// <summary>
@@ -127,7 +127,7 @@ namespace Sprocket.Web
 					ResourceLoader.LoadTextResource("Sprocket.Web.javascript.browser-tools.js"),
 					ResourceLoader.LoadTextResource("Sprocket.Web.javascript.json.js"),
 					ResourceLoader.LoadTextResource("Sprocket.Web.javascript.ajax.js"),
-					GetAjaxMethodsScript(SystemCore.Instance.ModuleRegistry)
+					GetAjaxMethodsScript(Core.Instance.ModuleRegistry)
 					);
 			}
 

@@ -38,7 +38,7 @@ namespace Sprocket.Web
 				int maxpos = 1; // the highest box position for the current row
 				Dictionary<string, int> modulePositions = new Dictionary<string, int>(); // store which horizontal position each module should have its box drawn in
 				Dictionary<int, int> levelCounts = new Dictionary<int, int>(); // specify how many box positions are on each depth level
-				foreach (RegisteredModule m in SystemCore.Instance.ModuleRegistry)
+				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
 					if (m.Importance > levels) // if we've hit the next depth level in the heirarchy
 					{
@@ -76,7 +76,7 @@ namespace Sprocket.Web
 				gfx.SmoothingMode = SmoothingMode.AntiAlias;
 
 				// draw rectangles
-				foreach (RegisteredModule m in SystemCore.Instance.ModuleRegistry)
+				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
 					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.RegistrationCode], levels, levelCounts[m.Importance], bmpWidth);
 					gfx.FillRectangle(greyBrush, rect);
@@ -84,7 +84,7 @@ namespace Sprocket.Web
 				}
 
 				// draw lines
-				foreach (RegisteredModule m in SystemCore.Instance.ModuleRegistry)
+				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
 					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.RegistrationCode], levels, levelCounts[m.Importance], bmpWidth);
 
@@ -93,7 +93,7 @@ namespace Sprocket.Web
 					foreach (ModuleDependencyAttribute att in atts)
 					{
 						attnum++;
-						RegisteredModule dm = SystemCore.ModuleCore.ModuleRegistry[att.Value];
+						RegisteredModule dm = Core.ModuleCore.ModuleRegistry[att.Value];
 						int xmodstart = (rectWidth / 2) - ((atts.Length - 1) * lineGap) / 2 + ((attnum - 1) * lineGap);
 						int xmodend = Math.Max(bmpWidth / 2 - (levelCounts[dm.Importance] * rectWidth + (levelCounts[dm.Importance] - 1) * widthGap) / 2, 0);
 						int level = dm.Importance + 1;
@@ -119,7 +119,7 @@ namespace Sprocket.Web
 				}
 
 				// write words
-				foreach (RegisteredModule m in SystemCore.Instance.ModuleRegistry)
+				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
 					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.RegistrationCode], levels, levelCounts[m.Importance], bmpWidth);
 					gfx.DrawString(m.Module.RegistrationCode, font, blackBrush, new PointF(rect.X + 3, rect.Y + 3));
@@ -157,7 +157,7 @@ namespace Sprocket.Web
 				"</tr>";
 			bool alt = false;
 			List<ISprocketModule> bydll = new List<ISprocketModule>();
-			foreach (ISprocketModule module in SystemCore.Instance.ModuleRegistry)
+			foreach (ISprocketModule module in Core.Instance.ModuleRegistry)
 				bydll.Add(module);
 
 			bydll.Sort(new ModuleDLLSortComparer());

@@ -1,7 +1,7 @@
 using System;
 using Sprocket;
 
-namespace Sprocket.SystemBase
+namespace Sprocket
 {
 	public interface ISprocketModule
 	{

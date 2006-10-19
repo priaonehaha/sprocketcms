@@ -54,7 +54,7 @@ namespace Sprocket.Data
 			get
 			{
 				if (DefaultName == "")
-					((DatabaseManager)SystemCore.Instance["DatabaseManager"]).LoadDefaultDatabase();
+					((DatabaseManager)Core.Instance["DatabaseManager"]).LoadDefaultDatabase();
 				return Get(DefaultName);
 			}
 		}

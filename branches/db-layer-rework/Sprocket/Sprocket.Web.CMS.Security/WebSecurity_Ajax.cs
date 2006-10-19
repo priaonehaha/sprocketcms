@@ -182,7 +182,7 @@ namespace Sprocket.Web.CMS.Security
 				return new Result("You don't have permission to modify this user.");
 			if (user.Locked)
 				return new Result("This user cannot be deleted.");
-			return ((SecurityProvider)SystemCore.Instance["SecurityProvider"]).DeleteUser(user);
+			return ((SecurityProvider)Core.Instance["SecurityProvider"]).DeleteUser(user);
 		}
 
 		[AjaxMethod(RequiresAuthentication = true)]
@@ -327,7 +327,7 @@ namespace Sprocket.Web.CMS.Security
 				return new Result("You don't have permission to modify this role.");
 			if (role.Locked)
 				return new Result("This role cannot be deleted.");
-			return ((SecurityProvider)SystemCore.Instance["SecurityProvider"]).DeleteRole(role);
+			return ((SecurityProvider)Core.Instance["SecurityProvider"]).DeleteRole(role);
 		}
 		#endregion
 	}

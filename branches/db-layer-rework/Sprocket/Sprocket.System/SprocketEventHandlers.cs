@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Sprocket;
-using Sprocket.SystemBase;
+using Sprocket;
 
 namespace Sprocket
 {

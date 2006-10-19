@@ -27,7 +27,7 @@ namespace Sprocket.Web
 	{
 		public static AjaxRequestHandler Instance
 		{
-			get { return (AjaxRequestHandler)SystemCore.Instance["AjaxRequestHandler"]; }
+			get { return (AjaxRequestHandler)Core.Instance["AjaxRequestHandler"]; }
 		}
 
 		#region ISprocketModule Members
@@ -122,7 +122,7 @@ namespace Sprocket.Web
 				List<object> parsedArguments = (List<object>)data["MethodArgs"];
 
 				// find and verify the module/method that should handle this request
-				ISprocketModule module = SystemCore.Instance[moduleName];
+				ISprocketModule module = Core.Instance[moduleName];
 				if(module == null)
 					throw new AjaxException("The specified module \"" + func[0] + "\" was not found.");
 				if(Attribute.GetCustomAttribute(module.GetType(), typeof(AjaxMethodHandlerAttribute), false) == null)
@@ -136,7 +136,7 @@ namespace Sprocket.Web
 				AjaxMethodAttribute attr = (AjaxMethodAttribute)ajaxMethodAttr;
 				if (attr.RequiresAuthentication)
 				{
-					WebAuthentication auth = (WebAuthentication)SystemCore.Instance["WebAuthentication"];
+					WebAuthentication auth = (WebAuthentication)Core.Instance["WebAuthentication"];
 					if (!auth.IsLoggedIn)
 						throw new AjaxException("You're not currently logged in. Please refresh the page.");
 

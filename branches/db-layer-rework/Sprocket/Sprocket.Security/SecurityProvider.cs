@@ -15,7 +15,7 @@ namespace Sprocket.Security
 	{
 		public static SecurityProvider Instance
 		{
-			get { return (SecurityProvider)SystemCore.Instance["SecurityProvider"]; }
+			get { return (SecurityProvider)Core.Instance["SecurityProvider"]; }
 		}
 
 		public class InitialClient
@@ -80,7 +80,7 @@ namespace Sprocket.Security
 
 		public bool IsValidLogin(string username, string passwordHash)
 		{
-			DatabaseManager dbm = (DatabaseManager)SystemCore.Instance["DatabaseManager"];
+			DatabaseManager dbm = (DatabaseManager)Core.Instance["DatabaseManager"];
 			switch (dbm.DatabaseEngine)
 			{
 				case DatabaseEngine.SqlServer:

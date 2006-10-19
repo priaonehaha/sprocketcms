@@ -14,7 +14,7 @@ namespace Sprocket.Data
 	{
 		public static DatabaseManager Instance
 		{
-			get { return (DatabaseManager)SystemCore.Instance["DatabaseManager"]; }
+			get { return (DatabaseManager)Core.Instance["DatabaseManager"]; }
 		}
 
 		public string Title
@@ -30,8 +30,8 @@ namespace Sprocket.Data
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			SprocketSettings.Instance.OnCheckingSettings += new SprocketSettings.CheckSettingsHandler(OnCheckSettings);
-			((SprocketSettings)SystemCore.Instance["SprocketSettings"]).OnSettingsVerified += new EmptyEventHandler(OnSettingsVerified);
-			((SystemEvents)SystemCore.Instance["SystemEvents"]).OnSessionShutDown += new EmptyEventHandler(OnSessionShutDown);
+			((SprocketSettings)Core.Instance["SprocketSettings"]).OnSettingsVerified += new EmptyEventHandler(OnSettingsVerified);
+			((SystemEvents)Core.Instance["SystemEvents"]).OnSessionShutDown += new EmptyEventHandler(OnSessionShutDown);
 		}
 
 		void OnSessionShutDown()
@@ -118,7 +118,7 @@ namespace Sprocket.Data
 
 		public void ExecuteAllDataScripts(DatabaseEngine engine)
 		{
-			foreach (RegisteredModule module in SystemCore.Instance.ModuleRegistry)
+			foreach (RegisteredModule module in Core.Instance.ModuleRegistry)
 				if (module.Module is IDataHandlerModule)
 					((IDataHandlerModule)module.Module).ExecuteDataScripts(); //engine);
 		}

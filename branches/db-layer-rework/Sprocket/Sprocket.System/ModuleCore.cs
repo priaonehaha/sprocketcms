@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Web;
 using Sprocket.Security;
 
-namespace Sprocket.SystemBase
+namespace Sprocket
 {
 	/// <summary>
 	/// Handles discovery, loading, registration and dependency checking of Sprocket modules.

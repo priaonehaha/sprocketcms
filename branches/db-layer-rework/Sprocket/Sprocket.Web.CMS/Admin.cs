@@ -25,7 +25,7 @@ namespace Sprocket.Web.CMS
 
 		public static WebsiteAdmin Instance
 		{
-			get { return (WebsiteAdmin)SystemCore.Instance["WebsiteAdmin"]; }
+			get { return (WebsiteAdmin)Core.Instance["WebsiteAdmin"]; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -56,7 +56,7 @@ namespace Sprocket.Web.CMS
 					break;
 
 				default:
-					WebAuthentication auth = (WebAuthentication)SystemCore.Instance["WebAuthentication"];
+					WebAuthentication auth = (WebAuthentication)Core.Instance["WebAuthentication"];
 					HttpResponse Response = HttpContext.Current.Response;
 					HttpServerUtility Server = HttpContext.Current.Server;
 					switch (path)
@@ -112,7 +112,7 @@ namespace Sprocket.Web.CMS
 				OnAdminRequest(admin, path, pathSections, handled);
 				if (handled.Handled)
 				{
-					WebClientScripts scripts = (WebClientScripts)SystemCore.Instance["WebClientScripts"];
+					WebClientScripts scripts = (WebClientScripts)Core.Instance["WebClientScripts"];
 					admin.AddMainMenuLink(new AdminMenuLink("Current Overview", WebUtility.MakeFullPath("admin"), -100));
 					admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), 100));
 					admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + DateTime.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", 100));

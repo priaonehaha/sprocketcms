@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sprocket.SystemBase
+namespace Sprocket
 {
 	public class SystemEvents : ISprocketModule
 	{
@@ -52,7 +52,7 @@ namespace Sprocket.SystemBase
 
 		public static SystemEvents Instance
 		{
-			get { return (SystemEvents)SystemCore.Instance["SystemEvents"]; }
+			get { return (SystemEvents)Core.Instance["SystemEvents"]; }
 		}
 
 		#region ISprocketModule Members

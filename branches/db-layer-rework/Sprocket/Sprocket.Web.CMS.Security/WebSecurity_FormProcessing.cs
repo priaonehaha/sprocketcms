@@ -136,7 +136,7 @@ namespace Sprocket.Web.CMS.Security
 					}
 					role.Name = name;
 					role.Enabled = enabled;
-					((SecurityProvider)SystemCore.Instance["SecurityProvider"]).SaveRole(role);
+					((SecurityProvider)Core.Instance["SecurityProvider"]).SaveRole(role);
 
 					sql = new StringBuilder();
 					if (form.Blocks.ContainsKey("Roles"))

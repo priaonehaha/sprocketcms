@@ -19,7 +19,7 @@ namespace Sprocket.Web
 
 		public static WebAuthentication Instance
 		{
-			get { return (WebAuthentication)SystemCore.Instance["WebAuthentication"]; }
+			get { return (WebAuthentication)Core.Instance["WebAuthentication"]; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -86,8 +86,8 @@ namespace Sprocket.Web
 
 		public bool IsValidLogin(string username, string passwordHash)
 		{
-			if (SystemCore.ModuleCore.SecurityProvider == null) return true; // no security provider = open access
-			bool result = SystemCore.ModuleCore.SecurityProvider.IsValidLogin(username, passwordHash);
+			if (Core.ModuleCore.SecurityProvider == null) return true; // no security provider = open access
+			bool result = Core.ModuleCore.SecurityProvider.IsValidLogin(username, passwordHash);
 			return result;
 		}
 
