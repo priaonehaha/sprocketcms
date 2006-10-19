@@ -6,7 +6,7 @@ using System.IO;
 using System.Drawing;
 
 using Sprocket;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Web;
 using Sprocket.Data;
 using Sprocket.Utility;
@@ -16,6 +16,7 @@ namespace Sprocket.Web.FileManager
 	[ModuleDependency("WebEvents")]
 	[ModuleDependency("DatabaseManager")]
 	[ModuleDependency("SecurityProvider")]
+	[ModuleDescription("Handles storage and transmission of physical files to the client")]
 	public class FileManager : ISprocketModule, IDataHandlerModule
 	{
 		public event InterruptableEventHandler<SprocketFile> OnBeforeSprocketFileServed;
@@ -127,11 +128,6 @@ namespace Sprocket.Web.FileManager
 		public string Title
 		{
 			get { return "Sprocket File Manager"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Handles storage and transmission of physical files to the client"; }
 		}
 
 		#endregion

@@ -2,13 +2,14 @@ using System;
 using System.Collections;
 using System.Web;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Web;
 using Sprocket.Utility;
 
 namespace Sprocket.Web
 {
 	[ModuleDependency("WebClientScripts")]
+	[ModuleDescription("Provides an interface for authenticating web requests.")]
 	public class WebAuthentication : ISprocketModule
 	{
 		public delegate void AjaxAuthKeyStoredHandler(string username, Guid authKey);
@@ -34,13 +35,13 @@ namespace Sprocket.Web
 			string psl = SprocketSettings.GetValue("PreventSimultaneousLogins");
 			if (psl == null)
 			{
-				errors.Add(RegistrationCode, "The Web.config file is missing a value for \"PreventSimultaneousLogins\". The value should be \"True\" or \"False\".");
+				errors.Add(GetType().FullName, "The Web.config file is missing a value for \"PreventSimultaneousLogins\". The value should be \"True\" or \"False\".");
 				errors.SetCriticalError();
 				return;
 			}
 			if (psl.ToLower() != "true" && psl.ToLower() != "false")
 			{
-				errors.Add(RegistrationCode, "The Web.config file value for \"PreventSimultaneousLogins\" is invalid. The value should be \"True\" or \"False\".");
+				errors.Add(GetType().FullName, "The Web.config file value for \"PreventSimultaneousLogins\" is invalid. The value should be \"True\" or \"False\".");
 				errors.SetCriticalError();
 				return;
 			}
@@ -51,18 +52,9 @@ namespace Sprocket.Web
 			get { return !bool.Parse(SprocketSettings.GetValue("PreventSimultaneousLogins")); }
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
 		public string Title
 		{
 			get { return "Web Authentication Manager"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Provides an interface for authenticating web requests."; }
 		}
 
 		public bool CheckAjaxAuthKey(Guid key)
@@ -86,8 +78,8 @@ namespace Sprocket.Web
 
 		public bool IsValidLogin(string username, string passwordHash)
 		{
-			if (Core.ModuleCore.SecurityProvider == null) return true; // no security provider = open access
-			bool result = Core.ModuleCore.SecurityProvider.IsValidLogin(username, passwordHash);
+			if (Core.Modules.SecurityProvider == null) return true; // no security provider = open access
+			bool result = Core.Modules.SecurityProvider.IsValidLogin(username, passwordHash);
 			return result;
 		}
 
@@ -192,11 +184,6 @@ namespace Sprocket.Web
 		public static string AuthKeyPlaceholder
 		{
 			get { return "$AUTHKEY$"; }
-		}
-
-		public string RegistrationCode
-		{
-			get { return "WebAuthentication"; }
 		}
 	}
 }

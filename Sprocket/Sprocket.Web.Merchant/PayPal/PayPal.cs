@@ -5,13 +5,14 @@ using System.Web;
 
 using Sprocket;
 using Sprocket.Data;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Web.Merchant.PayPal
 {
 	[ModuleDependency("WebEvents")]
 	[ModuleDependency("SprocketSettings")]
+	[ModuleDescription("Encapsulates PayPal features and merchant facilities")]
 	public sealed class PayPal : ISprocketModule, IDataHandlerModule
 	{
 		public event NotificationEventHandler<PayPalTransactionResponse> OnTransactionResponse;
@@ -130,11 +131,6 @@ namespace Sprocket.Web.Merchant.PayPal
 		public string Title
 		{
 			get { return "PayPal Module"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Encapsulates PayPal features and merchant facilities"; }
 		}
 
 		#endregion

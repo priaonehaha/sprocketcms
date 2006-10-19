@@ -3,7 +3,7 @@ using System.Web;
 using System.Collections.Generic;
 using System.IO;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 using Sprocket;
 
@@ -21,6 +21,7 @@ namespace Sprocket.Web
 	/// </summary>
 	[ModuleDependency("SprocketSettings")]
 	[ModuleDependency("SystemEvents")]
+	[ModuleDescription("Provides the interface by which Sprocket hooks into the ASP.Net pipeline and associated events.")]
 	public class WebEvents : ISprocketModule
 	{
 		public delegate void HttpApplicationEventHandler(HttpApplication app);
@@ -101,7 +102,7 @@ namespace Sprocket.Web
 			// and report them back here. If we get to this point and at least one module has reported
 			// a settings error, we show Sprocket's critical error page which has a nice list of
 			// error messages that the user can try to rectify.
-			if (((SprocketSettings)Core.Instance["SprocketSettings"]).ErrorList.HasCriticalError)
+			if (SprocketSettings.Errors.HasCriticalError)
 			{
 				ShowErrorPage();
 				return;
@@ -121,7 +122,9 @@ namespace Sprocket.Web
 			// seeing as this is the end of the line for a Sprocket request, let the system events
 			// module know so that other modules can clean up if necessary, close database connections
 			// and anything else relevant.
-			((SystemEvents)Core.Instance["SystemEvents"]).NotifySessionEnding();
+			SystemEvents.Instance.NotifySessionEnding();
+			if(SprocketSettings.Instance.HasErrors)
+				Core.Reset();
 		}
 
 		private string sprocketPath = null;
@@ -292,24 +295,11 @@ namespace Sprocket.Web
 		{
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "WebEvents"; }
-		}
-
 		public string Title
 		{
 			get { return "HttpApplication Event Manager"; }
 		}
 
-		public string ShortDescription
-		{
-			get { return "Provides the interface by which Sprocket hooks into the ASP.Net pipeline and associated events."; }
-		}
 		#endregion
 	}
 

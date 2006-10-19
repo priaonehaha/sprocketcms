@@ -7,7 +7,7 @@ namespace Sprocket.Utility
 {
 	public static partial class Utilities
 	{
-		public static class Validator
+		public static class Validation
 		{
 			public static bool IsEmailAddress(string email)
 			{

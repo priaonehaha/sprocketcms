@@ -9,7 +9,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Sprocket;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Web
@@ -23,6 +23,7 @@ namespace Sprocket.Web
 	/// </summary>
 	[ModuleDependency("WebEvents")]
 	[ModuleDependency("WebAuthentication")]
+	[ModuleDescription("Processes requests from the XmlHttpRequest javascript object (Ajax calls).")]
 	public class AjaxRequestHandler : ISprocketModule
 	{
 		public static AjaxRequestHandler Instance
@@ -49,23 +50,9 @@ namespace Sprocket.Web
 			}
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
 		public string Title
 		{
 			get { return "Ajax Request Handler"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Processes requests from the XmlHttpRequest javascript object (Ajax calls)."; }
-		}
-
-		public string RegistrationCode
-		{
-			get { return "AjaxRequestHandler"; }
 		}
 
 		#endregion

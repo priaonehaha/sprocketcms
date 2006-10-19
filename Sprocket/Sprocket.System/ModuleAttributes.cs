@@ -14,15 +14,31 @@ namespace Sprocket
 		/// <summary>
 		/// Constructs the attribute.
 		/// </summary>
-		/// <param name="moduleRegistrationCode">The registration code of the ISprocketModule implementation that this implementation relies upon.</param>
-		public ModuleDependencyAttribute(string moduleRegistrationCode)
+		/// <param name="moduleNamespace">The registration code of the ISprocketModule implementation that this implementation relies upon.</param>
+		public ModuleDependencyAttribute(string moduleNamespace)
 		{
-			regCode = moduleRegistrationCode;
+			regCode = moduleNamespace;
 		}
 
 		public string Value
 		{
 			get { return regCode; }
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple=false, Inherited=false)]
+	public class ModuleDescriptionAttribute : Attribute
+	{
+		private string description;
+
+		public string Description
+		{
+			get { return description; }
+		}
+
+		public ModuleDescriptionAttribute(string description)
+		{
+			this.description = description;
 		}
 	}
 }

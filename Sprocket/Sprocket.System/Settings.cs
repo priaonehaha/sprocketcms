@@ -13,6 +13,7 @@ namespace Sprocket
 	/// <summary>
 	/// Handles application configuration settings in the .config file and any other files with a similar purpose.
 	/// </summary>
+	[ModuleDescription("Handles general application settings, mainly in the application's .config file.")]
 	public sealed class SprocketSettings : ISprocketModule
 	{
 		/// <summary>
@@ -44,11 +45,6 @@ namespace Sprocket
 		/// </summary>
 		public event EmptyEventHandler OnSettingsVerified;
 
-		public SprocketSettings()
-		{
-			inst = this;
-		}
-
 		/// <summary>
 		/// Gets the value from a key/value pair in the .config file
 		/// </summary>
@@ -69,7 +65,7 @@ namespace Sprocket
 		/// <returns>The settings value</returns>
 		public static string GetValue(string key)
 		{
-			return ((SprocketSettings)Core.Instance["SprocketSettings"])[key];
+			return Instance[key];
 		}
 
 		/// <summary>
@@ -86,18 +82,16 @@ namespace Sprocket
 			return Utilities.MatchesAny(val.ToLower(), "true", "yes", "on", "1");
 		}
 
-		private static SprocketSettings inst;
 		/// <summary>
 		/// Returns the current instance of the SprocketSettings module
 		/// </summary>
 		public static SprocketSettings Instance
 		{
-			get { return inst; }
+			get { return (SprocketSettings)Core.Instance["SprocketSettings"]; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			Core.Instance.OnEventsAttached += new EmptyEventHandler(OnEventsAttached);
 		}
 
 		/// <summary>
@@ -175,9 +169,15 @@ namespace Sprocket
 
 		#region ISprocketModule Members
 
-		private SettingsErrors errors = new SettingsErrors();
-		void OnEventsAttached()
+		private static SettingsErrors errors = null;
+		public static SettingsErrors Errors
 		{
+			get { return SprocketSettings.errors; }
+		}
+
+		internal void ValidateSettings()
+		{
+			errors = new SettingsErrors();
 			if (OnCheckingSettings != null)
 				OnCheckingSettings(errors);
 			if (errors.HasCriticalError && OnCriticalSettingsErrorsFound != null)
@@ -188,23 +188,9 @@ namespace Sprocket
 				OnSettingsVerified();
 		}
 
-		public string RegistrationCode
-		{
-			get { return "SprocketSettings"; }
-		}
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
 		public string Title
 		{
 			get { return "Sprocket Settings"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Handles general application settings, mainly in the application's .config file."; }
 		}
 
 		#endregion

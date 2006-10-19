@@ -9,13 +9,14 @@ using System.IO;
 using System.Reflection;
 
 using Sprocket;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 using Sprocket.Data;
 
 namespace Sprocket.Web
 {
 	[ModuleDependency("WebEvents")]
+	[ModuleDescription("Displays information relating to the current Sprocket installation and setup")]
 	class SysInfo : ISprocketModule
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -50,7 +51,7 @@ namespace Sprocket.Web
 						pos++;
 						maxpos = maxpos < pos ? pos : maxpos;
 					}
-					modulePositions[m.Module.RegistrationCode] = pos;
+					modulePositions[m.Module.GetType().FullName] = pos;
 					levelCounts[levels] = pos;
 				}
 
@@ -78,7 +79,7 @@ namespace Sprocket.Web
 				// draw rectangles
 				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
-					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.RegistrationCode], levels, levelCounts[m.Importance], bmpWidth);
+					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.GetType().FullName], levels, levelCounts[m.Importance], bmpWidth);
 					gfx.FillRectangle(greyBrush, rect);
 					gfx.DrawRectangle(pen, rect);
 				}
@@ -86,18 +87,18 @@ namespace Sprocket.Web
 				// draw lines
 				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
-					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.RegistrationCode], levels, levelCounts[m.Importance], bmpWidth);
+					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.GetType().FullName], levels, levelCounts[m.Importance], bmpWidth);
 
 					ModuleDependencyAttribute[] atts = (ModuleDependencyAttribute[])Attribute.GetCustomAttributes(m.GetType(), typeof(ModuleDependencyAttribute), true);
 					int attnum = 0;
 					foreach (ModuleDependencyAttribute att in atts)
 					{
 						attnum++;
-						RegisteredModule dm = Core.ModuleCore.ModuleRegistry[att.Value];
+						RegisteredModule dm = Core.Modules.ModuleRegistry[att.Value];
 						int xmodstart = (rectWidth / 2) - ((atts.Length - 1) * lineGap) / 2 + ((attnum - 1) * lineGap);
 						int xmodend = Math.Max(bmpWidth / 2 - (levelCounts[dm.Importance] * rectWidth + (levelCounts[dm.Importance] - 1) * widthGap) / 2, 0);
 						int level = dm.Importance + 1;
-						int dmxpos = modulePositions[dm.Module.RegistrationCode];
+						int dmxpos = modulePositions[dm.Module.GetType().FullName];
 						Point start = new Point(rect.X + xmodstart, rect.Y);
 						Point end = new Point(xmodend + (dmxpos-1)*rectWidth + (dmxpos-1)*widthGap + rectWidth/2,
 							heightGap + level * rectHeight + (level - 1) * heightGap);
@@ -121,8 +122,9 @@ namespace Sprocket.Web
 				// write words
 				foreach (RegisteredModule m in Core.Instance.ModuleRegistry)
 				{
-					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[m.Module.RegistrationCode], levels, levelCounts[m.Importance], bmpWidth);
-					gfx.DrawString(m.Module.RegistrationCode, font, blackBrush, new PointF(rect.X + 3, rect.Y + 3));
+					string name = m.Module.GetType().FullName;
+					Rectangle rect = GetModuleRect(m, rectWidth, rectHeight, widthGap, heightGap, modulePositions[name], levels, levelCounts[m.Importance], bmpWidth);
+					gfx.DrawString(name, font, blackBrush, new PointF(rect.X + 3, rect.Y + 3));
 				}
 
 				bmp.Save(app.Context.Response.OutputStream, ImageFormat.Jpeg);
@@ -160,7 +162,14 @@ namespace Sprocket.Web
 			foreach (ISprocketModule module in Core.Instance.ModuleRegistry)
 				bydll.Add(module);
 
-			bydll.Sort(new ModuleDLLSortComparer());
+			bydll.Sort(delegate(ISprocketModule x, ISprocketModule y)
+			{
+				string ax = new FileInfo(x.GetType().Assembly.Location).Name;
+				string ay = new FileInfo(y.GetType().Assembly.Location).Name;
+				int z = string.Compare(ax, ay, true);
+				if (z != 0) return z;
+				return string.Compare(x.GetType().FullName, y.GetType().FullName, true);
+			});
 
 			string oldf = "";
 			bool altf = true;
@@ -181,12 +190,15 @@ namespace Sprocket.Web
 					filename = "&nbsp;";
 					newdllrow = false;
 				}
+				ModuleDescriptionAttribute att = (ModuleDescriptionAttribute)Attribute.GetCustomAttribute(module.GetType(), typeof(ModuleDescriptionAttribute));
+				string descr = att == null ? "&nbsp;" : att.Description;
+				string name = module.GetType().FullName;
 				modules += string.Format(
 					"<tr class=\"row-{0}{2}\">" +
 					"<td valign=\"top\" class=\"assembly-{1}\">" + filename + "</td>" +
-					"<td valign=\"top\" class=\"module-code-{0}\"><strong>" + module.RegistrationCode + "</strong></td>" +
+					"<td valign=\"top\" class=\"module-code-{0}\"><strong>" + name + "</strong></td>" +
 					"<td valign=\"top\" nowrap=\"true\" class=\"module-title-{0}\">" + module.Title + "</td>" +
-					"<td valign=\"top\">" + module.ShortDescription + "</td>" +
+					"<td valign=\"top\">" + descr + "</td>" +
 					"<td valign=\"top\">" + (module is IOptionalModule ? "x" : "&nbsp;") + "</td>" +
 					"<td valign=\"top\">" + (module is IDataHandlerModule ? "x" : "&nbsp;") + "</td>" +
 					"</tr>",
@@ -200,35 +212,9 @@ namespace Sprocket.Web
 			Response.Write(html);
 		}
 
-		protected class ModuleDLLSortComparer : IComparer<ISprocketModule>
-		{
-			public int Compare(ISprocketModule x, ISprocketModule y)
-			{
-				string ax = new FileInfo(x.GetType().Assembly.Location).Name;
-				string ay = new FileInfo(y.GetType().Assembly.Location).Name;
-				int z = string.Compare(ax, ay, true);
-				if (z != 0) return z;
-				return string.Compare(x.RegistrationCode, y.RegistrationCode, true);
-			}
-		}
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "WebSysInfo"; }
-		}
-
 		public string Title
 		{
 			get { return "Sprocket System Information Viewer"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Displays information relating to the current Sprocket installation and setup"; }
 		}
 	}
 }

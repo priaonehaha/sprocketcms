@@ -6,7 +6,7 @@ namespace Sprocket.Security
 {
 	public interface ISecurityProvider
 	{
-		public ISecurityProviderDataProxy DataProxy { get; }
+		//public ISecurityProviderDataProxy DataProxy { get; }
 
 	}
 }

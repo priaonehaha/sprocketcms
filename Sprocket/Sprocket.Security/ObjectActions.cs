@@ -6,7 +6,7 @@ using Sprocket.Data;
 using Sprocket.Utility;
 
 using Sprocket;
-using Sprocket.SystemBase;
+using Sprocket;
 
 namespace Sprocket.Security
 {

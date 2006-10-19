@@ -44,10 +44,6 @@
       <Project>{903AD3DC-FA63-4C6C-9D1F-A80B50A19E4E}</Project>
       <Name>Sprocket.Data</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sprocket.Security\Sprocket.Security.csproj">
-      <Project>{C4A4A15A-4756-4AF2-8F5D-E246B04265E2}</Project>
-      <Name>Sprocket.Security</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Sprocket.System\Sprocket.System.csproj">
       <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
       <Name>Sprocket.System</Name>

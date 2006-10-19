@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Sprocket;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 using System.Data;
 
@@ -10,6 +10,7 @@ namespace Sprocket.Data
 {
 	[ModuleDependency("SprocketSettings")]
 	[ModuleDependency("SystemEvents")]
+	[ModuleDescription("Manages configuration and operation database information relevant to this installation of Sprocket.")]
 	public class DatabaseManager : ISprocketModule
 	{
 		public static DatabaseManager Instance
@@ -20,11 +21,6 @@ namespace Sprocket.Data
 		public string Title
 		{
 			get { return "Database Manager"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Manages configuration and operation database information relevant to this installation of Sprocket."; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -98,15 +94,6 @@ namespace Sprocket.Data
 
 			defaultConnectionString = db.ConnectionString;
 			defaultEngine = db.DatabaseEngine;
-		}
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "DatabaseManager"; }
 		}
 
 		public void LoadDefaultDatabase()

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Data;
 using Sprocket.Security;
 using Sprocket.Web;
@@ -209,7 +209,7 @@ namespace Sprocket.Web.CMS.Security
 				case "Email":
 					if (!SecurityProvider.User.IsEmailAddressAvailable(WebsiteClient.ClientID, formArgs.RecordID, formArgs.FieldValue))
 						msg = multilingual ? "{?form-error-emailaddress-already-exists?}" : "That email address is already in use";
-					else if(!Utilities.Validator.IsEmailAddress(formArgs.FieldValue))
+					else if(!Utilities.Validation.IsEmailAddress(formArgs.FieldValue))
 						msg = multilingual ? "{?form-error-emailaddress-invalid?}" : "That is not an email address";
 					break;
 			}
@@ -258,7 +258,7 @@ namespace Sprocket.Web.CMS.Security
 					case "Email":
 						if (fld.Value.Trim().Length == 0)
 							fld.ErrorMessage = multilingual ? "{?form-error-require-email?}" : "An email address is required";
-						else if (!Utilities.Validator.IsEmailAddress(fld.Value))
+						else if (!Utilities.Validation.IsEmailAddress(fld.Value))
 							fld.ErrorMessage = multilingual ? "{?form-error-emailaddress-invalid?}" : "That is not an email address";
 						else if (!SecurityProvider.User.IsEmailAddressAvailable(WebsiteClient.ClientID, userID, fld.Value))
 							fld.ErrorMessage = multilingual ? "{?form-error-emailaddress-already-exists?}" : "That email address is already in use";

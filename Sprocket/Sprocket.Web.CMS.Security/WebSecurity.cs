@@ -9,7 +9,7 @@ using System.Net.Mail;
 
 using Sprocket;
 using Sprocket.Data;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Security;
 using Sprocket.Utility;
 using Sprocket.Web;
@@ -20,6 +20,7 @@ namespace Sprocket.Web.CMS.Security
 	[ModuleDependency("SprocketSettings")]
 	[ModuleDependency("SecurityProvider")]
 	[ModuleDependency("WebsiteAdmin")]
+	[ModuleDescription("The CMS interface for managing users and roles provided by the SecurityProvider module.")]
 	public partial class WebSecurity : ISprocketModule
 	{
 		private static Guid clientID;
@@ -170,11 +171,6 @@ namespace Sprocket.Web.CMS.Security
 		public string Title
 		{
 			get { return "Web Security Functions"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "The CMS interface for managing users and roles provided by the SecurityProvider module."; }
 		}
 	}
 }

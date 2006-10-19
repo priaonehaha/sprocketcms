@@ -4,7 +4,7 @@ using System.Text;
 using System.Data;
 using Sprocket.Data;
 using Sprocket.Utility;
-using Sprocket.SystemBase;
+using Sprocket;
 using System.Net;
 using System.Net.Mail;
 using Sprocket.Mail;

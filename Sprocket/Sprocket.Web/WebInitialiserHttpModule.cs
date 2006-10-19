@@ -1,6 +1,6 @@
 using System;
 using System.Web;
-using Sprocket.SystemBase;
+using Sprocket;
 using System.Diagnostics;
 
 namespace Sprocket.Web
@@ -25,83 +25,22 @@ namespace Sprocket.Web
 
 		void app_Error(object sender, EventArgs e)
 		{
-			((WebEvents)Core.Instance["WebEvents"]).FireError(sender, e);
+			WebEvents.Instance.FireError(sender, e);
 		}
 
 		void app_EndRequest(object sender, EventArgs e)
 		{
-			((WebEvents)Core.Instance["WebEvents"]).FireEndRequest(sender, e);
+			WebEvents.Instance.FireEndRequest(sender, e);
 		}
 
 		void app_AcquireRequestState(object sender, EventArgs e)
 		{
-			((WebEvents)Core.Instance["WebEvents"]).FireAcquireRequestState(sender, e);
+			WebEvents.Instance.FireAcquireRequestState(sender, e);
 		}
 
 		void app_BeginRequest(object sender, EventArgs e)
 		{
-			int c = 0;
-			switch (InitState)
-			{
-				case InitialisationState.InProgress:
-					while (InitState == InitialisationState.InProgress)
-					{
-						System.Threading.Thread.Sleep(500);
-						if (++c > 30)
-						{
-							HttpContext.Current.Response.Write("The website is being initialised. Please try again in a minute or so.");
-							HttpContext.Current.Response.End();
-						}
-					}
-					break;
-
-				case InitialisationState.None:
-					InitState = InitialisationState.InProgress;
-					if (((HttpApplication)sender).Application["Sprocket_SystemCore_Instance"] == null)
-						InitialiseSystemCore((HttpApplication)sender);
-					InitState = InitialisationState.Complete;
-					break;
-
-			}
-			((WebEvents)Core.Instance["WebEvents"]).FireBeginRequest(sender, e);
-		}
-
-		enum InitialisationState
-		{
-			None,
-			InProgress,
-			Complete
-		}
-
-		InitialisationState InitState
-		{
-			get
-			{
-				InitialisationState state;
-				if (HttpContext.Current.Application["Sprocket_InitialisationState"] == null)
-					state = InitialisationState.None;
-				else
-					state = (InitialisationState)HttpContext.Current.Application["Sprocket_InitialisationState"];
-				return state;
-			}
-			set
-			{
-				HttpContext.Current.Application["Sprocket_InitialisationState"] = value;
-			}
-		}
-
-		/// <summary>
-		/// There's some nasty overhead here and this can take several seconds to run. Luckily it
-		/// only runs on the very first request when the HttpApplication is starting up for the
-		/// first time. This is not called again until a new HttpApplication object needs to be
-		/// created, at which point the process is repeated.
-		/// </summary>
-		/// <param name="app"></param>
-		void InitialiseSystemCore(HttpApplication app)
-		{
-			Core core = new Core();
-			Core.Instance = core;
-			core.Initialise();
+			WebEvents.Instance.FireBeginRequest(sender, e);
 		}
 
 		public void Dispose()

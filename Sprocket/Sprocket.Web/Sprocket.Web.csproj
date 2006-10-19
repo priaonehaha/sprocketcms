@@ -100,9 +100,6 @@
     <Compile Include="WebAuthentication.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SystemBasePage.cs">
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
     <Compile Include="WebClientScripts.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -121,7 +118,7 @@
     <EmbeddedResource Include="html\errorpage.htm" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sprocket.Data\Sprocket.Data.csproj">
+    <ProjectReference Include="..\..\..\Sprocket\Sprocket\Sprocket.Data\Sprocket.Data.csproj">
       <Project>{903AD3DC-FA63-4C6C-9D1F-A80B50A19E4E}</Project>
       <Name>Sprocket.Data</Name>
     </ProjectReference>

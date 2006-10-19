@@ -86,7 +86,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="OrderDirection.cs" />
+    <Compile Include="Core.cs" />
+    <Compile Include="ModuleHandler.cs" />
     <Compile Include="SystemEvents.cs" />
     <Compile Include="Crypto.cs" />
     <Compile Include="CurrentRequest.cs" />
@@ -97,9 +98,6 @@
     <Compile Include="ModuleAttributes.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ModuleCore.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ResourceLoader.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -108,9 +106,6 @@
     <Compile Include="SprocketException.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="StateChangingEventArgs.cs" />
-    <Compile Include="SystemCore.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Utilities.cs" />
     <Compile Include="Validator.cs" />
   </ItemGroup>
