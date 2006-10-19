@@ -29,7 +29,7 @@ namespace Sprocket.Web
 			handled.Set();
 
 			string html = WebUtility.AbsoluteBasePath;
-			string scripts = ((WebClientScripts)SystemCore.Instance["WebClientScripts"]).BuildScriptTags();
+			string scripts = ((WebClientScripts)Core.Instance["WebClientScripts"]).BuildScriptTags();
 			HttpContext.Current.Response.Write(scripts + html.Replace(Environment.NewLine, "<br />"));
 		}
 

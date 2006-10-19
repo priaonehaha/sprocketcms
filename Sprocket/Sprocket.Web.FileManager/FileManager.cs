@@ -83,7 +83,7 @@ namespace Sprocket.Web.FileManager
 
 		public static FileManager Instance
 		{
-			get { return (FileManager)SystemCore.Instance["FileManager"]; }
+			get { return (FileManager)Core.Instance["FileManager"]; }
 		}
 
 		public SprocketFile SpawnThumbnail(SprocketFile imageFile)
@@ -109,7 +109,7 @@ namespace Sprocket.Web.FileManager
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			WebEvents w = (WebEvents)SystemCore.Instance["WebEvents"];
+			WebEvents w = (WebEvents)Core.Instance["WebEvents"];
 			w.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);
 		}
 

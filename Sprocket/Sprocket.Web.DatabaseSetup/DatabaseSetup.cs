@@ -25,7 +25,7 @@ namespace Sprocket.Web.DatabaseSetup
 
 		public static DatabaseSetup Instance
 		{
-			get { return (DatabaseSetup)SystemCore.Instance["DatabaseSetup"]; }
+			get { return (DatabaseSetup)Core.Instance["DatabaseSetup"]; }
 		}
 
 		#region ISprocketModule Members

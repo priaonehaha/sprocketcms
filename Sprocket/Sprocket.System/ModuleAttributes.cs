@@ -1,6 +1,6 @@
 using System;
 
-namespace Sprocket.SystemBase
+namespace Sprocket
 {
 	/// <summary>
 	/// Specifies that this ISprocketModule implementation contains code that relies

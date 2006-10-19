@@ -403,7 +403,7 @@ namespace Sprocket.Security
 
 			public Result Save()
 			{
-				SecurityProvider sec = (SecurityProvider)SystemCore.Instance["SecurityProvider"];
+				SecurityProvider sec = (SecurityProvider)Core.Instance["SecurityProvider"];
 				
 				if (sec.OnBeforeUserSaved != null)
 				{

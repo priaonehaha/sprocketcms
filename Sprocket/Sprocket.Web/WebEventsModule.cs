@@ -101,7 +101,7 @@ namespace Sprocket.Web
 			// and report them back here. If we get to this point and at least one module has reported
 			// a settings error, we show Sprocket's critical error page which has a nice list of
 			// error messages that the user can try to rectify.
-			if (((SprocketSettings)SystemCore.Instance["SprocketSettings"]).ErrorList.HasCriticalError)
+			if (((SprocketSettings)Core.Instance["SprocketSettings"]).ErrorList.HasCriticalError)
 			{
 				ShowErrorPage();
 				return;
@@ -121,7 +121,7 @@ namespace Sprocket.Web
 			// seeing as this is the end of the line for a Sprocket request, let the system events
 			// module know so that other modules can clean up if necessary, close database connections
 			// and anything else relevant.
-			((SystemEvents)SystemCore.Instance["SystemEvents"]).NotifySessionEnding();
+			((SystemEvents)Core.Instance["SystemEvents"]).NotifySessionEnding();
 		}
 
 		private string sprocketPath = null;
@@ -268,11 +268,11 @@ namespace Sprocket.Web
 		private void ShowErrorPage()
 		{
 			string html = ResourceLoader.LoadTextResource("Sprocket.Web.html.errorpage.htm");
-			SprocketSettings.SettingsErrors errors = ((SprocketSettings)SystemCore.Instance["SprocketSettings"]).ErrorList;
+			SprocketSettings.SettingsErrors errors = ((SprocketSettings)Core.Instance["SprocketSettings"]).ErrorList;
 			string str = "";
 			foreach (KeyValuePair<string, List<string>> error in errors.List)
 			{
-				str += "<h2>Module: <span class=\"ModuleName\">" + SystemCore.Instance[error.Key].Title + "</span></h2><ul>";
+				str += "<h2>Module: <span class=\"ModuleName\">" + Core.Instance[error.Key].Title + "</span></h2><ul>";
 				foreach (string msg in error.Value)
 					str += "<li>" + msg + "</li>";
 				str += "</ul>";
@@ -284,7 +284,7 @@ namespace Sprocket.Web
 
 		public static WebEvents Instance
 		{
-			get { return (WebEvents)SystemCore.Instance["WebEvents"]; }
+			get { return (WebEvents)Core.Instance["WebEvents"]; }
 		}
 
 		#region ISprocketModule

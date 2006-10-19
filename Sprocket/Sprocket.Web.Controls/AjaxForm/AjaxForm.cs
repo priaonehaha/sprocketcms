@@ -27,7 +27,7 @@ namespace Sprocket.Web.Controls
 
 		public static AjaxFormHandler Instance
 		{
-			get { return (AjaxFormHandler)SystemCore.Instance["AjaxFormHandler"]; }
+			get { return (AjaxFormHandler)Core.Instance["AjaxFormHandler"]; }
 		}
 
 		#region ISprocketModule members

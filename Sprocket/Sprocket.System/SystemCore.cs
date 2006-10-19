@@ -3,16 +3,16 @@ using System.Web;
 using Sprocket;
 using Sprocket.Web;
 
-namespace Sprocket.SystemBase
+namespace Sprocket
 {
 	/// <summary>
 	/// The core object which all Sprocket functionality is initiated from. An object of this
 	/// type must be created in order for Sprocket to function.
 	/// </summary>
-	public class SystemCore
+	public class Core
 	{
 		private ModuleCore moduleCore;
-		private static SystemCore instance = null;
+		private static Core instance = null;
 
 		public event EmptyEventHandler OnEventsAttached;
 		public event EmptyEventHandler OnBeforeSystemInitialised;
@@ -21,15 +21,15 @@ namespace Sprocket.SystemBase
 		/// <summary>
 		/// A reference to the single solitary instance of SystemCore that should exist.
 		/// </summary>
-		public static SystemCore Instance
+		public static Core Instance
 		{
 			get
 			{
 				if (HttpContext.Current != null) // store it in the application state
 				{
-					if(HttpContext.Current.Application["Sprocket_SystemCore_Instance"] == null)
+					if (HttpContext.Current.Application["Sprocket_SystemCore_Instance"] == null)
 						return null;
-					return (SystemCore)HttpContext.Current.Application["Sprocket_SystemCore_Instance"];
+					return (Core)HttpContext.Current.Application["Sprocket_SystemCore_Instance"];
 				}
 				else // store it as a static member
 				{
@@ -78,26 +78,32 @@ namespace Sprocket.SystemBase
 		{
 			get { return moduleCore.ModuleRegistry; }
 		}
-		
+
 		/// <summary>
 		/// Initialises the system core, registers modules, attaches event handlers, etc.
 		/// </summary>
 		public void Initialise()
 		{
-			moduleCore = new ModuleCore();
-			moduleCore.RegisterModules();
-			moduleCore.CheckDependencies();
+			lock (moduleCore)
+			{
+				if (moduleCore != null)
+					return;
 
-			moduleCore.AttachEventHandlers();
-			if (OnEventsAttached != null)
-				OnEventsAttached();
+				moduleCore = new ModuleCore();
+				moduleCore.RegisterModules();
+				moduleCore.CheckDependencies();
 
-			if (OnBeforeSystemInitialised != null)
-				OnBeforeSystemInitialised();
+				moduleCore.AttachEventHandlers();
+				if (OnEventsAttached != null)
+					OnEventsAttached();
 
-			moduleCore.InitialiseModules();
-			if (OnSystemInitialised != null)
-				OnSystemInitialised();
+				if (OnBeforeSystemInitialised != null)
+					OnBeforeSystemInitialised();
+
+				moduleCore.InitialiseModules();
+				if (OnSystemInitialised != null)
+					OnSystemInitialised();
+			}
 		}
 	}
 }

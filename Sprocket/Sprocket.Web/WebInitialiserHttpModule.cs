@@ -25,17 +25,17 @@ namespace Sprocket.Web
 
 		void app_Error(object sender, EventArgs e)
 		{
-			((WebEvents)SystemCore.Instance["WebEvents"]).FireError(sender, e);
+			((WebEvents)Core.Instance["WebEvents"]).FireError(sender, e);
 		}
 
 		void app_EndRequest(object sender, EventArgs e)
 		{
-			((WebEvents)SystemCore.Instance["WebEvents"]).FireEndRequest(sender, e);
+			((WebEvents)Core.Instance["WebEvents"]).FireEndRequest(sender, e);
 		}
 
 		void app_AcquireRequestState(object sender, EventArgs e)
 		{
-			((WebEvents)SystemCore.Instance["WebEvents"]).FireAcquireRequestState(sender, e);
+			((WebEvents)Core.Instance["WebEvents"]).FireAcquireRequestState(sender, e);
 		}
 
 		void app_BeginRequest(object sender, EventArgs e)
@@ -63,7 +63,7 @@ namespace Sprocket.Web
 					break;
 
 			}
-			((WebEvents)SystemCore.Instance["WebEvents"]).FireBeginRequest(sender, e);
+			((WebEvents)Core.Instance["WebEvents"]).FireBeginRequest(sender, e);
 		}
 
 		enum InitialisationState
@@ -99,8 +99,8 @@ namespace Sprocket.Web
 		/// <param name="app"></param>
 		void InitialiseSystemCore(HttpApplication app)
 		{
-			SystemCore core = new SystemCore();
-			SystemCore.Instance = core;
+			Core core = new Core();
+			Core.Instance = core;
 			core.Initialise();
 		}
 

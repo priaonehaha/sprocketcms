@@ -21,7 +21,7 @@ namespace Sprocket.Mail
 
 		public static EmailHandler Instance
 		{
-			get { return (EmailHandler)SystemCore.Instance["EmailHandler"]; }
+			get { return (EmailHandler)Core.Instance["EmailHandler"]; }
 		}
 
 		public static void Send(MailMessage msg)
