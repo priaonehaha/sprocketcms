@@ -6,7 +6,6 @@ namespace Sprocket
 	public interface ISprocketModule
 	{
 		void AttachEventHandlers(ModuleRegistry registry);
-		string Title { get; }
 	}
 
 	public delegate void ModuleEnabledStateChangingHandler(ISprocketModule module, StateChangingEventArgs e);

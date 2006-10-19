@@ -8,14 +8,14 @@ using System.Text.RegularExpressions;
 using System.Web;
 
 using Sprocket;
-using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Web
 {
 	[AjaxMethodHandler()]
-	[ModuleDependency("WebEvents")]
+	[ModuleDependency(typeof(WebEvents))]
 	[ModuleDescription("A module for writing test code.")]
+	[ModuleTitle("Testing Module")]
 	class TestModule : ISprocketModule
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -30,7 +30,7 @@ namespace Sprocket.Web
 			handled.Set();
 
 			string html = WebUtility.AbsoluteBasePath;
-			string scripts = ((WebClientScripts)Core.Instance["WebClientScripts"]).BuildStandardScriptsBlock();
+			string scripts = WebClientScripts.Instance.BuildStandardScriptsBlock();
 			HttpContext.Current.Response.Write(scripts + html.Replace(Environment.NewLine, "<br />"));
 		}
 
@@ -38,11 +38,6 @@ namespace Sprocket.Web
 		public string[] MethodTest(string x, int y, string[] z)
 		{
 			return new string[] { "{x:" + x + "}", "{y:" + y + "}", "{z.length:" + z.Length + "}" };
-		}
-
-		public string Title
-		{
-			get { return "Testing Module"; }
 		}
 	}
 }

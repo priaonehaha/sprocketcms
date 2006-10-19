@@ -21,6 +21,7 @@ namespace Sprocket.Web
 	/// for transfer between the client and server is provided by the open-source JSON format.
 	/// </summary>
 	[ModuleDescription( "Handles javascript aggregation and rendering to the page.")]
+	[ModuleTitle("Web Client Script Renderer")]
 	public class WebClientScripts : ISprocketModule
 	{
 		/// <summary>
@@ -43,7 +44,7 @@ namespace Sprocket.Web
 
 		public static WebClientScripts Instance
 		{
-			get { return (WebClientScripts)Core.Instance["WebClientScripts"]; }
+			get { return (WebClientScripts)Core.Instance[typeof(WebClientScripts)].Module; }
 		}
 
 		/// <summary>
@@ -147,17 +148,6 @@ namespace Sprocket.Web
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			Core.Instance.OnInitialise += new EmptyEventHandler(Instance_OnInitialise);
-		}
-
-		void Instance_OnInitialise()
-		{
-			
-		}
-
-		public string Title
-		{
-			get { return "Web Client Script Renderer"; }
 		}
 	}
 

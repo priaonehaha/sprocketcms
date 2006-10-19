@@ -8,12 +8,12 @@ using System.Net;
 using System.Net.Mail;
 
 using Sprocket;
-using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Mail
 {
 	[ModuleDescription("Handles sending of emails and notification of delivery results")]
+	[ModuleTitle("Email Handler")]
 	public class EmailHandler : ISprocketModule
 	{
 		public event InterruptableEventHandler<MailMessage> OnSendingEmail;
@@ -22,7 +22,7 @@ namespace Sprocket.Mail
 
 		public static EmailHandler Instance
 		{
-			get { return (EmailHandler)Core.Instance["EmailHandler"]; }
+			get { return (EmailHandler)Core.Instance[typeof(EmailHandler)].Module; }
 		}
 
 		public static void Send(MailMessage msg)
@@ -161,11 +161,6 @@ namespace Sprocket.Mail
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-		}
-
-		public string Title
-		{
-			get { return "Email Handler"; }
 		}
 
 		#endregion

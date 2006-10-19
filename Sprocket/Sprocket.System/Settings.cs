@@ -77,7 +77,7 @@ namespace Sprocket
 		/// <returns>A boolean representation of the settings value</returns>
 		public static bool GetBooleanValue(string key)
 		{
-			string val = ((SprocketSettings)Core.Instance["SprocketSettings"])[key];
+			string val = Instance[key];
 			if (val == null) return false;
 			return Utilities.MatchesAny(val.ToLower(), "true", "yes", "on", "1");
 		}
@@ -87,7 +87,7 @@ namespace Sprocket
 		/// </summary>
 		public static SprocketSettings Instance
 		{
-			get { return (SprocketSettings)Core.Instance["SprocketSettings"]; }
+			get { return (SprocketSettings)Core.Instance[typeof(SprocketSettings)].Module; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -186,11 +186,6 @@ namespace Sprocket
 				OnSettingsErrorsFound(errors);
 			else if (OnSettingsVerified != null && !errors.HasCriticalError)
 				OnSettingsVerified();
-		}
-
-		public string Title
-		{
-			get { return "Sprocket Settings"; }
 		}
 
 		#endregion

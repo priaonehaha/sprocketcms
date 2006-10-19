@@ -25,7 +25,7 @@ namespace Sprocket.Web.CMS.Pages
 
 		public static PageRequestHandler Instance
 		{
-			get { return (PageRequestHandler)Core.Instance["PageRequestHandler"]; }
+			get { return (PageRequestHandler)Core.Instance[typeof(PageRequestHandler)].Module; }
 		}
 
 		private Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers = new Dictionary<string, IPlaceHolderRenderer>();

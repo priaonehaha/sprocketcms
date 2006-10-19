@@ -15,14 +15,21 @@ namespace Sprocket
 	public class ModuleHandler
 	{
 		private ModuleRegistry registry = new ModuleRegistry();
+		private Dictionary<Type, List<Type>> interfaceImplementations = new Dictionary<Type, List<Type>>();
+
+		internal Dictionary<Type, List<Type>> InterfaceImplementations
+		{
+			get { return interfaceImplementations; }
+		}
+
 		/// <summary>
 		/// Gets a reference to the specified Sprocket module.
 		/// </summary>
-		/// <param name="moduleRegCode">The registration code for the module to retrieve.</param>
+		/// <param name="moduleRegCode">The namespace of the module to retrieve.</param>
 		/// <returns>A reference to the module, or null if the module doesn't exist.</returns>
-		public ISprocketModule this[string moduleRegCode]
+		public RegisteredModule this[string moduleNamespace]
 		{
-			get { return registry[moduleRegCode].Module; }
+			get { return registry[moduleNamespace]; }
 		}
 
 		public ISecurityProvider securityProvider = null;
@@ -41,11 +48,7 @@ namespace Sprocket
 		/// </summary>
 		public void RegisterModules()
 		{
-			string dir;
-			if(HttpContext.Current == null)
-				dir = new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName;
-			else
-				dir = HttpContext.Current.Request.PhysicalApplicationPath + "bin";
+			string dir = HttpContext.Current.Request.PhysicalApplicationPath + "bin";
 			RegisterModules(dir);
 		}
 
@@ -85,6 +88,15 @@ namespace Sprocket
 					if (module is ISecurityProvider)
 						securityProvider = (ISecurityProvider)module;
 				}
+				// here we register all the extra interfaces we find, and the types that implement them.
+				// we do this to allow modules to have easy access to find types that implement the
+				// interfaces they expose.
+				foreach (Type i in t.GetInterfaces())
+				{
+					if (!interfaceImplementations.ContainsKey(i))
+						interfaceImplementations.Add(i, new List<Type>());
+					interfaceImplementations[i].Add(t);
+				}
 			}
 		}
 
@@ -100,7 +112,7 @@ namespace Sprocket
 			{
 				ModuleDependencyAttribute[] atts = (ModuleDependencyAttribute[])Attribute.GetCustomAttributes(module.Module.GetType(), typeof(ModuleDependencyAttribute), true);
 				foreach(ModuleDependencyAttribute att in atts)
-					if(!registry.IsRegistered(att.Value))
+					if(!registry.IsRegistered(att.ModuleType.FullName))
 					{
 						badModules.Add(module);
 						break;
@@ -129,9 +141,9 @@ namespace Sprocket
 				foreach (RegisteredModule registeredModule in registry)
 				{
 					bool notyet = false;
-					ModuleDependencyAttribute[] atts = (ModuleDependencyAttribute[])Attribute.GetCustomAttributes(registeredModule.GetType(), typeof(ModuleDependencyAttribute), true);
+					ModuleDependencyAttribute[] atts = (ModuleDependencyAttribute[])Attribute.GetCustomAttributes(registeredModule.Module.GetType(), typeof(ModuleDependencyAttribute), true);
 					foreach (ModuleDependencyAttribute att in atts)
-						if (!assignedModules.ContainsKey(att.Value))
+						if (!assignedModules.ContainsKey(att.ModuleType.FullName))
 							notyet = true; // this module doesn't get its importance increased until all of its dependencies are accounted for
 
 					if (notyet)
@@ -196,10 +208,26 @@ namespace Sprocket
 			get { return nspace; }
 		}
 
+		private string title;
+		public string Title
+		{
+			get { return title; }
+		}
+
+		private string description;
+		public string Description
+		{
+			get { return description; }
+		}
+
 		public RegisteredModule(ISprocketModule module)
 		{
 			this.module = module;
 			nspace = module.GetType().FullName;
+			ModuleDescriptionAttribute att = (ModuleDescriptionAttribute)Attribute.GetCustomAttribute(module.GetType(), typeof(ModuleDescriptionAttribute));
+			description = att == null ? "" : att.Description;
+			ModuleTitleAttribute att2 = (ModuleTitleAttribute)Attribute.GetCustomAttribute(module.GetType(), typeof(ModuleTitleAttribute));
+			title = att2 == null ? nspace : att2.Title;
 		}
 	}
 

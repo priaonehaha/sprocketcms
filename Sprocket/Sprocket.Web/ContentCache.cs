@@ -16,8 +16,9 @@ namespace Sprocket.Web
 	/// but could possibly create a problem if we're trying to cache hundreds or thousands of
 	/// pages for an unknown period of time.
 	/// </summary>
-	[ModuleDependency("WebEvents")]
+	[ModuleDependency(typeof(WebEvents))]
 	[ModuleDescription("Simple replacement for the ASP.Net cache controls. Handles caching of requested content to disk instead of memory")]
+	[ModuleTitle("Content Cache")]
 	public class ContentCache : ISprocketModule
 	{
 		#region private methods
@@ -136,11 +137,6 @@ namespace Sprocket.Web
 				handled.Set();
 				HttpContext.Current.Response.Write("Access denied.");
 			}
-		}
-
-		public string Title
-		{
-			get { return "Content Cache"; }
 		}
 
 		#endregion

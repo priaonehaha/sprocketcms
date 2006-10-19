@@ -6,17 +6,17 @@ using System.IO;
 
 using Sprocket;
 using Sprocket.Web;
-using Sprocket;
 using Sprocket.Security;
 using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS
 {
-	[ModuleDependency("WebEvents")]
-	[ModuleDependency("SprocketSettings")]
-	[ModuleDependency("WebAuthentication")]
-	[ModuleDependency("SecurityProvider")]
+	[ModuleDependency(typeof(WebEvents))]
+	[ModuleDependency(typeof(SprocketSettings))]
+	[ModuleDependency(typeof(WebAuthentication))]
+//	[ModuleDependency(typeof(SecurityProvider))]
 	[ModuleDescription("The base platform upon which the Sprocket CMS web interface is built. Most modules for the CMS plug into this module.")]
+	[ModuleTitle("Website Administration Module")]
 	public partial class WebsiteAdmin : ISprocketModule
 	{
 		public delegate void AdminRequestHandler(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled);
@@ -26,7 +26,7 @@ namespace Sprocket.Web.CMS
 
 		public static WebsiteAdmin Instance
 		{
-			get { return (WebsiteAdmin)Core.Instance["WebsiteAdmin"]; }
+			get { return (WebsiteAdmin)Core.Instance[typeof(WebsiteAdmin)].Module; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -57,7 +57,7 @@ namespace Sprocket.Web.CMS
 					break;
 
 				default:
-					WebAuthentication auth = (WebAuthentication)Core.Instance["WebAuthentication"];
+					WebAuthentication auth = WebAuthentication.Instance;
 					HttpResponse Response = HttpContext.Current.Response;
 					HttpServerUtility Server = HttpContext.Current.Server;
 					switch (path)
@@ -113,7 +113,7 @@ namespace Sprocket.Web.CMS
 				OnAdminRequest(admin, path, pathSections, handled);
 				if (handled.Handled)
 				{
-					WebClientScripts scripts = (WebClientScripts)Core.Instance["WebClientScripts"];
+					WebClientScripts scripts = WebClientScripts.Instance;
 					admin.AddMainMenuLink(new AdminMenuLink("Current Overview", WebUtility.MakeFullPath("admin"), -100));
 					admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), 100));
 					admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + DateTime.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", 100));
@@ -153,11 +153,6 @@ namespace Sprocket.Web.CMS
 			html = html.Replace("{login-error}", loginErrorMessage);
 			html = html.Replace("{website-name}", "Website Administration");
 			Write(html);
-		}
-
-		public string Title
-		{
-			get { return "Website Administration Module"; }
 		}
 	}
 }

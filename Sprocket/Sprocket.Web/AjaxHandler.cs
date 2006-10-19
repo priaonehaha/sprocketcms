@@ -9,7 +9,6 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Sprocket;
-using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Web
@@ -21,14 +20,15 @@ namespace Sprocket.Web
 	/// AjaxMethodHandlerAttribute and AjaxMethodAttribute for determining which classes
 	/// and methods can be used in Ajax requests.
 	/// </summary>
-	[ModuleDependency("WebEvents")]
-	[ModuleDependency("WebAuthentication")]
+	[ModuleDependency(typeof(WebEvents))]
+	[ModuleDependency(typeof(WebAuthentication))]
 	[ModuleDescription("Processes requests from the XmlHttpRequest javascript object (Ajax calls).")]
+	[ModuleTitle("Ajax Request Handler")]
 	public class AjaxRequestHandler : ISprocketModule
 	{
 		public static AjaxRequestHandler Instance
 		{
-			get { return (AjaxRequestHandler)Core.Instance["AjaxRequestHandler"]; }
+			get { return (AjaxRequestHandler)Core.Instance[typeof(AjaxRequestHandler)].Module; }
 		}
 
 		#region ISprocketModule Members
@@ -48,11 +48,6 @@ namespace Sprocket.Web
 				handled.Set();
 				ProcessRequest(HttpContext.Current);
 			}
-		}
-
-		public string Title
-		{
-			get { return "Ajax Request Handler"; }
 		}
 
 		#endregion
@@ -109,7 +104,7 @@ namespace Sprocket.Web
 				List<object> parsedArguments = (List<object>)data["MethodArgs"];
 
 				// find and verify the module/method that should handle this request
-				ISprocketModule module = Core.Instance[moduleName];
+				ISprocketModule module = Core.Instance[moduleName].Module;
 				if(module == null)
 					throw new AjaxException("The specified module \"" + func[0] + "\" was not found.");
 				if(Attribute.GetCustomAttribute(module.GetType(), typeof(AjaxMethodHandlerAttribute), false) == null)
@@ -123,7 +118,7 @@ namespace Sprocket.Web
 				AjaxMethodAttribute attr = (AjaxMethodAttribute)ajaxMethodAttr;
 				if (attr.RequiresAuthentication)
 				{
-					WebAuthentication auth = (WebAuthentication)Core.Instance["WebAuthentication"];
+					WebAuthentication auth = WebAuthentication.Instance;
 					if (!auth.IsLoggedIn)
 						throw new AjaxException("You're not currently logged in. Please refresh the page.");
 
