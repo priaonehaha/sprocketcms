@@ -38,9 +38,7 @@
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="DataEntity.cs" />
     <Compile Include="Interfaces.cs" />
-    <Compile Include="SqlDatabase.cs" />
     <Compile Include="Database.cs" />
-    <Compile Include="FirebirdDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sprocket.System\Sprocket.System.csproj">

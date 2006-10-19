@@ -6,7 +6,7 @@ using System.IO;
 
 using Sprocket;
 using Sprocket.Web;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Security;
 using Sprocket.Utility;
 
@@ -16,6 +16,7 @@ namespace Sprocket.Web.CMS
 	[ModuleDependency("SprocketSettings")]
 	[ModuleDependency("WebAuthentication")]
 	[ModuleDependency("SecurityProvider")]
+	[ModuleDescription("The base platform upon which the Sprocket CMS web interface is built. Most modules for the CMS plug into this module.")]
 	public partial class WebsiteAdmin : ISprocketModule
 	{
 		public delegate void AdminRequestHandler(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled);
@@ -120,7 +121,7 @@ namespace Sprocket.Web.CMS
 					if(powered != null)
 						if(Utilities.MatchesAny(powered.ToLower(), "true", "yes"))
 							admin.AddFooterLink(new AdminMenuLink("Powered by Sprocket", "http://www.sprocketcms.com", 1000));
-					admin.AddHeadSection(new RankedString(scripts.BuildScriptTags(), 1));
+					admin.AddHeadSection(new RankedString(scripts.BuildStandardScriptsBlock(), 1));
 					HttpContext.Current.Response.Write(admin.Render(path));
 				}
 			}
@@ -154,23 +155,9 @@ namespace Sprocket.Web.CMS
 			Write(html);
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "WebsiteAdmin"; }
-		}
-
 		public string Title
 		{
 			get { return "Website Administration Module"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "The base platform upon which the Sprocket CMS web interface is built. Most modules for the CMS plug into this module."; }
 		}
 	}
 }

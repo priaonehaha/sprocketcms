@@ -12,16 +12,12 @@ namespace Sprocket.Web
 	/// request only. Static variables in the current system are unfortunately lasting for the life of
 	/// the application, which is both annoying and useful. :P
 	/// </summary>
+	[ModuleDescription("Provides a mechanism for storing global data confined to the scope of the current request.")]
 	public class CurrentRequest : ISprocketModule
 	{
 		public string Title
 		{
 			get { return "Current Request State Handler"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Provides a mechanism for storing global data confined to the scope of the current request."; }
 		}
 
 		private static CurrentRequest cr = null;
@@ -76,15 +72,6 @@ namespace Sprocket.Web
 		{
 			if(HttpContext.Current != null)
 				HttpContext.Current.ApplicationInstance.PostRequestHandlerExecute += new EventHandler(PostRequestHandlerExecute);
-		}
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "CurrentRequest"; }
 		}
 
 		#endregion

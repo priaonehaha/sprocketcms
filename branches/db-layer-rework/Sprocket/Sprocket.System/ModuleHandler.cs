@@ -138,7 +138,7 @@ namespace Sprocket
 						continue;
 
 					if (registeredModule.Importance == registry.Count)
-						preAssignedModules.Add(registeredModule.Module.RegistrationCode, registeredModule);
+						preAssignedModules.Add(registeredModule.Module.GetType().FullName, registeredModule);
 					registeredModule.Importance--;
 					if (registeredModule.Importance < mostImportantSoFar)
 						mostImportantSoFar = registeredModule.Importance;
@@ -163,15 +163,6 @@ namespace Sprocket
 		{
 			foreach(RegisteredModule module in registry)
 				module.Module.AttachEventHandlers(registry);
-		}
-
-		/// <summary>
-		/// Tells each module to initialise any internal functionality that does not depend on other modules.
-		/// </summary>
-		public void InitialiseModules()
-		{
-			foreach(RegisteredModule module in registry)
-				module.Module.Initialise(registry);
 		}
 
 		public ModuleRegistry ModuleRegistry
@@ -199,9 +190,16 @@ namespace Sprocket
 			set { module = value; }
 		}
 
+		private string nspace;
+		public string Namespace
+		{
+			get { return nspace; }
+		}
+
 		public RegisteredModule(ISprocketModule module)
 		{
 			this.module = module;
+			nspace = module.GetType().FullName;
 		}
 	}
 
@@ -214,24 +212,24 @@ namespace Sprocket
 		/// <summary>
 		/// Adds the specified module instance to the registry.
 		/// </summary>
-		/// <param name="registrationCode">The registration code for the module</param>
+		/// <param name="moduleNamespace">The registration code for the module</param>
 		/// <param name="module">A reference to the module to register</param>
 		public void RegisterModule(ISprocketModule module)
 		{
-			moduleRegistry.Add(module.RegistrationCode, new RegisteredModule(module));
+			moduleRegistry.Add(module.GetType().FullName, new RegisteredModule(module));
 		}
 
 		/// <summary>
 		/// Gets a reference to the registered module with the specified registration code.
 		/// </summary>
-		/// <param name="registrationCode">The registration code for the module</param>
+		/// <param name="moduleNamespace">The registration code for the module</param>
 		/// <returns>A reference to a module, or null if it doesn't exist</returns>
-		public RegisteredModule this[string registrationCode]
+		public RegisteredModule this[string moduleNamespace]
 		{
 			get
 			{
-				try { return moduleRegistry[registrationCode]; }
-				catch (Exception ex) { throw new SprocketException("The registration code " + registrationCode + " does not exist in the module registry.", ex); }
+				try { return moduleRegistry[moduleNamespace]; }
+				catch (Exception ex) { throw new SprocketException("The registration code " + moduleNamespace + " does not exist in the module registry.", ex); }
 			}
 		}
 
@@ -247,11 +245,11 @@ namespace Sprocket
 		/// Gets a value indicating whether or not a module with the specified registration code
 		/// exists in the module registry.
 		/// </summary>
-		/// <param name="registrationCode">The registration code to look for</param>
+		/// <param name="moduleNamespace">The registration code to look for</param>
 		/// <returns>True if found, otherwise false</returns>
-		public bool IsRegistered(string registrationCode)
+		public bool IsRegistered(string moduleNamespace)
 		{
-			return moduleRegistry.ContainsKey(registrationCode);
+			return moduleRegistry.ContainsKey(moduleNamespace);
 		}
 
 		/// <summary>
@@ -261,8 +259,9 @@ namespace Sprocket
 		/// <param name="module">A reference to the module to remove.</param>
 		public void Unregister(ISprocketModule module)
 		{
-			if(moduleRegistry.ContainsKey(module.RegistrationCode))
-				moduleRegistry.Remove(module.RegistrationCode);
+			string name = module.GetType().FullName;
+			if(moduleRegistry.ContainsKey(name))
+				moduleRegistry.Remove(name);
 		}
 
 		private bool sorted = false;

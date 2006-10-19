@@ -8,11 +8,12 @@ using System.Net;
 using System.Net.Mail;
 
 using Sprocket;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Mail
 {
+	[ModuleDescription("Handles sending of emails and notification of delivery results")]
 	public class EmailHandler : ISprocketModule
 	{
 		public event InterruptableEventHandler<MailMessage> OnSendingEmail;
@@ -162,23 +163,9 @@ namespace Sprocket.Mail
 		{
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "EmailHandler"; }
-		}
-
 		public string Title
 		{
 			get { return "Email Handler"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Handles sending of emails and notification of delivery results."; }
 		}
 
 		#endregion
@@ -187,7 +174,7 @@ namespace Sprocket.Mail
 	public class MailSendResult
 	{
 		private MailMessage mailMessage;
-		private string moduleRegistrationCode;
+		private string moduleNamespace;
 		private string errorMessage;
 
 		public string ErrorMessage
@@ -201,15 +188,15 @@ namespace Sprocket.Mail
 			get { return mailMessage; }
 		}
 
-		public string ModuleRegistrationCode
+		public string ModuleNamespace
 		{
-			get { return moduleRegistrationCode; }
+			get { return moduleNamespace; }
 		}
 
 		public MailSendResult(MailMessage msg, string moduleRegCode, string errorMsg)
 		{
 			mailMessage = msg;
-			moduleRegistrationCode = moduleRegCode;
+			moduleNamespace = moduleRegCode;
 			errorMessage = errorMsg;
 		}
 	}

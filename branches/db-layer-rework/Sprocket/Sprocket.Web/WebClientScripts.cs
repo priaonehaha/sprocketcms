@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Web
@@ -20,6 +20,7 @@ namespace Sprocket.Web
 	/// JavaScriptCondenser class, which strips out comments, whitespace, etc. Data formatting
 	/// for transfer between the client and server is provided by the open-source JSON format.
 	/// </summary>
+	[ModuleDescription( "Handles javascript aggregation and rendering to the page.")]
 	public class WebClientScripts : ISprocketModule
 	{
 		/// <summary>
@@ -39,10 +40,6 @@ namespace Sprocket.Web
 		/// Fires after all javascript is loaded and before it is rendered.
 		/// </summary>
 		public event BeforeRenderJavaScriptHandler OnBeforeRenderJavaScript;
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
 
 		public static WebClientScripts Instance
 		{
@@ -74,9 +71,9 @@ namespace Sprocket.Web
 						if (!nameAdded)
 						{
 							nameAdded = true;
-							modules.Add(module.Module.RegistrationCode, new ArrayList());
+							modules.Add(module.Namespace, new ArrayList());
 						}
-						((ArrayList)modules[module.Module.RegistrationCode]).Add(info.Name);
+						((ArrayList)modules[module.Namespace]).Add(info.Name);
 					}
 				}
 			}
@@ -113,24 +110,31 @@ namespace Sprocket.Web
 
 		private string standardScripts = null;
 
+		public string StandardScripts
+		{
+			get
+			{
+				if (standardScripts == null)
+				{
+					standardScripts = string.Concat(
+						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.generic.js"),
+						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.browser-tools.js"),
+						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.json.js"),
+						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.ajax.js"),
+						GetAjaxMethodsScript(Core.Instance.ModuleRegistry)
+						);
+				}
+				return standardScripts;
+			}
+		}
+
 		/// <summary>
 		/// Writes all registered javascripts into a string surrounded by html script tags,
 		/// ready to be written to an html page.
 		/// </summary>
 		/// <returns>HTML script tags with containing javascript</returns>
-		public string BuildScriptTags()
+		public string BuildStandardScriptsBlock()
 		{
-			if (standardScripts == null)
-			{
-				standardScripts = string.Concat(
-					ResourceLoader.LoadTextResource("Sprocket.Web.javascript.generic.js"),
-					ResourceLoader.LoadTextResource("Sprocket.Web.javascript.browser-tools.js"),
-					ResourceLoader.LoadTextResource("Sprocket.Web.javascript.json.js"),
-					ResourceLoader.LoadTextResource("Sprocket.Web.javascript.ajax.js"),
-					GetAjaxMethodsScript(Core.Instance.ModuleRegistry)
-					);
-			}
-
 			Dictionary<string, string> scripts = new Dictionary<string, string>();
 			JavaScriptCollection jsc = new JavaScriptCollection();
 			jsc.SetKey("$APPLICATIONROOT$", WebUtility.BasePath);
@@ -143,21 +147,17 @@ namespace Sprocket.Web
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			Core.Instance.OnInitialise += new EmptyEventHandler(Instance_OnInitialise);
 		}
 
-		public string RegistrationCode
+		void Instance_OnInitialise()
 		{
-			get { return "WebClientScripts"; }
+			
 		}
 
 		public string Title
 		{
 			get { return "Web Client Script Renderer"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Handles javascript aggregation and rendering to the page."; }
 		}
 	}
 
@@ -196,22 +196,6 @@ namespace Sprocket.Web
 		}
 
 		/// <summary>
-		/// Only used for ASP.Net web forms with server form tags. Registers all contained
-		/// javascripts in script tags within the server form.
-		/// </summary>
-		public void RegisterScripts()
-		{
-            Page page = (Page)HttpContext.Current.Handler;
-			foreach (KeyValuePair<string, string> script in scripts)
-			{
-				string js = script.Value;
-				foreach (KeyValuePair<string, object> key in keys)
-					js = js.Replace(key.Key, key.Value.ToString());
-				page.ClientScript.RegisterClientScriptBlock(page.GetType(), script.Key, JavaScriptCondenser.Condense(js));
-			}
-		}
-
-		/// <summary>
 		/// Writes all registered scripts into a single string surrounded by html script tags
 		/// </summary>
 		/// <returns>HTML script tags with containing javascript</returns>
@@ -238,8 +222,7 @@ namespace Sprocket.Web
 
 	/// <summary>
 	/// Marks a class method for use by the AJAX subsystem. This is only used
-	/// by classes that implement ISprocketModule and are marked by the
-	/// ModuleRegistrationCode attribute. JavaScript will be generated to define
+	/// by classes that implement ISprocketModule. JavaScript will be generated to define
 	/// a client-side object for the class that will contain matching methods for
 	/// each server-side method marked with this attribute.
 	/// </summary>

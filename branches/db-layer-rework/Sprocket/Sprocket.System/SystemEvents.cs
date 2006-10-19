@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Sprocket
 {
+	[ModuleDescription("Handles and responds to basic system events such as shutdown.")]
 	public class SystemEvents : ISprocketModule
 	{
 		/// <summary>
@@ -62,22 +63,8 @@ namespace Sprocket
 			get { return "System Events Manager"; }
 		}
 
-		public string ShortDescription
-		{
-			get { return "Handles and responds to basic system events such as shutdown."; }
-		}
-
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-		}
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "SystemEvents"; }
 		}
 
 		#endregion

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using Sprocket;
 using Sprocket.Data;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 using Sprocket.Web;
 using Sprocket.Web.Controls;
@@ -15,6 +15,7 @@ using System.Diagnostics;
 namespace Sprocket.Web.Controls
 {
 	[AjaxMethodHandler()]
+	[ModuleDescription("Provides a centralised facility for constructing, processing and validating html forms.")]
 	public class AjaxFormHandler : ISprocketModule
 	{
 		public event AjaxFormFieldValidationHandler OnValidateField;
@@ -35,24 +36,11 @@ namespace Sprocket.Web.Controls
 		{
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "AjaxFormHandler"; }
-		}
-
 		public string Title
 		{
 			get { return "Ajax Form Handler"; }
 		}
 
-		public string ShortDescription
-		{
-			get { return "Provides a centralised facility for constructing, processing and validating html forms."; }
-		}
 		#endregion
 
 		[AjaxMethod()]

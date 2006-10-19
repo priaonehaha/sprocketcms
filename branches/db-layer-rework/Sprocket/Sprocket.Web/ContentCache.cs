@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Web;
 
 namespace Sprocket.Web
@@ -17,6 +17,7 @@ namespace Sprocket.Web
 	/// pages for an unknown period of time.
 	/// </summary>
 	[ModuleDependency("WebEvents")]
+	[ModuleDescription("Simple replacement for the ASP.Net cache controls. Handles caching of requested content to disk instead of memory")]
 	public class ContentCache : ISprocketModule
 	{
 		#region private methods
@@ -137,24 +138,9 @@ namespace Sprocket.Web
 			}
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-			
-		}
-
-		public string RegistrationCode
-		{
-			get { return "ContentCache"; }
-		}
-
 		public string Title
 		{
 			get { return "Content Cache"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Simple replacement for the ASP.Net cache controls. Handles caching of requested content to disk instead of memory"; }
 		}
 
 		#endregion

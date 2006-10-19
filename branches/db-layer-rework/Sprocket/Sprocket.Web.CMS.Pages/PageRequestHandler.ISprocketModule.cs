@@ -6,7 +6,7 @@ using System.Xml;
 using System.IO;
 using System.Text.RegularExpressions;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Web;
 using Sprocket.Data;
 
@@ -16,10 +16,12 @@ namespace Sprocket.Web.CMS.Pages
 	[ModuleDependency("DatabaseManager")]
 	[ModuleDependency("SecurityProvider")]
 	[ModuleDependency("FileManager")]
+	[ModuleDescription("Handles requests website pages and performs other page-related tasks")]
 	public partial class PageRequestHandler : ISprocketModule
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			Core.Instance.OnInitialise += new EmptyEventHandler(Instance_OnInitialise);
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(OnBeginHttpRequest);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(OnEndHttpRequest);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);
@@ -27,25 +29,15 @@ namespace Sprocket.Web.CMS.Pages
 			WebsiteAdmin.Instance.OnAdminRequest += new WebsiteAdmin.AdminRequestHandler(OnAdminRequest);
 		}
 
-		public void Initialise(ModuleRegistry registry)
+		void Instance_OnInitialise()
 		{
 			RegisterPlaceHolderRenderers();
 			RegisterOutputFormatters();
 		}
 
-		public string RegistrationCode
-		{
-			get { return "PageRequestHandler"; }
-		}
-
 		public string Title
 		{
 			get { return "Web Page Request Handler"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Handles requests website pages and performs other page-related tasks"; }
 		}
 	}
 }

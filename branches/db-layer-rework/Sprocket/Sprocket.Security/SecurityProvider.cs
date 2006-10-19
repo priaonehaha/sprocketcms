@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Data;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Data;
 using Sprocket.Utility;
 
@@ -11,6 +11,7 @@ namespace Sprocket.Security
 {
 	[ModuleDependency("DatabaseManager")]
 	[ModuleDependency("EmailHandler")]
+	[ModuleDescription("The default security implementation for Sprocket. Handles users, roles and permissions.")]
 	public partial class SecurityProvider : ISprocketModule, IDataHandlerModule, ISecurityProvider
 	{
 		public static SecurityProvider Instance
@@ -67,11 +68,6 @@ namespace Sprocket.Security
 		public string Title
 		{
 			get { return "Sprocket Security Provider"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "The default security implementation for Sprocket. Handles users, roles and permissions."; }
 		}
 
 		#endregion
