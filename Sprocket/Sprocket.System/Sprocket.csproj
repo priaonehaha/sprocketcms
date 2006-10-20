@@ -82,6 +82,7 @@
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web">
       <Name>System.Web</Name>
     </Reference>
@@ -91,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core.cs" />
+    <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\SqlServer2005Database.cs" />
     <Compile Include="ModuleHandler.cs" />
     <Compile Include="Data\DatabaseManager.cs" />
@@ -118,7 +120,6 @@
     <Compile Include="Web\WebUtility.cs" />
     <Compile Include="SystemEvents.cs" />
     <Compile Include="Web\CurrentRequest.cs" />
-    <Compile Include="ISecurityProvider.cs" />
     <Compile Include="ISprocketModule.cs" />
     <Compile Include="ModuleAttributes.cs">
       <SubType>Code</SubType>

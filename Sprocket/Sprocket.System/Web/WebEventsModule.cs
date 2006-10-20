@@ -261,6 +261,8 @@ namespace Sprocket.Web
 				SystemEvents.Instance.NotifyExceptionThrown(app.Server.GetLastError());
 				if(OnApplicationError != null)
 					OnApplicationError(app, app.Server.GetLastError());
+				if (SprocketSettings.Instance.HasErrors)
+					Core.Reset();
 			}
 		}
 

@@ -13,6 +13,7 @@ namespace Sprocket
 	/// <summary>
 	/// Handles application configuration settings in the .config file and any other files with a similar purpose.
 	/// </summary>
+	[ModuleTitle("Sprocket Settings")]
 	[ModuleDescription("Handles general application settings, mainly in the application's .config file.")]
 	public sealed class SprocketSettings : ISprocketModule
 	{

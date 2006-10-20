@@ -2,97 +2,69 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
+using System.Transactions;
 
 using Sprocket;
 using Sprocket.Data;
+using Sprocket.Mail;
 using Sprocket.Utility;
 
 namespace Sprocket.Security
 {
-	[ModuleDependency("DatabaseManager")]
-	[ModuleDependency("EmailHandler")]
+#warning module dependencies aren't being dealt with properly
+	[ModuleDependency(typeof(DatabaseManager))]
+	[ModuleDependency(typeof(EmailHandler))]
+	[ModuleTitle("Sprocket Security Provider")]
 	[ModuleDescription("The default security implementation for Sprocket. Handles users, roles and permissions.")]
-	public partial class SecurityProvider : ISprocketModule, IDataHandlerModule, ISecurityProvider
+	public partial class SecurityProvider : ISprocketModule
 	{
 		public static SecurityProvider Instance
 		{
-			get { return (SecurityProvider)Core.Instance["SecurityProvider"]; }
+			get { return (SecurityProvider)Core.Instance[typeof(SecurityProvider)].Module; }
 		}
 
-		public class InitialClient
-		{
-			public Guid ClientID = Guid.Empty;
-		}
-
-		public delegate void InitialClientHandler(InitialClient client);
-		public event InitialClientHandler BeforeFirstClientDataInserted;
-
-		#region IDataHandlerModule Members
-
-		public void ExecuteDataScripts()
-		{
-			SqlDatabase db = (SqlDatabase)Database.Main;
-			db.ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Security.DatabaseScripts.sqlserver_tables_001.sql"));
-			db.ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Security.DatabaseScripts.sqlserver_procedures_001.sql"));
-			InitialClient client = new InitialClient();
-			if (BeforeFirstClientDataInserted != null)
-				BeforeFirstClientDataInserted(client);
-			string sql = ResourceLoader.LoadTextResource("Sprocket.Security.DatabaseScripts.sqlserver_data_001.sql");
-			sql = sql.Replace("{ClientID}", client.ClientID.ToString());
-			sql = sql.Replace("{password-hash}", Crypto.EncryptOneWay("password").Replace("'", "''"));
-			db.ExecuteScript(sql);
-		}
-
-		bool SelectDatabaseEngine(DatabaseEngine engine)
-		{
-
-		}
-
-		#endregion
-
-		#region ISprocketModule Members
+		Dictionary<Type, ISecurityProviderDataLayer> dataLayers = new Dictionary<Type, ISecurityProviderDataLayer>();
+		ISecurityProviderDataLayer dataLayer = null;
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
+			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Core_OnInitialise);
 		}
 
-		public void Initialise(ModuleRegistry registry)
+		void Core_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
 		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "SecurityProvider"; }
-		}
-
-		public string Title
-		{
-			get { return "Sprocket Security Provider"; }
-		}
-
-		#endregion
-
-		#region ISecurityProvider Members
-
-		public bool IsValidLogin(string username, string passwordHash)
-		{
-			DatabaseManager dbm = (DatabaseManager)Core.Instance["DatabaseManager"];
-			switch (dbm.DatabaseEngine)
+			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(ISecurityProviderDataLayer)))
 			{
-				case DatabaseEngine.SqlServer:
-					IDbCommand cmd = Database.Main.CreateCommand("IsValidLogin", CommandType.StoredProcedure);
-					Database.Main.AddParameter(cmd, "@Username", username);
-					Database.Main.AddParameter(cmd, "@PasswordHash", passwordHash);
-					IDataParameter prm = Database.Main.AddOutputParameter(cmd, "@IsValid", DbType.Boolean);
-					cmd.ExecuteNonQuery();
-					return (bool)prm.Value;
-
-				default:
-					throw new SprocketException("The Sprocket Security Provider does not currently support the selected database engine.");
+				ISecurityProviderDataLayer layer = (ISecurityProviderDataLayer)Activator.CreateInstance(t);
+				dataLayers.Add(layer.DatabaseHandlerType, layer);
 			}
 		}
 
-		#endregion
+		void Instance_OnDatabaseHandlerLoaded(IDatabaseHandler source)
+		{
+			source.OnInitialise += new InterruptableEventHandler(Database_OnInitialise);
+			Type t = source.GetType();
+			if (dataLayers.ContainsKey(t))
+				dataLayer = dataLayers[t];
+		}
+
+		void Database_OnInitialise(Result result)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				if (dataLayer == null)
+					result.SetFailed("SecurityProvider has no implementation for " + DatabaseManager.DatabaseEngine.Title);
+				else
+				{
+					Result r = dataLayer.InitialiseDatabase(DatabaseManager.DatabaseEngine.CreateDefaultConnection());
+					if (!r.Succeeded)
+						result.SetFailed(r.Message);
+					else
+						scope.Complete();
+				}
+			}
+		}
 
 		public static class RoleCodes
 		{
@@ -101,8 +73,8 @@ namespace Sprocket.Security
 
 		public static class PermissionTypeCodes
 		{
-			public static string UserAdministrator { get { return "USERADMINISTRATOR"; } }
-			public static string RoleAdministrator { get { return "ROLEADMINISTRATOR"; } }
+			public static readonly string UserAdministrator = "USERADMINISTRATOR";
+			public static readonly string RoleAdministrator = "ROLEADMINISTRATOR";
 		}
 	}
 }

@@ -16,6 +16,9 @@ namespace Sprocket.Web
 		public delegate void AjaxAuthKeyStoredHandler(string username, Guid authKey);
 		public event AjaxAuthKeyStoredHandler OnAjaxAuthKeyStored;
 
+		public delegate void LoginAuthenticationHandler(string username, string passwordHash, Result result);
+		public event LoginAuthenticationHandler OnValidatingLogin;
+
 		private Hashtable usersByKey = new Hashtable();
 		private Hashtable keysByUser = new Hashtable();
 
@@ -72,12 +75,12 @@ namespace Sprocket.Web
 			return keysByUser[username].ToString();
 		}
 
-		public bool IsValidLogin(string username, string passwordHash)
+		public Result ValidateLogin(string username, string passwordHash)
 		{
-			//if (Core.Modules.SecurityProvider == null) return true;
-			//bool result = Core.Modules.SecurityProvider.IsValidLogin(username, passwordHash);
-			//return result;
-			return true;
+			Result result = new Result();
+			if (OnValidatingLogin != null)
+				OnValidatingLogin(username, passwordHash, result);
+			return result;
 		}
 
 		public void WriteAuthenticationCookie(string username, string passwordHash, Guid ajaxGuid)
@@ -109,7 +112,7 @@ namespace Sprocket.Web
 				HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
 				if (cookie == null)
 					return false;
-				return IsValidLogin(cookie["a"], cookie["b"]);
+				return ValidateLogin(cookie["a"], cookie["b"]).Succeeded;
 			}
 		}
 
@@ -124,7 +127,7 @@ namespace Sprocket.Web
 			string p = HttpContext.Current.Request.Form[passwordFieldName];
 			int timeout = persistLogin ? 525600 : 60;
 			string hash = p == "" ? "" : Crypto.EncryptOneWay(p);
-			if (IsValidLogin(u, hash))
+			if (ValidateLogin(u, hash).Succeeded)
 			{
 				WriteAuthenticationCookie(u, hash, StoreAjaxAuthKey(u), timeout);
 				return true;

@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Web;
-using Sprocket.Security;
 
 namespace Sprocket
 {
@@ -20,6 +19,13 @@ namespace Sprocket
 		internal Dictionary<Type, List<Type>> InterfaceImplementations
 		{
 			get { return interfaceImplementations; }
+		}
+
+		public List<Type> GetInterfaceImplementations(Type interfaceType)
+		{
+			if (!interfaceImplementations.ContainsKey(interfaceType))
+				return new List<Type>();
+			return interfaceImplementations[interfaceType];
 		}
 
 		/// <summary>

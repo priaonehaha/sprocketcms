@@ -284,7 +284,7 @@ namespace Sprocket.Web
 
 			private object ReadSimpleValue()
 			{
-				if (char.IsDigit(str[pos]))
+				if (char.IsDigit(str[pos]) || (str[pos] == '-' && char.IsDigit(str[pos + 1])))
 					return ReadNumber();
 
 				if (str.Length >= pos + 4) // if the string has enough characters left, do a quick check for null, true or false
