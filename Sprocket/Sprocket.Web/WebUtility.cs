@@ -93,7 +93,21 @@ namespace Sprocket.Web
 			sr.Close();
 			CachedFile file = new CachedFile();
 			file.FileDate = modified;
-			file.FileText = condenseJavaScript ? JavaScriptCondenser.Condense(txt) : txt;
+			if (condenseJavaScript)
+				if (sprocketPath.EndsWith(".js"))
+					file.FileText = JavaScriptCondenser.Condense(txt);
+				else if (sprocketPath.EndsWith(".htm"))
+				{
+					foreach (Match match in Regex.Matches(txt, @"\<script\>(?<js>([\s\S](?!\/script\>))*)\</script\>",
+						RegexOptions.IgnoreCase | RegexOptions.Multiline))
+						txt = txt.Replace(match.Value, "<script>" + JavaScriptCondenser.Condense(match.Groups["js"].Value) + "</script>");
+					file.FileText = txt;
+				}
+				else
+					file.FileText = txt;
+			else
+				file.FileText = txt;
+			//file.FileText = condenseJavaScript ? JavaScriptCondenser.Condense(txt) : txt;
 			txtFileCache.Add(path, file);
 			HttpContext.Current.Application.UnLock();
 			return txt;
