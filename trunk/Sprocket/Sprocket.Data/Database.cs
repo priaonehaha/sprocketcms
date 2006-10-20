@@ -140,16 +140,17 @@ namespace Sprocket.Data
 			return cmd;
 		}
 
-		public void AddParameter(IDbCommand cmd, string name, object value)
+		public IDataParameter AddParameter(IDbCommand cmd, string name, object value)
 		{
 			IDataParameter prm = cmd.CreateParameter();
 			prm.ParameterName = name;
 			prm.Value = value == null ? DBNull.Value : value;
 			CheckParameter(prm);
 			cmd.Parameters.Add(prm);
+			return prm;
 		}
 
-		public void AddParameter(IDbCommand cmd, string name, object value, DbType dbtype)
+		public IDataParameter AddParameter(IDbCommand cmd, string name, object value, DbType dbtype)
 		{
 			IDataParameter prm = cmd.CreateParameter();
 			prm.ParameterName = name;
@@ -157,6 +158,7 @@ namespace Sprocket.Data
 			prm.DbType = dbtype;
 			CheckParameter(prm);
 			cmd.Parameters.Add(prm);
+			return prm;
 		}
 
 		public IDataParameter AddOutputParameter(IDbCommand cmd, string name, DbType dbType)

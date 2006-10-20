@@ -156,19 +156,20 @@ SprocketAjax = {
 						return;
 					alert('There was an error parsing the JSON response. The error was:\n\n' + ex.message + '\n\nThe response text was:\n\n' + req.responseText);
 				}
-				if(response.__error)
-					SprocketAjax.DefaultCallback(response);
-				else {
-					var call;
-					if(callbackObject)
-						call = 'callback.call(callbackObject, response, callnum';
-					else
-						call = 'callback(response, callnum';
-					for(var i=0; i<contextArgs.length; i++)
-						call += ', contextArgs[' + i + ']';
-					call += ');';
-					eval(call);
-				}
+				if(response)
+					if(response.__error) {
+						SprocketAjax.DefaultCallback(response);
+						return;
+					}
+				var call;
+				if(callbackObject)
+					call = 'callback.call(callbackObject, response, callnum';
+				else
+					call = 'callback(response, callnum';
+				for(var i=0; i<contextArgs.length; i++)
+					call += ', contextArgs[' + i + ']';
+				call += ');';
+				eval(call);
 			}
 		}
 		

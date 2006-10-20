@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Sprocket.Web
 {
@@ -284,7 +285,7 @@ namespace Sprocket.Web
 
 			private object ReadSimpleValue()
 			{
-				if (char.IsDigit(str[pos]))
+				if (char.IsDigit(str[pos]) || (str[pos] == '-' && char.IsDigit(str[pos+1])))
 					return ReadNumber();
 
 				if (str.Length >= pos + 4) // if the string has enough characters left, do a quick check for null, true or false
@@ -390,6 +391,8 @@ namespace Sprocket.Web
 			private double ReadNumber()
 			{
 				int pos1 = pos;
+				if (str[pos] == '-')
+					pos++;
 				while (pos < str.Length) // must start with at least one digit
 					if(str[pos] >= '0' && str[pos] <= '9')
 						pos++;
