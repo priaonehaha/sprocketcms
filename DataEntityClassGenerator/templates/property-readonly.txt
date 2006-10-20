@@ -1,7 +1,0 @@
-		///<summary>
-		///Gets the value for [propertyname]
-		///</summary>
-		public [datatype] [propertyname]
-		{
-			get { return [fieldname]; }
-		}

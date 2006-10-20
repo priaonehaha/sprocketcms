@@ -1,1 +1,0 @@
-if(row["[columnname]"] != DBNull.Value) [fldname] = ([fldtype])row["[columnname]"];
