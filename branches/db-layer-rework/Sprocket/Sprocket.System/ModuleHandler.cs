@@ -32,17 +32,6 @@ namespace Sprocket
 			get { return registry[moduleNamespace]; }
 		}
 
-		public ISecurityProvider securityProvider = null;
-		/// <summary>
-		/// Gets a reference to the default Sprocket module that implements the ISecurityProvider
-		/// interface. It is expected that only one such implementation should exist for any
-		/// Sprocket-based application. Returns null if no reference exists.
-		/// </summary>
-		public ISecurityProvider SecurityProvider
-		{
-			get { return securityProvider; }
-		}
-
 		/// <summary>
 		/// Searches for assemblies containing Sprocket modules.
 		/// </summary>
@@ -85,8 +74,6 @@ namespace Sprocket
 						registry.RegisterModule(module);
 					}
 					catch { continue; }
-					if (module is ISecurityProvider)
-						securityProvider = (ISecurityProvider)module;
 				}
 				// here we register all the extra interfaces we find, and the types that implement them.
 				// we do this to allow modules to have easy access to find types that implement the
@@ -121,12 +108,7 @@ namespace Sprocket
 
 			// ...then unregister them
 			foreach (RegisteredModule badmod in badModules)
-			{
-				if (securityProvider != null)
-					if (object.ReferenceEquals(badmod, securityProvider))
-						securityProvider = null;
 				registry.Unregister(badmod.Module);
-			}
 
 			foreach (RegisteredModule module in registry)
 				module.Importance = registry.Count;

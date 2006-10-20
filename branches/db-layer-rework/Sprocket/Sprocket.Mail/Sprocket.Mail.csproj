@@ -37,9 +37,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sprocket.System\Sprocket.System.csproj">
+    <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
       <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
-      <Name>Sprocket.System</Name>
+      <Name>Sprocket</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
