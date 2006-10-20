@@ -119,7 +119,7 @@ namespace Sprocket.Web.CMS
 					admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + DateTime.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", 100));
 					string powered = SprocketSettings.GetValue("ShowPoweredBySprocket");
 					if(powered != null)
-						if(Utilities.MatchesAny(powered.ToLower(), "true", "yes"))
+						if(StringUtilities.MatchesAny(powered.ToLower(), "true", "yes"))
 							admin.AddFooterLink(new AdminMenuLink("Powered by Sprocket", "http://www.sprocketcms.com", 1000));
 					admin.AddHeadSection(new RankedString(scripts.BuildStandardScriptsBlock(), 1));
 					HttpContext.Current.Response.Write(admin.Render(path));

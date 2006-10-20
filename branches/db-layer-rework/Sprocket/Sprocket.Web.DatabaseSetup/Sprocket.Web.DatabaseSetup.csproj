@@ -38,7 +38,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Sprocket\Sprocket\Sprocket.Data\Sprocket.Data.csproj">
+    <ProjectReference Include="..\Sprocket.Data\Sprocket.Data.csproj">
       <Project>{903AD3DC-FA63-4C6C-9D1F-A80B50A19E4E}</Project>
       <Name>Sprocket.Data</Name>
     </ProjectReference>

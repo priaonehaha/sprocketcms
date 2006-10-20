@@ -18,7 +18,7 @@ namespace Sprocket
 		/// Called after events have been attached and settings have been validated
 		/// </summary>
 		public event ModuleInitialisationHandler OnInitialise;
-		
+
 		/// <summary>
 		/// Called after all modules have been initialised
 		/// </summary>

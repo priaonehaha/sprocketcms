@@ -79,7 +79,7 @@ namespace Sprocket
 		{
 			string val = Instance[key];
 			if (val == null) return false;
-			return Utilities.MatchesAny(val.ToLower(), "true", "yes", "on", "1");
+			return StringUtilities.MatchesAny(val.ToLower(), "true", "yes", "on", "1");
 		}
 
 		/// <summary>
@@ -125,7 +125,7 @@ namespace Sprocket
 		/// </summary>
 		public class SettingsErrors
 		{
-			private Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
+			private Dictionary<RegisteredModule, List<string>> errors = new Dictionary<RegisteredModule, List<string>>();
 			private bool critical = false;
 
 			/// <summary>
@@ -133,17 +133,18 @@ namespace Sprocket
 			/// </summary>
 			/// <param name="moduleRegCode">The registration code for the module that found the error</param>
 			/// <param name="error">A description of the error</param>
-			public void Add(string moduleRegCode, string error)
+			public void Add(ISprocketModule module, string error)
 			{
-				if (!errors.ContainsKey(moduleRegCode))
-					errors[moduleRegCode] = new List<string>();
-				errors[moduleRegCode].Add(error);
+				RegisteredModule m = Core.Instance[module];
+				if (!errors.ContainsKey(m))
+					errors[m] = new List<string>();
+				errors[m].Add(error);
 			}
 
 			/// <summary>
 			/// Gets a reference to the list of errors
 			/// </summary>
-			public Dictionary<string, List<string>> List
+			public Dictionary<RegisteredModule, List<string>> List
 			{
 				get { return errors; }
 			}
