@@ -1,0 +1,28 @@
+<script>
+function Newsletter_Unsubscribe(unsubscribed) {
+	if(!unsubscribed) {
+		$('newsletter-unsubscribe-form').style.display = 'none';
+		$('newsletter-unsubscribe-pleasewait').style.display = '';
+		Ajax.NewsletterModule.Unsubscribe($('newsletter-unsubscribe-email').value, function(){Newsletter_Unsubscribe(true);})
+	} else {
+		$('newsletter-unsubscribe-pleasewait').style.display = 'none';
+		$('newsletter-unsubscribe-complete').style.display = '';
+	}
+}
+</script>
+<div id="newsletter-unsubscribe-container">
+	<div id="newsletter-unsubscribe-blurb">
+		[blurb]
+	</div>
+	<div id="newsletter-unsubscribe-form">
+		<div id="newsletter-unsubscribe-label">[label]</div>
+		<div id="newsletter-unsubscribe-field"><input type="text" id="newsletter-unsubscribe-email" /></div>
+		<div id="newsletter-unsubscribe-button"><input type="submit" value="[button]" onclick="Newsletter_Unsubscribe()" /></div>
+	</div>
+	<div id="newsletter-unsubscribe-pleasewait" style="display:none">
+		[pleasewait]
+	</div>
+	<div id="newsletter-unsubscribe-complete" style="display:none">
+		[unsubscribed]
+	</div>
+</div>
