@@ -32,5 +32,18 @@ namespace Sprocket.Data
 		/// <returns>A <see cref="DbConnection" /> instance initialised
 		/// to point at the default data source</returns>
 		DbConnection CreateDefaultConnection();
+
+		/// <summary>
+		/// This should return a short descriptive title for the database
+		/// provider, e.g. "SQL Server 2005" or "SQLite 3"
+		/// </summary>
+		string Title { get; }
+
+		/// <summary>
+		/// This event should be called from inside the <c cref="Initialise" />
+		/// method. It is used to allow each module to perform initialisation
+		/// tasks relating to this database handler.
+		/// </summary>
+		event InterruptableEventHandler OnInitialise;
 	}
 }

@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Data.SQLite;
+using System.Transactions;
 
 namespace Sprocket.Data
 {
@@ -12,7 +13,7 @@ namespace Sprocket.Data
 	{
 		public DbConnection CreateDefaultConnection()
 		{
-			return new SQLiteConnection("Data Source=" + PhysicalPath);
+			return new SQLiteConnection("Data Source=" + PhysicalPath + ";UseUTF16Encoding=True;");
 		}
 
 		public Result Initialise()
@@ -26,12 +27,23 @@ namespace Sprocket.Data
 						info.Directory.Create();
 					SQLiteConnection.CreateFile(PhysicalPath);
 				}
+				else
+					SQLiteConnection.CompressFile(PhysicalPath);
 			}
 			catch (Exception ex)
 			{
 				return new Result("Unable to initialise the default SQLite database: " + ex.Message);
 			}
-			return new Result();
+
+			Result result = new Result();
+			using (TransactionScope scope = new TransactionScope())
+			{
+				if (OnInitialise != null)
+					OnInitialise(result);
+				if (result.Succeeded)
+					scope.Complete();
+			}
+			return result;
 		}
 
 		private string physicalPath = null;
@@ -49,5 +61,12 @@ namespace Sprocket.Data
 		{
 			return new Result();
 		}
+
+		public string Title
+		{
+			get { return "SQLite 3"; }
+		}
+
+		public event InterruptableEventHandler OnInitialise;
 	}
 }

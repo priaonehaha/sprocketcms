@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
+using System.Transactions;
 
 namespace Sprocket.Data
 {
@@ -18,7 +19,15 @@ namespace Sprocket.Data
 
 		public Result Initialise()
 		{
-			return new Result();
+			Result result = new Result();
+			using (TransactionScope scope = new TransactionScope())
+			{
+				if (OnInitialise != null)
+					OnInitialise(result);
+				if (result.Succeeded)
+					scope.Complete();
+			}
+			return result;
 		}
 
 		private string connectionString = null;
@@ -45,5 +54,12 @@ namespace Sprocket.Data
 			}
 			return new Result();
 		}
+
+		public string Title
+		{
+			get { return "SQL Server 2005"; }
+		}
+
+		public event InterruptableEventHandler OnInitialise;
 	}
 }

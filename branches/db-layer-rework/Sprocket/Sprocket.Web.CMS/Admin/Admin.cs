@@ -6,7 +6,6 @@ using System.IO;
 
 using Sprocket;
 using Sprocket.Web;
-using Sprocket.Security;
 using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Admin

@@ -19,8 +19,11 @@ namespace Sprocket.Web
 			if (handled.Handled) return;
 			if (sprocketPath == "$dbsetup")
 			{
-				DatabaseManager.DatabaseEngine.Initialise();
-				HttpContext.Current.Response.Write("<p>Database setup completed.</p>");
+				Result result = DatabaseManager.DatabaseEngine.Initialise();
+				if(result.Succeeded)
+					HttpContext.Current.Response.Write("<p>Database setup completed.</p>");
+				else
+					HttpContext.Current.Response.Write("<h2>Unable to Initialise Database</h2><p>" + result.Message + "</p>");
 				handled.Set();
 			}
 		}
