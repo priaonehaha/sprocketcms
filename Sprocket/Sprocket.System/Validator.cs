@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Sprocket.Utility
 {
-	public static partial class Utilities
+	public static partial class StringUtilities
 	{
 		public static class Validation
 		{

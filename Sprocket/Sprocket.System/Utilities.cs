@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Sprocket.Utility
 {
-	public static partial class Utilities
+	public static partial class StringUtilities
 	{
 		public static bool MatchesAny(object source, params object[] comparisons)
 		{
@@ -42,6 +42,21 @@ namespace Sprocket.Utility
 				}
 			}
 			return s;
+		}
+
+		public static string CommaJoin(List<string> values)
+		{
+			StringBuilder sb = new StringBuilder();
+			for (int i=0; i<values.Count; i++)
+			{
+				if (i > 0)
+					if (i < values.Count - 1)
+						sb.Append(", ");
+					else
+						sb.Append(" and ");
+				sb.Append(values[i]);
+			}
+			return sb.ToString();
 		}
 
 		public static string ApproxHowLongAgo(DateTime dt)

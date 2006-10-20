@@ -138,7 +138,7 @@ namespace Sprocket.Mail
 				client.Host = "localhost";
 			if (port > 0) client.Port = port;
 			if (useAuthentication != null && authUsername != null && authPassword != null)
-				if (Utilities.MatchesAny(useAuthentication.ToLower(), "true", "yes", "1"))
+				if (StringUtilities.MatchesAny(useAuthentication.ToLower(), "true", "yes", "1"))
 					client.Credentials = new NetworkCredential(authUsername, authPassword);
 
 			return client;
