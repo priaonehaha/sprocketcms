@@ -26,7 +26,7 @@ FirefoxResizeEventHandler = {
 	elements : [],
 	Init : function() {
 		if(!Browser.IsFirefox) return;
-		this.interval = setInterval( function() { FirefoxResizeEventHandler.Fire(); }, 300 );
+		this.interval = setInterval( function() { FirefoxResizeEventHandler.Fire(); }, 100 );
 	},
 	Fire : function() {
 		for(var i=0; i<this.elements.length; i++) {
