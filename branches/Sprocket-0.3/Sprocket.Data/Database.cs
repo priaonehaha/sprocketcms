@@ -261,7 +261,7 @@ namespace Sprocket.Data
 			try { conn.ConnectionString = ConnectionString; }
 			catch { throw new SprocketException("The supplied connection string is not in a valid format."); }
 			try { conn.Open(); }
-			catch { throw new SprocketException("Cannot open connection using connection string: " + ConnectionString); }
+			catch { throw new SprocketException("Cannot open connection using the supplied connection string"); }
 			return conn;
 		}
 

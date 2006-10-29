@@ -42,6 +42,7 @@
     <Compile Include="OutputFormatters\DateTimeOutputFormatter.cs" />
     <Compile Include="OutputFormatters\MissingOutputFormatter.cs" />
     <Compile Include="OutputFormatters\DefaultOutputFormatter.cs" />
+    <Compile Include="PlaceHolderRenderers\TemplatePlaceHolderRenderer.cs" />
     <Compile Include="PlaceHolderRenderers\NamePlaceHolderRenderer.cs" />
     <Compile Include="PlaceHolderRenderers\ExternalXmlPlaceHolderRenderer.cs" />
     <Compile Include="PlaceHolderRenderers\PathPlaceHolderRenderer.cs" />
