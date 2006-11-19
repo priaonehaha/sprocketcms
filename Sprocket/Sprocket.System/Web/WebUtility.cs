@@ -176,5 +176,20 @@ namespace Sprocket.Web
 				return url.Remove(0, arr[0].Length + 1);
 			}
 		}
+
+		public static object GetSyncObject(string name)
+		{
+			HttpApplicationState app = HttpContext.Current.Application;
+			string n = "_LOCKSYNC_" + name;
+			app.Lock();
+			object sync = app[n];
+			if (sync == null)
+			{
+				sync = new object();
+				app[n] = sync;
+			}
+			app.UnLock();
+			return sync;
+		}
 	}
 }

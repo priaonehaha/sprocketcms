@@ -61,7 +61,8 @@ namespace Sprocket.Security
 		protected Guid userID = Guid.Empty, clientSpaceID = Guid.Empty;
 		protected string username = "", passwordHash = "";
 		protected string firstName = "", surname = "", email = "";
-		protected bool enabled = true, hidden = false, locked = false, activated = false;
+		protected bool enabled = true, locked = false, activated = false, deleted = false;
+		protected bool hidden = false; // for special users used internally only
 		protected int localTimeOffsetHours = 0;
 		protected DateTime? activationReminderSent = null, created = null;
 
@@ -74,7 +75,7 @@ namespace Sprocket.Security
 
 		public User(Guid clientSpaceID, string username,
 			string password, string firstName, string surname, string email,
-			bool enabled, bool locked, bool hidden)
+			bool enabled, bool locked, bool hidden, int localTimeOffsetHours)
 		{
 			this.userID = Guid.NewGuid();
 			this.clientSpaceID = clientSpaceID;
@@ -85,10 +86,12 @@ namespace Sprocket.Security
 			this.email = email;
 			this.enabled = enabled;
 			this.locked = locked;
+			this.deleted = false;
 			this.hidden = hidden;
 			this.activated = false;
 			this.created = null;
 			this.activationReminderSent = null;
+			this.localTimeOffsetHours = localTimeOffsetHours;
 		}
 
 		#endregion
@@ -176,6 +179,12 @@ namespace Sprocket.Security
 			set { enabled = value; }
 		}
 
+		public bool Deleted
+		{
+			get { return deleted; }
+			set { deleted = value; }
+		}
+
 		public bool Hidden
 		{
 			get { return hidden; }
@@ -253,7 +262,35 @@ namespace Sprocket.Security
 
 	public class PermissionType : IEntity
 	{
-		PermissionState p;
+		int permissionTypeID;
+		string permissionTypeCode, description;
+		bool defaultValue;
+
+		#region Properties
+		public int PermissionTypeID
+		{
+			get { return permissionTypeID; }
+			set { permissionTypeID = value; }
+		}
+
+		public string PermissionTypeCode
+		{
+			get { return permissionTypeCode; }
+			set { permissionTypeCode = value; }
+		}
+
+		public string Description
+		{
+			get { return description; }
+			set { description = value; }
+		}
+
+		public bool DefaultValue
+		{
+			get { return defaultValue; }
+			set { defaultValue = value; }
+		}
+		#endregion
 	}
 
 	public enum PermissionState

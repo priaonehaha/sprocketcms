@@ -11,11 +11,7 @@ namespace Sprocket.Data
 {
 	public class SqlServer2005Database : IDatabaseHandler
 	{
-		private const string dbSprocketPath = "datastore/databases/main.sdb";
-		public DbConnection CreateDefaultConnection()
-		{
-			return new SqlConnection(connectionString);
-		}
+		private string connectionString = null;
 
 		public Result Initialise()
 		{
@@ -30,7 +26,6 @@ namespace Sprocket.Data
 			return result;
 		}
 
-		private string connectionString = null;
 		public string ConnectionString
 		{
 		  get { return connectionString; }

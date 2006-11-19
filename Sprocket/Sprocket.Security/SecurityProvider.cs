@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
+using System.IO;
 using System.Transactions;
+using System.Web;
 
 using Sprocket;
 using Sprocket.Data;
 using Sprocket.Mail;
 using Sprocket.Utility;
+using Sprocket.Web;
 
 namespace Sprocket.Security
 {
-#warning module dependencies aren't being dealt with properly
 	[ModuleDependency(typeof(DatabaseManager))]
 	[ModuleDependency(typeof(EmailHandler))]
 	[ModuleTitle("Sprocket Security Provider")]
@@ -23,52 +25,87 @@ namespace Sprocket.Security
 			get { return (SecurityProvider)Core.Instance[typeof(SecurityProvider)].Module; }
 		}
 
-		Dictionary<Type, ISecurityProviderDataLayer> dataLayers = new Dictionary<Type, ISecurityProviderDataLayer>();
-		ISecurityProviderDataLayer dataLayer = null;
-
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
-			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Core_OnInitialise);
+			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
 		}
 
-		void Core_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
+		ISecurityProviderDataLayer dataLayer = null;
+		public ISecurityProviderDataLayer DataLayer
 		{
-			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(ISecurityProviderDataLayer)))
-			{
-				ISecurityProviderDataLayer layer = (ISecurityProviderDataLayer)Activator.CreateInstance(t);
-				dataLayers.Add(layer.DatabaseHandlerType, layer);
-			}
+			get { return dataLayer; }
 		}
 
 		void Instance_OnDatabaseHandlerLoaded(IDatabaseHandler source)
 		{
+			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(ISecurityProviderDataLayer)))
+			{
+				ISecurityProviderDataLayer layer = (ISecurityProviderDataLayer)Activator.CreateInstance(t);
+				if (layer.DatabaseHandlerType == source.GetType())
+				{
+					dataLayer = layer;
+					break;
+				}
+			}
 			source.OnInitialise += new InterruptableEventHandler(Database_OnInitialise);
-			Type t = source.GetType();
-			if (dataLayers.ContainsKey(t))
-				dataLayer = dataLayers[t];
 		}
 
 		void Database_OnInitialise(Result result)
 		{
-			using (TransactionScope scope = new TransactionScope())
+			if (dataLayer == null)
+				result.SetFailed("SecurityProvider has no implementation for " + DatabaseManager.DatabaseEngine.Title);
+			else
 			{
-				if (dataLayer == null)
-					result.SetFailed("SecurityProvider has no implementation for " + DatabaseManager.DatabaseEngine.Title);
-				else
+				Result r = dataLayer.InitialiseDatabase();
+				if (!r.Succeeded)
+					result.SetFailed(r.Message);
+			}
+		}
+
+		void Instance_OnBeforeLoadExistingFile(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		{
+			if (sprocketPath.ToLower() == "datastore/clientspace.id") // deny access
+				handled.Set();
+		}
+
+		private static Guid clientSpaceID = Guid.Empty;
+		public static Guid ClientSpaceID
+		{
+			get
+			{
+				lock (WebUtility.GetSyncObject("DefaultClientSpaceID"))
 				{
-					Result r = dataLayer.InitialiseDatabase(DatabaseManager.DatabaseEngine.CreateDefaultConnection());
-					if (!r.Succeeded)
-						result.SetFailed(r.Message);
+					if (clientSpaceID != Guid.Empty)
+						return clientSpaceID;
+					string path = WebUtility.MapPath("datastore/ClientSpace.ID");
+					if (!File.Exists(path))
+					{
+						clientSpaceID = Guid.NewGuid();
+						using (FileStream file = File.OpenWrite(path))
+						{
+							file.Write(clientSpaceID.ToByteArray(), 0, 16);
+							file.Close();
+						}
+					}
 					else
-						scope.Complete();
+					{
+						byte[] bytes = new byte[16];
+						using (FileStream file = File.OpenRead(path))
+						{
+							file.Read(bytes, 0, 16);
+							file.Close();
+						}
+						clientSpaceID = new Guid(bytes);
+					}
+					return clientSpaceID;
 				}
 			}
 		}
 
 		public static class RoleCodes
 		{
-			public static string SuperUser { get { return "SUPERUSER"; } }
+			public static readonly string SuperUser = "SUPERUSER";
 		}
 
 		public static class PermissionTypeCodes

@@ -30,7 +30,12 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite, Version=1.0.35.1, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binary Dependencies\System.Data.SQLite.DLL</HintPath>
+    </Reference>
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -38,6 +43,7 @@
     <Compile Include="Objects.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecurityProvider.cs" />
+    <Compile Include="SQLite\SQLiteSecurityProviderDataLayer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sprocket.Mail\Sprocket.Mail.csproj">
@@ -58,7 +64,31 @@
     <EmbeddedResource Include="DatabaseScripts\sqlserver_tables_001.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="SQLite\SQLite Tables.sql" />
+    <EmbeddedResource Include="SQLite\SQLite Tables.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\Insert First Client.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\Authenticate.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\IsEmailAddressTaken.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\IsUsernameTaken.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\Store ClientSpace.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\Store User.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\Store Role.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLite\Store PermissionType.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
