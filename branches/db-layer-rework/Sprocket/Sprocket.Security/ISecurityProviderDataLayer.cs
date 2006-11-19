@@ -10,24 +10,33 @@ namespace Sprocket.Security
 	public interface ISecurityProviderDataLayer
 	{
 		Type DatabaseHandlerType { get; }
-		Result InitialiseDatabase(DbConnection connection);
+		Result InitialiseDatabase();
 
 		bool Authenticate(string username, string passwordHash);
 		bool Authenticate(Guid clientSpaceID, string username, string passwordHash);
-		bool IsEmailAddressUnique(Guid clientSpaceID, string email);
-		bool IsUsernameUnique(Guid clientSpaceID, string username);
+		bool IsEmailAddressTaken(Guid clientSpaceID, string email);
+		bool IsUsernameTaken(Guid clientSpaceID, string username);
 
-		void Store(ClientSpace client);
-		void Store(User user);
-		void Store(Role role);
-		void Store(PermissionType permissionType);
+		Result Store(ClientSpace client);
+		Result Store(User user);
+		Result Store(Role role);
+		Result Store(PermissionType permissionType);
 
-		void Delete(ClientSpace client);
-		void Delete(User user);
-		void Delete(Role role);
-		void Delete(PermissionType permissionType);
+		Result Delete(ClientSpace client);
+		Result Delete(User user);
+		Result Delete(Role role);
+		Result Delete(PermissionType permissionType);
 
-		int GetRoleIDFromRoleCode(Guid clientSpaceID, string roleCode);
+		event InterruptableEventHandler<ClientSpace> OnBeforeDeleteClientSpace;
+		event NotificationEventHandler<ClientSpace> OnClientSpaceDeleted;
+		event InterruptableEventHandler<User> OnBeforeDeleteUser;
+		event NotificationEventHandler<User> OnUserDeleted;
+		event InterruptableEventHandler<Role> OnBeforeDeleteRole;
+		event NotificationEventHandler<Role> OnRoleDeleted;
+		event InterruptableEventHandler<PermissionType> OnBeforeDeletePermissionType;
+		event NotificationEventHandler<PermissionType> OnPermissionTypeDeleted;
+
+		int? GetRoleIDFromRoleCode(Guid clientSpaceID, string roleCode);
 
 		bool DoesRoleInheritRole(int thisRoleID, int doesItInheritRoleID);
 		void InheritRoleFrom(int thisRoleID, int inheritFromRoleID);

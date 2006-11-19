@@ -25,13 +25,9 @@ namespace Sprocket.Data
 		Result CheckConfiguration();
 
 		/// <summary>
-		/// Create and return an instance of <see cref="DbConnection" />
-		/// for the appropriate database type. Use default configuration
-		/// settings for selecting the data source.
+		/// Gets the default connection string to use for this database
 		/// </summary>
-		/// <returns>A <see cref="DbConnection" /> instance initialised
-		/// to point at the default data source</returns>
-		DbConnection CreateDefaultConnection();
+		string ConnectionString { get; }
 
 		/// <summary>
 		/// This should return a short descriptive title for the database

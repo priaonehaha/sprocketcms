@@ -11,9 +11,15 @@ namespace Sprocket.Data
 {
 	public class SQLiteDatabase : IDatabaseHandler
 	{
-		public DbConnection CreateDefaultConnection()
+		private string connectionString;
+		public string ConnectionString
 		{
-			return new SQLiteConnection("Data Source=" + PhysicalPath + ";UseUTF16Encoding=True;");
+			get
+			{
+				if (connectionString == null)
+					connectionString = "Data Source=" + PhysicalPath + ";UseUTF16Encoding=True;";
+				return connectionString;
+			}
 		}
 
 		public Result Initialise()
@@ -27,8 +33,6 @@ namespace Sprocket.Data
 						info.Directory.Create();
 					SQLiteConnection.CreateFile(PhysicalPath);
 				}
-				else
-					SQLiteConnection.CompressFile(PhysicalPath);
 			}
 			catch (Exception ex)
 			{
@@ -36,13 +40,9 @@ namespace Sprocket.Data
 			}
 
 			Result result = new Result();
-			using (TransactionScope scope = new TransactionScope())
-			{
-				if (OnInitialise != null)
-					OnInitialise(result);
-				if (result.Succeeded)
-					scope.Complete();
-			}
+
+			if (OnInitialise != null)
+				OnInitialise(result);
 			return result;
 		}
 
@@ -52,7 +52,7 @@ namespace Sprocket.Data
 			get
 			{
 				if (physicalPath == null)
-					physicalPath = Web.WebUtility.MapPath("datastore/databases/main.sdb");
+					physicalPath = Web.WebUtility.MapPath("datastore/databases/main.s3db");
 				return physicalPath;
 			}
 		}

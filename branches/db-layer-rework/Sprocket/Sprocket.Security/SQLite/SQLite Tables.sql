@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS ClientSpaces
 	Name					TEXT(100)			NOT NULL,
 	Enabled					BOOLEAN				NOT NULL,
 	PrimaryUserID			INTEGER,
-	OwnerClientSpaceID	GUID
+	OwnerClientSpaceID		GUID
 );
 
 CREATE TABLE IF NOT EXISTS Users
@@ -17,14 +17,15 @@ CREATE TABLE IF NOT EXISTS Users
 	Surname					TEXT(50),
 	Email					TEXT(100),
 	Enabled					BOOLEAN				NOT NULL,
-	Hidden					BOOLEAN				NOT NULL,
 	Locked					BOOLEAN				NOT NULL,
 	Deleted					BOOLEAN				NOT NULL,
+	Hidden					BOOLEAN				NOT NULL,
 	Activated				BOOLEAN				NOT NULL,
 	ActivationReminderSent	DATETIME,
 	Created					DATETIME			NOT NULL,
+	LocalTimeOffsetHours	INTEGER				NOT NULL
 	
-	CONSTRAINT UNIQUE (ClientSpaceID, Username) ON CONFLICT FAIL
+	UNIQUE (ClientSpaceID, Username, Deleted)
 );
 
 CREATE TABLE IF NOT EXISTS Roles
@@ -37,7 +38,7 @@ CREATE TABLE IF NOT EXISTS Roles
 	Locked					BOOLEAN				NOT NULL,	-- prevents role from being modified by users
 	Hidden					BOOLEAN				NOT NULL,	-- hides the role from users
 	
-	CONSTRAINT UNIQUE (ClientSpaceID, RoleCode) ON CONFLICT FAIL
+	UNIQUE (ClientSpaceID, RoleCode)
 );
 
 CREATE TABLE IF NOT EXISTS RoleToRole
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS RoleToRole
 	RoleID					INTEGER,
 	InheritsRoleID			INTEGER,
 	
-	CONSTRAINT PRIMARY KEY (RoleID, InheritsRoleID) ON CONFLICT FAIL
+	PRIMARY KEY (RoleID, InheritsRoleID)
 );
 
 CREATE TABLE IF NOT EXISTS UserToRole
@@ -53,7 +54,7 @@ CREATE TABLE IF NOT EXISTS UserToRole
 	RoleID					INTEGER,
 	UserID					INTEGER,
 	
-	CONSTRAINT PRIMARY KEY (RoleID, UserID) ON CONFLICT FAIL
+	PRIMARY KEY (RoleID, UserID)
 );
 
 CREATE TABLE IF NOT EXISTS PermissionTypes
@@ -67,9 +68,31 @@ CREATE TABLE IF NOT EXISTS PermissionTypes
 CREATE TABLE IF NOT EXISTS Permissions
 (
 	PermissionTypeID		INTEGER				NOT NULL,
-	RoleID					INTEGER,			-- One of either RoleID or UserID must have a value, but not both
-	UserID					INTEGER,
+	RoleID					INTEGER				NULL, -- One of either RoleID or UserID must have a value, but not both
+	UserID					INTEGER				NULL,
 	Value					BOOLEAN				NOT NULL,
 	
-	CONSTRAINT PRIMARY KEY (PermissionTypeID, OwnerID) ON CONFLICT FAIL
+	PRIMARY KEY (PermissionTypeID, RoleID, UserID)
 );
+
+DROP TRIGGER IF EXISTS trigger_ClientSpaces_Delete;
+CREATE TRIGGER trigger_ClientSpaces_Delete BEFORE DELETE ON ClientSpaces
+BEGIN
+	DELETE FROM Roles WHERE ClientSpaceID = OLD.ClientSpaceID;
+	DELETE FROM Users WHERE ClientSpaceID = OLD.ClientSpaceID;
+END;
+
+DROP TRIGGER IF EXISTS trigger_Users_Delete;
+CREATE TRIGGER trigger_Users_Delete BEFORE DELETE ON Users
+BEGIN
+	DELETE FROM UserToRole WHERE UserID = OLD.UserID;
+	DELETE FROM Permissions WHERE UserID = OLD.UserID;
+END;
+
+DROP TRIGGER IF EXISTS trigger_Roles_Delete;
+CREATE TRIGGER trigger_Roles_Delete BEFORE DELETE ON Users
+BEGIN
+	DELETE FROM UserToRole WHERE RoleID = OLD.RoleID;
+	DELETE FROM RoleToRole WHERE RoleID = OLD.RoleID;
+	DELETE FROM Permissions WHERE RoleID = OLD.RoleID;
+END;
