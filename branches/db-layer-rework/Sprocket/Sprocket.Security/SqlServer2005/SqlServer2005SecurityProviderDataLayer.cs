@@ -1,0 +1,952 @@
+using System;
+using System.Data;
+using System.Collections.Generic;
+using System.Text;
+using System.Data.SqlClient;
+using Sprocket.Data;
+using Sprocket;
+using Sprocket.Utility;
+using System.Transactions;
+
+namespace Sprocket.Security
+{
+	public class SqlServer2005SecurityProviderDataLayer : ISecurityProviderDataLayer
+	{
+		public Type DatabaseHandlerType
+		{
+			get { return typeof(SqlServer2005Database); }
+		}
+
+		public Result InitialiseDatabase()
+		{
+			Result result;
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlServer2005Database db = (SqlServer2005Database)DatabaseManager.DatabaseEngine;
+					result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.tables.sql"));
+					if (result.Succeeded)
+					{
+						result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.procedures.sql"));
+						if(result.Succeeded)
+							scope.Complete();
+					}
+				}
+			}
+			return result;
+		}
+
+		public Result InitialiseClientSpace(long clientSpaceID)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					try
+					{
+						conn.Open();
+						SqlCommand cmd = new SqlCommand("InitialiseClientSpace", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+						cmd.Parameters.Add(new SqlParameter("@PasswordHash", Crypto.EncryptOneWay("password")));
+						cmd.ExecuteNonQuery();
+						conn.Close();
+					}
+					catch (Exception ex)
+					{
+						conn.Close();
+						return new Result("Failed to initialise ClientSpace: " + ex.Message);
+					}
+					conn.Close();
+				}
+				scope.Complete();
+			}
+			return new Result();
+		}
+
+		public bool Authenticate(string username, string passwordHash)
+		{
+			return Authenticate(SecurityProvider.ClientSpaceID, username, passwordHash);
+		}
+
+		public bool Authenticate(long clientSpaceID, string username, string passwordHash)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("Authenticate", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+				cmd.Parameters.Add(new SqlParameter("@Username", username));
+				cmd.Parameters.Add(new SqlParameter("@PasswordHash", passwordHash));
+				SqlParameter prm = new SqlParameter("@IsValid", SqlDbType.Bit);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				cmd.ExecuteNonQuery();
+				conn.Close();
+				return (bool)prm.Value;
+			}
+		}
+
+		public bool IsEmailAddressTaken(long clientSpaceID, string email)
+		{
+			return IsEmailAddressTaken(clientSpaceID, email, 0);
+		}
+
+		public bool IsUsernameTaken(long clientSpaceID, string username)
+		{
+			return IsUsernameTaken(clientSpaceID, username, 0);
+		}
+
+		public bool IsEmailAddressTaken(long clientSpaceID, string email, long? excludeUserID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("IsEmailAddressAvailable", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+				cmd.Parameters.Add(new SqlParameter("@Email", email));
+				cmd.Parameters.Add(new SqlParameter("@ExcludeUserID", excludeUserID == null ? 0 : excludeUserID.Value));
+				SqlParameter prm = new SqlParameter("@Available", SqlDbType.Bit);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				cmd.ExecuteNonQuery();
+				conn.Close();
+				return !(bool)prm.Value;
+			}
+		}
+
+		public bool IsUsernameTaken(long clientSpaceID, string username, long? excludeUserID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("IsUsernameAvailable", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+				cmd.Parameters.Add(new SqlParameter("@Username", username));
+				cmd.Parameters.Add(new SqlParameter("@ExcludeUserID", excludeUserID == null ? 0 : excludeUserID.Value));
+				SqlParameter prm = new SqlParameter("@Available", SqlDbType.Bit);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				cmd.ExecuteNonQuery();
+				conn.Close();
+				return !(bool)prm.Value;
+			}
+		}
+
+		public Result Store(ClientSpace client)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					try
+					{
+						conn.Open();
+						SqlCommand cmd = new SqlCommand("StoreClientSpace", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						SqlParameter prm = new SqlParameter("@ClientSpaceID", client.ClientSpaceID);
+						prm.Direction = ParameterDirection.InputOutput;
+						cmd.Parameters.Add(prm);
+						cmd.Parameters.Add(new SqlParameter("@Name", client.Name));
+						cmd.Parameters.Add(new SqlParameter("@Enabled", client.Enabled));
+						cmd.Parameters.Add(new SqlParameter("@PrimaryUserID", client.PrimaryUserID));
+						cmd.ExecuteNonQuery();
+						client.ClientSpaceID = (long)prm.Value;
+						scope.Complete();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
+					finally
+					{
+						conn.Close();
+					}
+				}
+			}
+			return new Result();
+		}
+
+		public Result Store(User user)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					try
+					{
+						conn.Open();
+						SqlCommand cmd = new SqlCommand("StoreUser", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						SqlParameter prm = new SqlParameter("@UserID", user.UserID);
+						prm.Direction = ParameterDirection.InputOutput;
+						cmd.Parameters.Add(prm);
+						cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", user.ClientSpaceID));
+						cmd.Parameters.Add(new SqlParameter("@Username", user.Username));
+						cmd.Parameters.Add(new SqlParameter("@PasswordHash", user.PasswordHash));
+						cmd.Parameters.Add(new SqlParameter("@FirstName", user.FirstName));
+						cmd.Parameters.Add(new SqlParameter("@Surname", user.Surname));
+						cmd.Parameters.Add(new SqlParameter("@Email", user.Email));
+						cmd.Parameters.Add(new SqlParameter("@Enabled", user.Enabled));
+						cmd.Parameters.Add(new SqlParameter("@Hidden", user.Hidden));
+						cmd.Parameters.Add(new SqlParameter("@Locked", user.Locked));
+						cmd.Parameters.Add(new SqlParameter("@Deleted", user.Deleted));
+						cmd.Parameters.Add(new SqlParameter("@Activated", user.Activated));
+						cmd.Parameters.Add(new SqlParameter("@ActivationReminderSent", user.Activated));
+						cmd.Parameters.Add(new SqlParameter("@Created", user.Created));
+						cmd.Parameters.Add(new SqlParameter("@LocalTimeOffsetHours", user.LocalTimeOffsetHours));
+						cmd.ExecuteNonQuery();
+						user.UserID = (long)prm.Value;
+						scope.Complete();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
+					finally
+					{
+						conn.Close();
+					}
+				}
+			}
+			return new Result();
+		}
+
+		public Result Store(Role role)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					try
+					{
+						conn.Open();
+						SqlCommand cmd = new SqlCommand("StoreRole", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						SqlParameter prm = new SqlParameter("@RoleID", role.RoleID);
+						prm.Direction = ParameterDirection.InputOutput;
+						cmd.Parameters.Add(prm);
+						cmd.Parameters.Add(new SqlParameter("@RoleCode", role.RoleCode));
+						cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", role.ClientSpaceID));
+						cmd.Parameters.Add(new SqlParameter("@Name", role.Name));
+						cmd.Parameters.Add(new SqlParameter("@Enabled", role.Enabled));
+						cmd.Parameters.Add(new SqlParameter("@Locked", role.Locked));
+						cmd.Parameters.Add(new SqlParameter("@Hidden", role.Hidden));
+						cmd.ExecuteNonQuery();
+						role.RoleID = (long)prm.Value;
+						scope.Complete();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
+					finally
+					{
+						conn.Close();
+					}
+				}
+			}
+			return new Result();
+		}
+
+		public Result Store(PermissionType permissionType)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					try
+					{
+						conn.Open();
+						SqlCommand cmd = new SqlCommand("StorePermissionType", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						SqlParameter prm = new SqlParameter("@PermissionTypeID", permissionType.PermissionTypeID);
+						prm.Direction = ParameterDirection.InputOutput;
+						cmd.Parameters.Add(prm);
+						cmd.Parameters.Add(new SqlParameter("@PermissionTypeCode", permissionType.PermissionTypeCode));
+						cmd.Parameters.Add(new SqlParameter("@Description", permissionType.Description));
+						cmd.Parameters.Add(new SqlParameter("@DefaultValue", permissionType.DefaultValue));
+						cmd.ExecuteNonQuery();
+						permissionType.PermissionTypeID = (long)prm.Value;
+						scope.Complete();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
+					finally
+					{
+						conn.Close();
+					}
+				}
+			}
+			return new Result();
+		}
+
+		public Result Delete(ClientSpace client)
+		{
+			Result result = new Result();
+			if (OnBeforeDeleteClientSpace != null)
+				OnBeforeDeleteClientSpace(client, result);
+			if (result.Succeeded)
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+					{
+						try
+						{
+							conn.Open();
+							SqlCommand cmd = new SqlCommand("DeleteClientSpace", conn);
+							cmd.CommandType = CommandType.StoredProcedure;
+							cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", client.ClientSpaceID));
+							cmd.ExecuteNonQuery();
+							scope.Complete();
+						}
+						catch (Exception ex)
+						{
+							return new Result(ex.Message);
+						}
+						finally
+						{
+							conn.Close();
+						}
+					}
+				}
+				if (OnClientSpaceDeleted != null)
+					OnClientSpaceDeleted(client);
+			}
+			return result;
+		}
+
+		public Result Delete(User user)
+		{
+			Result result = new Result();
+			if (OnBeforeDeleteUser != null)
+				OnBeforeDeleteUser(user, result);
+			if (result.Succeeded)
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+					{
+						try
+						{
+							conn.Open();
+							SqlCommand cmd = new SqlCommand("DeleteUser", conn);
+							cmd.CommandType = CommandType.StoredProcedure;
+							cmd.Parameters.Add(new SqlParameter("@UserID", user.UserID));
+							cmd.ExecuteNonQuery();
+							scope.Complete();
+						}
+						catch (Exception ex)
+						{
+							return new Result(ex.Message);
+						}
+						finally
+						{
+							conn.Close();
+						}
+					}
+				}
+				if (OnUserDeleted != null)
+					OnUserDeleted(user);
+			}
+			return result;
+		}
+
+		public Result Delete(Role role)
+		{
+			Result result = new Result();
+			if (OnBeforeDeleteRole != null)
+				OnBeforeDeleteRole(role, result);
+			if (result.Succeeded)
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+					{
+						try
+						{
+							conn.Open();
+							SqlCommand cmd = new SqlCommand("DeleteRole", conn);
+							cmd.CommandType = CommandType.StoredProcedure;
+							cmd.Parameters.Add(new SqlParameter("@RoleID", role.RoleID));
+							cmd.ExecuteNonQuery();
+							scope.Complete();
+						}
+						catch (Exception ex)
+						{
+							return new Result(ex.Message);
+						}
+						finally
+						{
+							conn.Close();
+						}
+					}
+				}
+				if (OnRoleDeleted != null)
+					OnRoleDeleted(role);
+			}
+			return result;
+		}
+
+		public Result Delete(PermissionType permissionType)
+		{
+			Result result = new Result();
+			if (OnBeforeDeletePermissionType != null)
+				OnBeforeDeletePermissionType(permissionType, result);
+			if (result.Succeeded)
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+					{
+						try
+						{
+							conn.Open();
+							SqlCommand cmd = new SqlCommand("DeletePermissionType", conn);
+							cmd.CommandType = CommandType.StoredProcedure;
+							cmd.Parameters.Add(new SqlParameter("@PermissionTypeID", permissionType.PermissionTypeID));
+							cmd.ExecuteNonQuery();
+							scope.Complete();
+						}
+						catch (Exception ex)
+						{
+							return new Result(ex.Message);
+						}
+						finally
+						{
+							conn.Close();
+						}
+					}
+				}
+				if (OnPermissionTypeDeleted != null)
+					OnPermissionTypeDeleted(permissionType);
+			}
+			return result;
+		}
+
+		public ClientSpace SelectClientSpace(long clientSpaceID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("SelectClientSpace", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				ClientSpace cs;
+				if (!reader.Read())
+					cs = null;
+				else
+					cs = new ClientSpace(reader);
+				reader.Close();
+				return cs;
+			}
+		}
+
+		public User SelectUser(long clientSpaceID, string username)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("SelectUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+				cmd.Parameters.Add(new SqlParameter("@Username", username));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				User user;
+				if (!reader.Read())
+					user = null;
+				else
+					user = new User(reader);
+				reader.Close();
+				return user;
+			}
+		}
+
+		public User SelectUser(long userID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("SelectUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				User user;
+				if (!reader.Read())
+					user = null;
+				else
+					user = new User(reader);
+				reader.Close();
+				return user;
+			}
+		}
+
+		public Role SelectRole(long clientSpaceID, string roleCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("SelectRole", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+				cmd.Parameters.Add(new SqlParameter("@RoleCode", roleCode));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				Role role;
+				if (!reader.Read())
+					role = null;
+				else
+					role = new Role(reader);
+				reader.Close();
+				return role;
+			}
+		}
+
+		public Role SelectRole(long roleID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("SelectRole", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				Role role;
+				if (!reader.Read())
+					role = null;
+				else
+					role = new Role(reader);
+				reader.Close();
+				return role;
+			}
+		}
+
+		public event InterruptableEventHandler<ClientSpace> OnBeforeDeleteClientSpace;
+		public event NotificationEventHandler<ClientSpace> OnClientSpaceDeleted;
+		public event InterruptableEventHandler<User> OnBeforeDeleteUser;
+		public event NotificationEventHandler<User> OnUserDeleted;
+		public event InterruptableEventHandler<Role> OnBeforeDeleteRole;
+		public event NotificationEventHandler<Role> OnRoleDeleted;
+		public event InterruptableEventHandler<PermissionType> OnBeforeDeletePermissionType;
+		public event NotificationEventHandler<PermissionType> OnPermissionTypeDeleted;
+
+		public long? GetRoleIDFromRoleCode(Guid clientSpaceID, string roleCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("GetRoleIDFromRoleCode", conn);
+				cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+				cmd.Parameters.Add(new SqlParameter("@RoleCode", roleCode));
+				SqlParameter prm = new SqlParameter("@RoleID", SqlDbType.BigInt);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				cmd.ExecuteNonQuery();
+				conn.Close();
+				return (long)prm.Value;
+			}
+		}
+
+		public bool DoesRoleInheritRole(long thisRoleID, long doesItInheritRoleID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("DoesRoleInheritRole", conn);
+				cmd.Parameters.Add(new SqlParameter("@ThisRoleID", thisRoleID));
+				cmd.Parameters.Add(new SqlParameter("@DoesItInheritRoleID", doesItInheritRoleID));
+				SqlParameter prm = new SqlParameter("@Result", SqlDbType.Bit);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				cmd.ExecuteNonQuery();
+				conn.Close();
+				return (bool)prm.Value;
+			}
+		}
+
+		public void InheritRoleFrom(long thisRoleID, long inheritFromRoleID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("InheritRoleFrom", conn);
+				cmd.Parameters.Add(new SqlParameter("@ThisRoleID", thisRoleID));
+				cmd.Parameters.Add(new SqlParameter("@InheritFromRoleID", inheritFromRoleID));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public void DisinheritRoleFrom(long thisRoleID, long disinheritFromRoleID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("DisinheritRoleFrom", conn);
+				cmd.Parameters.Add(new SqlParameter("@RoleID", thisRoleID));
+				cmd.Parameters.Add(new SqlParameter("@DisinheritRoleID", disinheritFromRoleID));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public List<Role> ListInheritedRoles(long thisRoleID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("ListInheritedRoles", conn);
+				cmd.Parameters.Add(new SqlParameter("@RoleID", thisRoleID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				List<Role> list = new List<Role>();
+				while (reader.Read())
+					list.Add(new Role(reader));
+				reader.Close();
+				return list;
+			}
+		}
+
+		public List<Role> ListUserRoles(long userID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("ListUserRoles", conn);
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				List<Role> list = new List<Role>();
+				while (reader.Read())
+					list.Add(new Role(reader));
+				reader.Close();
+				return list;
+			}
+		}
+
+		public bool IsUserInRole(long userID, string roleCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("IsUserInRole", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				cmd.Parameters.Add(new SqlParameter("@RoleCode", roleCode));
+				SqlParameter prm = new SqlParameter("@IsUserInRole", SqlDbType.Bit);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				cmd.ExecuteNonQuery();
+				conn.Close();
+				return (bool)prm.Value;
+			}
+		}
+
+		public void AssignRoleToUser(long userID, string roleCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("AssignRoleToUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				cmd.Parameters.Add(new SqlParameter("@RoleCode", roleCode));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public void UnassignRoleFromUser(long userID, string roleCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("UnassignRoleFromUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				cmd.Parameters.Add(new SqlParameter("@RoleCode", roleCode));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public void AssignPermissionToUser(long userID, string permissionTypeCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("AssignPermissionToUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				cmd.Parameters.Add(new SqlParameter("@PermissionTypeCode", permissionTypeCode));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public void AssignPermissionToRole(long roleID, string permissionTypeCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("AssignPermissionToRole", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+				cmd.Parameters.Add(new SqlParameter("@PermissionTypeCode", permissionTypeCode));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public bool DoesUserHavePermission(long userID, string permissionTypeCode)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("DoesUserHavePermission", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				cmd.Parameters.Add(new SqlParameter("@PermissionTypeCode", permissionTypeCode));
+				SqlParameter prm = new SqlParameter("@HasPermission", SqlDbType.Bit);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				cmd.ExecuteNonQuery();
+				conn.Close();
+				return (bool)prm.Value;
+			}
+		}
+
+		public void RemoveRolesAndPermissionsFromUser(long userID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("RemoveRolesAndPermissionsFromUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public void RemoveRolesAndPermissionsFromRole(long roleID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("RemoveRolesAndPermissionsFromRole", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+				cmd.ExecuteNonQuery();
+				conn.Close();
+			}
+		}
+
+		public void SetRolesAndPermissionsForUser(long userID, List<string> roleCodes, List<string> permissionTypeCodes)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					try
+					{
+						SqlCommand cmd = new SqlCommand("RemoveRolesAndPermissionsFromUser", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+						cmd.ExecuteNonQuery();
+
+						cmd = new SqlCommand("AssignRoleToUser", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+						SqlParameter prm = new SqlParameter("@RoleCode", SqlDbType.NVarChar);
+						cmd.Parameters.Add(prm);
+
+						foreach (string s in roleCodes)
+						{
+							prm.Value = s;
+							cmd.ExecuteNonQuery();
+						}
+
+						cmd = new SqlCommand("AssignPermissionToUser", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+						prm = new SqlParameter("@PermissionTypeCode", SqlDbType.NVarChar);
+						cmd.Parameters.Add(prm);
+
+						foreach (string s in permissionTypeCodes)
+						{
+							prm.Value = s;
+							cmd.ExecuteNonQuery();
+						}
+
+						scope.Complete();
+					}
+					finally
+					{
+						conn.Close();
+					}
+				}
+			}
+		}
+
+		public void SetRolesAndPermissionsForRole(long roleID, List<string> roleCodes, List<string> permissionTypeCodes)
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					try
+					{
+						SqlCommand cmd = new SqlCommand("RemoveRolesAndPermissionsFromRole", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+						cmd.ExecuteNonQuery();
+
+						cmd = new SqlCommand("InheritRoleFrom", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@ThisRoleID", roleID));
+						SqlParameter prm = new SqlParameter("@InheritFromRoleCode", SqlDbType.NVarChar);
+						cmd.Parameters.Add(prm);
+
+						foreach (string s in roleCodes)
+						{
+							prm.Value = s;
+							cmd.ExecuteNonQuery();
+						}
+
+						cmd = new SqlCommand("AssignPermissionToRole", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+						prm = new SqlParameter("@PermissionTypeCode", SqlDbType.NVarChar);
+						cmd.Parameters.Add(prm);
+
+						foreach (string s in permissionTypeCodes)
+						{
+							prm.Value = s;
+							cmd.ExecuteNonQuery();
+						}
+
+						scope.Complete();
+					}
+					finally
+					{
+						conn.Close();
+					}
+				}
+			}
+		}
+
+		public List<Role> ListAccessibleRoles(long userID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public List<PermissionTypeState> ListPermissionsForRole(long roleID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public List<PermissionTypeState> ListAllPermissionTypesAgainstUser(long userID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("ListPermissionsForUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				List<PermissionTypeState> list = new List<PermissionTypeState>();
+				while (reader.Read())
+				{
+					PermissionState state;
+					if ((bool)reader["HasPermission"])
+						if ((bool)reader["Inherited"])
+							state = PermissionState.Inherited;
+						else
+							state = PermissionState.Specified;
+					else
+						state = PermissionState.Disabled;
+					list.Add(new PermissionTypeState(new PermissionType(reader), state));
+				}
+				reader.Close();
+				return list;
+			}
+		}
+
+		public List<PermissionTypeState> ListAllPermissionTypesAgainstRole(long roleID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public List<RoleState> ListAllRolesAgainstRole(long roleID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public List<RoleState> ListAllRolesAgainstUser(long userID)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("ListAllRolesAgainstUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				List<RoleState> list = new List<RoleState>();
+				while (reader.Read())
+					list.Add(new RoleState(new Role(reader), (bool)reader["HasRole"],
+						(bool)reader["HasRole"] ? PermissionState.Specified : PermissionState.Disabled));
+				reader.Close();
+				return list;
+			}
+		}
+
+		public List<Role> ListDescendentRoles(long roleID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public List<User> FilterUsers(string partUsername, string partFirstName, string partSurname, string partEmail, int? maxResults, long? editableByUserID, bool? activated, out int totalMatches)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				if (maxResults == 0) maxResults = null;
+				if (partUsername == "") partUsername = null;
+				if (partFirstName == "") partFirstName = null;
+				if (partSurname == "") partSurname = null;
+				SqlCommand cmd = new SqlCommand("ListUsers", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@Username", partUsername));
+				cmd.Parameters.Add(new SqlParameter("@FirstName", partFirstName));
+				cmd.Parameters.Add(new SqlParameter("@Surname", partSurname));
+				cmd.Parameters.Add(new SqlParameter("@Email", partEmail));
+				cmd.Parameters.Add(new SqlParameter("@Activated", activated));
+				cmd.Parameters.Add(new SqlParameter("@EditableByUserID", editableByUserID));
+				cmd.Parameters.Add(new SqlParameter("@MaxRecords", maxResults));
+				SqlParameter prm = new SqlParameter("@TotalMatches", SqlDbType.Int);
+				prm.Direction = ParameterDirection.Output;
+				cmd.Parameters.Add(prm);
+				List<User> users = new List<User>();
+				SqlDataReader reader = cmd.ExecuteReader();
+				while (reader.Read())
+					users.Add(new User(reader));
+				reader.Close();
+				conn.Close();
+				if (prm.Value != DBNull.Value)
+					totalMatches = (int)prm.Value;
+				else
+					totalMatches = users.Count;
+				return users;
+			}
+		}
+	}
+}

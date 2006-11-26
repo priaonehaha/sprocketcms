@@ -90,11 +90,12 @@ namespace Sprocket.Web
 				IDictionary<string, object> data = (IDictionary<string, object>)JSON.Parse(System.Text.Encoding.ASCII.GetString(posted));
 				
 				// extract the module and method name
-				string[] func = data["ModuleName"].ToString().Split('.');
-				if(func.Length != 2)
-					throw new AjaxException("Method name specified incorrectly. Expected format ModuleName.MethodName.\nThe following incorrect format was supplied: " + data["ModuleName"]);
-				string moduleName = func[0];
-				string methodName = func[1];
+				string fullname = data["ModuleName"].ToString();
+				int n = fullname.LastIndexOf(".");
+				if(n == -1)
+					throw new AjaxException("Method name specified incorrectly. Expected format ModuleNamespace.MethodName.\nThe following incorrect format was supplied: " + data["ModuleName"]);
+				string moduleNamespace = fullname.Substring(0, n);
+				string methodName = fullname.Substring(n+1, fullname.Length - (n+1));
 
 				// extract the authentication key
 				if (data["AuthKey"].ToString() != WebAuthentication.AuthKeyPlaceholder)
@@ -104,9 +105,9 @@ namespace Sprocket.Web
 				List<object> parsedArguments = (List<object>)data["MethodArgs"];
 
 				// find and verify the module/method that should handle this request
-				ISprocketModule module = Core.Instance[moduleName].Module;
+				ISprocketModule module = Core.Instance[moduleNamespace].Module;
 				if(module == null)
-					throw new AjaxException("The specified module \"" + func[0] + "\" was not found.");
+					throw new AjaxException("The specified module \"" + moduleNamespace + "\" was not found.");
 				if(Attribute.GetCustomAttribute(module.GetType(), typeof(AjaxMethodHandlerAttribute), false) == null)
 					throw new SprocketException("The specified module is not marked with AjaxMethodHandlerAttribute. (" + data["ModuleName"] + ")");
 				MethodInfo info = module.GetType().GetMethod(methodName);
@@ -172,6 +173,8 @@ namespace Sprocket.Web
 						}
 						else if (t.IsAssignableFrom(typeof(Guid)) || t.IsAssignableFrom(typeof(Guid?)))
 							prmValuesForMethod[i] = parsedArguments[i] == null ? (Guid?)null : new Guid(parsedArguments[i].ToString());
+						else if (t.IsAssignableFrom(typeof(long)) || t.IsAssignableFrom(typeof(long?)))
+							prmValuesForMethod[i] = parsedArguments[i] == null ? (long?)null : long.Parse(parsedArguments[i].ToString());
 						else
 							prmValuesForMethod[i] = Convert.ChangeType(parsedArguments[i], t);
 					}

@@ -68,5 +68,10 @@ namespace Sprocket.Data
 		}
 
 		public event InterruptableEventHandler OnInitialise;
+
+		public long GetUniqueID()
+		{
+			return -1;
+		}
 	}
 }

@@ -93,11 +93,11 @@
   <ItemGroup>
     <Compile Include="Core.cs" />
     <Compile Include="Data\IEntity.cs" />
-    <Compile Include="Data\SqlServer2005Database.cs" />
+    <Compile Include="Data\SQLite\SQLiteDatabase.cs" />
+    <Compile Include="Data\SqlServer2005\SqlServer2005Database.cs" />
     <Compile Include="ModuleHandler.cs" />
     <Compile Include="Data\DatabaseManager.cs" />
     <Compile Include="Data\IDatabaseHandler.cs" />
-    <Compile Include="Data\SQLiteDatabase.cs" />
     <Compile Include="Utility\Crypto.cs" />
     <Compile Include="Utility\HexEncoding.cs" />
     <Compile Include="Utility\ResourceLoader.cs" />
@@ -138,6 +138,9 @@
     <EmbeddedResource Include="Web\javascript\generic.js" />
     <EmbeddedResource Include="Web\javascript\json.js" />
     <EmbeddedResource Include="Web\javascript\stack.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\SqlServer2005\scripts.sql" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

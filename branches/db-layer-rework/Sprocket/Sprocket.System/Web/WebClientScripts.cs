@@ -56,7 +56,7 @@ namespace Sprocket.Web
 		/// matching server-side methods</returns>
 		private string GetAjaxMethodsScript(ModuleRegistry registry)
 		{
-			Hashtable modules = new Hashtable();
+			Dictionary<string, List<AjaxModuleRef>> modules = new Dictionary<string, List<AjaxModuleRef>>();
 
 			foreach (RegisteredModule module in registry)
 			{
@@ -69,12 +69,17 @@ namespace Sprocket.Web
 					object[] attrs = info.GetCustomAttributes(typeof(AjaxMethodAttribute), false);
 					if (attrs.Length == 1)
 					{
+						string[] arr = module.Namespace.Split('.');
+						string name = arr[arr.Length - 1];
 						if (!nameAdded)
 						{
 							nameAdded = true;
-							modules.Add(module.Namespace, new ArrayList());
+							modules.Add(name, new List<AjaxModuleRef>());
 						}
-						((ArrayList)modules[module.Namespace]).Add(info.Name);
+						AjaxModuleRef amr = new AjaxModuleRef();
+						amr.MethodName = info.Name;
+						amr.Namespace = module.Namespace;
+						modules[name].Add(amr);
 					}
 				}
 			}
@@ -84,29 +89,34 @@ namespace Sprocket.Web
 			sb.Append("Ajax = {};");
 			sb.Append(Environment.NewLine);
 
-			foreach (DictionaryEntry de in modules)
+			foreach (KeyValuePair<string, List<AjaxModuleRef>> kvp in modules)
 			{
 				sb.Append("Ajax.");
-				sb.Append(de.Key.ToString());
+				sb.Append(kvp.Key);
 				sb.Append(" = {");
 				sb.Append(Environment.NewLine);
-				ArrayList arr = (ArrayList)de.Value;
-				for (int i = 0; i < arr.Count; i++)
+				for (int i = 0; i < kvp.Value.Count; i++)
 				{
 					sb.Append("\t");
-					sb.Append(arr[i]);
+					sb.Append(kvp.Value[i].MethodName);
 					sb.Append(" : function() { SprocketAjax.Request('");
-					sb.Append(de.Key.ToString());
+					sb.Append(kvp.Value[i].Namespace);
 					sb.Append(".");
-					sb.Append(arr[i]);
+					sb.Append(kvp.Value[i].MethodName);
 					sb.Append("', arguments); }");
-					if (i < arr.Count - 1) sb.Append(",");
+					if (i < kvp.Value.Count - 1) sb.Append(",");
 					sb.Append(Environment.NewLine);
 				}
 				sb.Append("}");
 				sb.Append(Environment.NewLine);
 			}
 			return sb.ToString();
+		}
+
+		private class AjaxModuleRef
+		{
+			public string Namespace;
+			public string MethodName;
 		}
 
 		private string standardScripts = null;
@@ -139,7 +149,7 @@ namespace Sprocket.Web
 			Dictionary<string, string> scripts = new Dictionary<string, string>();
 			JavaScriptCollection jsc = new JavaScriptCollection();
 			jsc.SetKey("$APPLICATIONROOT$", WebUtility.BasePath);
-			jsc.Add("standard", standardScripts);
+			jsc.Add("standard", StandardScripts);
 
 			if (OnBeforeRenderJavaScript != null) OnBeforeRenderJavaScript(jsc);
 
