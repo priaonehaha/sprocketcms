@@ -3,8 +3,7 @@ CREATE TABLE IF NOT EXISTS ClientSpaces
 	ClientSpaceID			GUID				PRIMARY KEY,
 	Name					TEXT(100)			NOT NULL,
 	Enabled					BOOLEAN				NOT NULL,
-	PrimaryUserID			INTEGER,
-	OwnerClientSpaceID		GUID
+	PrimaryUserID			INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS Users

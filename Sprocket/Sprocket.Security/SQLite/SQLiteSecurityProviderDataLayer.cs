@@ -38,7 +38,7 @@ namespace Sprocket.Security.SQLite
 						cmd.CommandText = GetSQL("SQLite Tables");
 						cmd.ExecuteNonQuery();
 
-						cmd.CommandText = GetSQL("Insert First Client");
+						cmd.CommandText = GetSQL("Insert First ClientSpace");
 						cmd.Parameters.Add(new SQLiteParameter("@ClientSpaceID", SecurityProvider.ClientSpaceID));
 						int n = cmd.ExecuteNonQuery();
 
@@ -61,7 +61,7 @@ namespace Sprocket.Security.SQLite
 			return Authenticate(SecurityProvider.ClientSpaceID, username, passwordHash);
 		}
 
-		public bool Authenticate(Guid clientSpaceID, string username, string passwordHash)
+		public bool Authenticate(long clientSpaceID, string username, string passwordHash)
 		{
 			using (SQLiteConnection connection = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 			{
@@ -84,7 +84,7 @@ namespace Sprocket.Security.SQLite
 			}
 		}
 
-		public bool IsEmailAddressTaken(Guid clientSpaceID, string email)
+		public bool IsEmailAddressTaken(long clientSpaceID, string email)
 		{
 			using (SQLiteConnection connection = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 			{
@@ -101,7 +101,7 @@ namespace Sprocket.Security.SQLite
 			}
 		}
 
-		public bool IsUsernameTaken(Guid clientSpaceID, string username)
+		public bool IsUsernameTaken(long clientSpaceID, string username)
 		{
 			using (SQLiteConnection connection = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 			{
@@ -116,6 +116,16 @@ namespace Sprocket.Security.SQLite
 				dr.Close();
 				return result;
 			}
+		}
+
+		public bool IsEmailAddressTaken(long clientSpaceID, string email, long? excludeUserID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public bool IsUsernameTaken(long clientSpaceID, string username, long? excludeUserID)
+		{
+			throw new Exception("The method or operation is not implemented.");
 		}
 
 		public Result Store(ClientSpace client)
@@ -133,7 +143,6 @@ namespace Sprocket.Security.SQLite
 						cmd.Parameters.Add(new SQLiteParameter("@Name", client.Name));
 						cmd.Parameters.Add(new SQLiteParameter("@Enabled", client.Enabled));
 						cmd.Parameters.Add(new SQLiteParameter("@PrimaryUserID", client.PrimaryUserID));
-						cmd.Parameters.Add(new SQLiteParameter("@OwnerClientSpaceID", client.OwnerClientSpaceID));
 						cmd.ExecuteNonQuery();
 						scope.Complete();
 					}
@@ -378,109 +387,174 @@ namespace Sprocket.Security.SQLite
 			return result;
 		}
 
-		public int? GetRoleIDFromRoleCode(Guid clientSpaceID, string roleCode)
+		public long? GetRoleIDFromRoleCode(Guid clientSpaceID, string roleCode)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public bool DoesRoleInheritRole(int thisRoleID, int doesItInheritRoleID)
+		public bool DoesRoleInheritRole(long thisRoleID, long doesItInheritRoleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void InheritRoleFrom(int thisRoleID, int inheritFromRoleID)
+		public void InheritRoleFrom(long thisRoleID, long inheritFromRoleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void DisinheritRoleFrom(int thisRoleID, int disinheritFromRoleID)
+		public void DisinheritRoleFrom(long thisRoleID, long disinheritFromRoleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void ListInheritedRoles(int thisRoleID)
+		public List<Role> ListInheritedRoles(long thisRoleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<Role> ListUserRoles(int userID)
+		public List<Role> ListUserRoles(long userID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public bool IsUserInRole(int userID, int roleID)
+		public bool IsUserInRole(long userID, string roleCode)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void AssignRoleToUser(int userID, int roleID)
+		public void AssignRoleToUser(long userID, string roleCode)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void UnassignRoleFromUser(int userID, int roleID)
+		public void UnassignRoleFromUser(long userID, string roleCode)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void AssignPermissionToUser(int userID, int permissionTypeID)
+		public void AssignPermissionToUser(long userID, string permissionTypeCode)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void AssignPermissionToRole(int roleID, int permissionTypeID)
+		public void AssignPermissionToRole(long roleID, string permissionTypeCode)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public bool DoesUserHavePermission(int userID, int permissionTypeID)
+		public bool DoesUserHavePermission(long userID, string permissionTypeCode)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void RemoveRolesAndPermissionsFromUser(int userID)
+		public void RemoveRolesAndPermissionsFromUser(long userID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public void RemoveRolesAndPermissionsFromRole(int roleID)
+		public void RemoveRolesAndPermissionsFromRole(long roleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<Role> ListAccessibleRoles(int userID)
+		public List<Role> ListAccessibleRoles(long userID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<PermissionTypeState> ListPermissionsForUser(int userID)
+		public List<PermissionTypeState> ListPermissionsForUser(long userID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<PermissionTypeState> ListPermissionsForRole(int roleID)
+		public List<PermissionTypeState> ListPermissionsForRole(long roleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<PermissionTypeState> ListAllPermissionTypesAgainstUser(int userID)
+		public List<PermissionTypeState> ListAllPermissionTypesAgainstUser(long userID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<PermissionTypeState> ListAllPermissionTypesAgainstRole(int roleID)
+		public List<PermissionTypeState> ListAllPermissionTypesAgainstRole(long roleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<RoleState> ListAllRolesAgainstRole(int roleID)
+		public List<RoleState> ListAllRolesAgainstRole(long roleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
 
-		public List<Role> ListDescendentRoles(int roleID)
+		public List<Role> ListDescendentRoles(long roleID)
 		{
 			throw new Exception("The method or operation is not implemented.");
 		}
+
+		public Result InitialiseClientSpace(long clientSpaceID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public ClientSpace SelectClientSpace(long clientSpaceID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public User SelectUser(long clientSpaceID, string username)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public User SelectUser(long userID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public List<RoleState> ListAllRolesAgainstUser(long userID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public Role SelectRole(long clientSpaceID, string roleCode)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#region ISecurityProviderDataLayer Members
+
+
+		public Role SelectRole(long roleID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
+
+		#region ISecurityProviderDataLayer Members
+
+
+		public void SetRolesAndPermissionsForUser(long userID, List<string> roleCodes, List<string> permissionTypeCodes)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public void SetRolesAndPermissionsForRole(long roleID, List<string> roleCodes, List<string> permissionTypeCodes)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
+
+		#region ISecurityProviderDataLayer Members
+
+
+		public List<User> FilterUsers(string partUsername, string partFirstName, string partSurname, string partEmail, int? maxResults, long? editableByUserID, bool? activated, out int totalMatches)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
 	}
 }

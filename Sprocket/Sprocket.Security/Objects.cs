@@ -15,29 +15,23 @@ namespace Sprocket.Security
 {
 	public class ClientSpace : IEntity
 	{
-		private Guid clientSpaceID;
-		private Guid? primaryUserID, ownerClientSpaceID;
+		private long clientSpaceID;
+		private long? primaryUserID;
 		private bool enabled;
 		private string name;
 
 		#region Class Properties
 
-		public Guid ClientSpaceID
+		public long ClientSpaceID
 		{
 			get { return clientSpaceID; }
 			set { clientSpaceID = value; }
 		}
 
-		public Guid? PrimaryUserID
+		public long? PrimaryUserID
 		{
 			get { return primaryUserID; }
 			set { primaryUserID = value; }
-		}
-
-		public Guid? OwnerClientSpaceID
-		{
-			get { return ownerClientSpaceID; }
-			set { ownerClientSpaceID = value; }
 		}
 
 		public bool Enabled
@@ -53,18 +47,44 @@ namespace Sprocket.Security
 		}
 
 		#endregion
+
+		#region Constructor
+
+		public ClientSpace() { }
+		public ClientSpace(long clientSpaceID, long? primaryUserID, bool enabled, string name)
+		{
+			this.clientSpaceID = clientSpaceID;
+			this.primaryUserID = primaryUserID;
+			this.enabled = enabled;
+			this.name = name;
+		}
+		public ClientSpace(IDataReader reader)
+		{
+			clientSpaceID = (long)reader["ClientSpaceID"];
+			primaryUserID = reader["PrimaryUserID"] == DBNull.Value ? null : (long?)reader["ClientSpaceID"];
+			enabled = (bool)reader["Enabled"];
+			name = (string)reader["Name"];
+		}
+
+		#endregion
+
+		public static ClientSpace Select(long clientSpaceID)
+		{
+			return SecurityProvider.Instance.DataLayer.SelectClientSpace(clientSpaceID);
+		}
 	}
 
 	public class User : IEntity
 	{
 		#region Fields
-		protected Guid userID = Guid.Empty, clientSpaceID = Guid.Empty;
+		protected long userID = 0, clientSpaceID = 0;
 		protected string username = "", passwordHash = "";
 		protected string firstName = "", surname = "", email = "";
 		protected bool enabled = true, locked = false, activated = false, deleted = false;
 		protected bool hidden = false; // for special users used internally only
 		protected int localTimeOffsetHours = 0;
-		protected DateTime? activationReminderSent = null, created = null;
+		protected DateTime? activationReminderSent = null;
+		protected DateTime created = DateTime.Now;
 
 		private Dictionary<string, PermissionState> permissions = null;
 		private Dictionary<string, PermissionState> roles = null;
@@ -73,11 +93,11 @@ namespace Sprocket.Security
 		#region Constructor
 		public User() { }
 
-		public User(Guid clientSpaceID, string username,
+		public User(long clientSpaceID, string username,
 			string password, string firstName, string surname, string email,
 			bool enabled, bool locked, bool hidden, int localTimeOffsetHours)
 		{
-			this.userID = Guid.NewGuid();
+			this.userID = 0;
 			this.clientSpaceID = clientSpaceID;
 			this.username = username;
 			this.passwordHash = Crypto.EncryptOneWay(password);
@@ -89,9 +109,28 @@ namespace Sprocket.Security
 			this.deleted = false;
 			this.hidden = hidden;
 			this.activated = false;
-			this.created = null;
+			this.created = DateTime.Now;
 			this.activationReminderSent = null;
 			this.localTimeOffsetHours = localTimeOffsetHours;
+		}
+
+		public User(IDataReader reader)
+		{
+			userID = (long)reader["UserID"];
+			clientSpaceID = (long)reader["ClientSpaceID"];
+			username = (string)reader["Username"];
+			passwordHash = (string)reader["PasswordHash"];
+			firstName = (string)reader["FirstName"];
+			surname = (string)reader["Surname"];
+			email = (string)reader["Email"];
+			enabled = (bool)reader["Enabled"];
+			locked = (bool)reader["Locked"];
+			deleted = (bool)reader["Deleted"];
+			hidden = (bool)reader["Hidden"];
+			activated = (bool)reader["Activated"];
+			created = (DateTime)reader["Created"];
+			activationReminderSent = reader["ActivationReminderSent"] == DBNull.Value ? null : (DateTime?)reader["ActivationReminderSent"];
+			localTimeOffsetHours = (int)reader["LocalTimeOffsetHours"];
 		}
 
 		#endregion
@@ -110,7 +149,7 @@ namespace Sprocket.Security
 			set { activationReminderSent = value; }
 		}
 
-		public DateTime? Created
+		public DateTime Created
 		{
 			get { return created; }
 			set { created = value; }
@@ -122,13 +161,13 @@ namespace Sprocket.Security
 			set { localTimeOffsetHours = value; }
 		}
 
-		public Guid UserID
+		public long UserID
 		{
 			get { return userID; }
 			set { userID = value; }
 		}
 
-		public Guid ClientSpaceID
+		public long ClientSpaceID
 		{
 			get { return clientSpaceID; }
 			set { clientSpaceID = value; }
@@ -198,31 +237,67 @@ namespace Sprocket.Security
 		}
 
 		#endregion
+
+		public static User Select(long clientSpaceID, string username)
+		{
+			return SecurityProvider.Instance.DataLayer.SelectUser(clientSpaceID, username);
+		}
+
+		public static User Select(long userID)
+		{
+			return SecurityProvider.Instance.DataLayer.SelectUser(userID);
+		}
+
+		#region Methods
+
+		public bool HasPermission(string permissionTypeCode)
+		{
+			return SecurityProvider.Instance.DataLayer.DoesUserHavePermission(userID, permissionTypeCode);
+		}
+
+		public bool HasRole(string roleCode)
+		{
+			return SecurityProvider.Instance.DataLayer.IsUserInRole(userID, roleCode);
+		}
+
+		#endregion
 	}
 
 	public class Role : IEntity
 	{
-		private Guid roleID = Guid.Empty, clientSpaceID = Guid.Empty;
+		private long roleID = 0, clientSpaceID = 0;
 		private string roleCode = "", name = "";
 		private bool enabled = true, hidden = false, locked = false;
 
 		#region Constructor
+
 		public Role()
 		{
-			roleID = Guid.NewGuid();
-			roleCode = roleID.ToString();
+			roleID = 0;
+			roleCode = "Role " + roleID;
+		}
+
+		public Role(IDataReader reader)
+		{
+			ClientSpaceID = (long)reader["ClientSpaceID"];
+			Enabled = (bool)reader["Enabled"];
+			Hidden = (bool)reader["Hidden"];
+			Locked = (bool)reader["Locked"];
+			Name = (string)reader["Name"];
+			RoleCode = (string)reader["RoleCode"];
+			RoleID = (long)reader["RoleID"];
 		}
 
 		#endregion
 
 		#region Class Properties
-		public Guid RoleID
+		public long RoleID
 		{
 			get { return roleID; }
 			set { roleID = value; }
 		}
 
-		public Guid ClientSpaceID
+		public long ClientSpaceID
 		{
 			get { return clientSpaceID; }
 			set { clientSpaceID = value; }
@@ -258,16 +333,26 @@ namespace Sprocket.Security
 			set { locked = value; }
 		}
 		#endregion
+
+		public static Role Select(long roleID)
+		{
+			return SecurityProvider.Instance.DataLayer.SelectRole(roleID);
+		}
+
+		public static Role Select(long clientSpaceID, string roleCode)
+		{
+			return SecurityProvider.Instance.DataLayer.SelectRole(clientSpaceID, roleCode);
+		}
 	}
 
 	public class PermissionType : IEntity
 	{
-		int permissionTypeID;
+		long permissionTypeID;
 		string permissionTypeCode, description;
 		bool defaultValue;
 
 		#region Properties
-		public int PermissionTypeID
+		public long PermissionTypeID
 		{
 			get { return permissionTypeID; }
 			set { permissionTypeID = value; }
@@ -291,6 +376,20 @@ namespace Sprocket.Security
 			set { defaultValue = value; }
 		}
 		#endregion
+
+		public PermissionType() { }
+		public PermissionType(IDataReader reader)
+		{
+			permissionTypeID = (long)reader["PermissionTypeID"];
+			permissionTypeCode = (string)reader["PermissionTypeCode"];
+			description = (string)reader["Description"];
+			defaultValue = (bool)reader["DefaultValue"];
+		}
+
+		public const string AdministrativeAccess = "ACCESS_ADMIN";
+		public const string UserAdministrator = "USERADMINISTRATOR";
+		public const string RoleAdministrator = "ROLEADMINISTRATOR";
+		public const string SuperUser = "SUPERUSER";
 	}
 
 	public enum PermissionState
@@ -335,6 +434,12 @@ namespace Sprocket.Security
 	{
 		private Role role;
 		private bool isAccessible;
+		private PermissionState state;
+
+		public PermissionState State
+		{
+			get { return state; }
+		}
 
 		public Role Role
 		{
@@ -346,10 +451,11 @@ namespace Sprocket.Security
 			get { return isAccessible; }
 		}
 
-		public RoleState(Role role, bool accessible)
+		public RoleState(Role role, bool accessible, PermissionState state)
 		{
 			this.role = role;
 			this.isAccessible = accessible;
+			this.state = state;
 		}
 	}
 }

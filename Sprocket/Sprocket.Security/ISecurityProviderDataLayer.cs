@@ -11,11 +11,14 @@ namespace Sprocket.Security
 	{
 		Type DatabaseHandlerType { get; }
 		Result InitialiseDatabase();
+		Result InitialiseClientSpace(long clientSpaceID);
 
 		bool Authenticate(string username, string passwordHash);
-		bool Authenticate(Guid clientSpaceID, string username, string passwordHash);
-		bool IsEmailAddressTaken(Guid clientSpaceID, string email);
-		bool IsUsernameTaken(Guid clientSpaceID, string username);
+		bool Authenticate(long clientSpaceID, string username, string passwordHash);
+		bool IsEmailAddressTaken(long clientSpaceID, string email);
+		bool IsUsernameTaken(long clientSpaceID, string username);
+		bool IsEmailAddressTaken(long clientSpaceID, string email, long? excludeUserID);
+		bool IsUsernameTaken(long clientSpaceID, string username, long? excludeUserID);
 
 		Result Store(ClientSpace client);
 		Result Store(User user);
@@ -27,6 +30,12 @@ namespace Sprocket.Security
 		Result Delete(Role role);
 		Result Delete(PermissionType permissionType);
 
+		ClientSpace SelectClientSpace(long clientSpaceID);
+		User SelectUser(long clientSpaceID, string username);
+		User SelectUser(long userID);
+		Role SelectRole(long clientSpaceID, string roleCode);
+		Role SelectRole(long roleID);
+
 		event InterruptableEventHandler<ClientSpace> OnBeforeDeleteClientSpace;
 		event NotificationEventHandler<ClientSpace> OnClientSpaceDeleted;
 		event InterruptableEventHandler<User> OnBeforeDeleteUser;
@@ -36,31 +45,36 @@ namespace Sprocket.Security
 		event InterruptableEventHandler<PermissionType> OnBeforeDeletePermissionType;
 		event NotificationEventHandler<PermissionType> OnPermissionTypeDeleted;
 
-		int? GetRoleIDFromRoleCode(Guid clientSpaceID, string roleCode);
+		long? GetRoleIDFromRoleCode(Guid clientSpaceID, string roleCode);
 
-		bool DoesRoleInheritRole(int thisRoleID, int doesItInheritRoleID);
-		void InheritRoleFrom(int thisRoleID, int inheritFromRoleID);
-		void DisinheritRoleFrom(int thisRoleID, int disinheritFromRoleID);
-		void ListInheritedRoles(int thisRoleID);
+		bool DoesRoleInheritRole(long thisRoleID, long doesItInheritRoleID);
+		void InheritRoleFrom(long thisRoleID, long inheritFromRoleID);
+		void DisinheritRoleFrom(long thisRoleID, long disinheritFromRoleID);
+		List<Role> ListInheritedRoles(long thisRoleID);
 
-		List<Role> ListUserRoles(int userID);
-		bool IsUserInRole(int userID, int roleID);
-		void AssignRoleToUser(int userID, int roleID);
-		void UnassignRoleFromUser(int userID, int roleID);
+		List<Role> ListUserRoles(long userID);
+		bool IsUserInRole(long userID, string roleCode);
+		void AssignRoleToUser(long userID, string roleCode);
+		void UnassignRoleFromUser(long userID, string roleCode);
 
-		void AssignPermissionToUser(int userID, int permissionTypeID);
-		void AssignPermissionToRole(int roleID, int permissionTypeID);
-		bool DoesUserHavePermission(int userID, int permissionTypeID);
+		void AssignPermissionToUser(long userID, string permissionTypeCode);
+		void AssignPermissionToRole(long roleID, string permissionTypeCode);
+		bool DoesUserHavePermission(long userID, string permissionTypeCode);
 
-		void RemoveRolesAndPermissionsFromUser(int userID);
-		void RemoveRolesAndPermissionsFromRole(int roleID);
+		void RemoveRolesAndPermissionsFromUser(long userID);
+		void RemoveRolesAndPermissionsFromRole(long roleID);
+		void SetRolesAndPermissionsForUser(long userID, List<string> roleCodes, List<string> permissionTypeCodes);
+		void SetRolesAndPermissionsForRole(long roleID, List<string> roleCodes, List<string> permissionTypeCodes);
 
-		List<Role> ListAccessibleRoles(int userID);
-		List<PermissionTypeState> ListPermissionsForUser(int userID);
-		List<PermissionTypeState> ListPermissionsForRole(int roleID);
-		List<PermissionTypeState> ListAllPermissionTypesAgainstUser(int userID);
-		List<PermissionTypeState> ListAllPermissionTypesAgainstRole(int roleID);
-		List<RoleState> ListAllRolesAgainstRole(int roleID);
-		List<Role> ListDescendentRoles(int roleID);
+		List<Role> ListAccessibleRoles(long userID);
+		//List<PermissionTypeState> ListPermissionsForUser(long userID);
+		List<PermissionTypeState> ListPermissionsForRole(long roleID);
+		List<PermissionTypeState> ListAllPermissionTypesAgainstUser(long userID);
+		List<PermissionTypeState> ListAllPermissionTypesAgainstRole(long roleID);
+		List<RoleState> ListAllRolesAgainstRole(long roleID);
+		List<RoleState> ListAllRolesAgainstUser(long userID);
+		List<Role> ListDescendentRoles(long roleID);
+
+		List<User> FilterUsers(string partUsername, string partFirstName, string partSurname, string partEmail, int? maxResults, long? editableByUserID, bool? activated, out int totalMatches);
 	}
 }

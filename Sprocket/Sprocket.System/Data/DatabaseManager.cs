@@ -21,6 +21,11 @@ namespace Sprocket.Data
 			get { return (DatabaseManager)Core.Instance[typeof(DatabaseManager)].Module; }
 		}
 
+		public static long GetUniqueID()
+		{
+			return dbHandler.GetUniqueID();
+		}
+
 		private static IDatabaseHandler dbHandler = null;
 		public static IDatabaseHandler DatabaseEngine
 		{

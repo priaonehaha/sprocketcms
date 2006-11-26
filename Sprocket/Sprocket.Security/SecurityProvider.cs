@@ -60,6 +60,7 @@ namespace Sprocket.Security
 				Result r = dataLayer.InitialiseDatabase();
 				if (!r.Succeeded)
 					result.SetFailed(r.Message);
+				long forceClientInit = ClientSpaceID;
 			}
 		}
 
@@ -69,49 +70,52 @@ namespace Sprocket.Security
 				handled.Set();
 		}
 
-		private static Guid clientSpaceID = Guid.Empty;
-		public static Guid ClientSpaceID
+		private static long clientSpaceID = -1;
+		public static long ClientSpaceID
 		{
 			get
 			{
 				lock (WebUtility.GetSyncObject("DefaultClientSpaceID"))
 				{
-					if (clientSpaceID != Guid.Empty)
+					if (clientSpaceID != -1)
 						return clientSpaceID;
 					string path = WebUtility.MapPath("datastore/ClientSpace.ID");
 					if (!File.Exists(path))
 					{
-						clientSpaceID = Guid.NewGuid();
+						clientSpaceID = DatabaseManager.GetUniqueID();
+						Result result = Instance.dataLayer.InitialiseClientSpace(clientSpaceID);
+						if (!result.Succeeded)
+							throw new Exception(result.Message);
 						using (FileStream file = File.OpenWrite(path))
 						{
-							file.Write(clientSpaceID.ToByteArray(), 0, 16);
+							file.Write(BitConverter.GetBytes(clientSpaceID), 0, sizeof(long));
 							file.Close();
 						}
 					}
 					else
 					{
-						byte[] bytes = new byte[16];
+						byte[] bytes = new byte[sizeof(long)];
 						using (FileStream file = File.OpenRead(path))
 						{
-							file.Read(bytes, 0, 16);
+							file.Read(bytes, 0, bytes.Length);
 							file.Close();
 						}
-						clientSpaceID = new Guid(bytes);
+						clientSpaceID = BitConverter.ToInt64(bytes, 0);
 					}
 					return clientSpaceID;
 				}
 			}
 		}
 
-		public static class RoleCodes
-		{
-			public static readonly string SuperUser = "SUPERUSER";
-		}
+		//public static class RoleCodes
+		//{
+		//    public static readonly string SuperUser = "SUPERUSER";
+		//}
 
-		public static class PermissionTypeCodes
-		{
-			public static readonly string UserAdministrator = "USERADMINISTRATOR";
-			public static readonly string RoleAdministrator = "ROLEADMINISTRATOR";
-		}
+		//public static class PermissionTypeCodes
+		//{
+		//    public static readonly string UserAdministrator = "USERADMINISTRATOR";
+		//    public static readonly string RoleAdministrator = "ROLEADMINISTRATOR";
+		//}
 	}
 }

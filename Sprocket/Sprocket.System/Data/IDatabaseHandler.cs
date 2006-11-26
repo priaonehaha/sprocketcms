@@ -41,5 +41,12 @@ namespace Sprocket.Data
 		/// tasks relating to this database handler.
 		/// </summary>
 		event InterruptableEventHandler OnInitialise;
+
+		/// <summary>
+		/// This should implement some form of generator that returns a unique long
+		/// value for use as a database table row identifier.
+		/// </summary>
+		/// <returns>A unique long value</returns>
+		long GetUniqueID();
 	}
 }
