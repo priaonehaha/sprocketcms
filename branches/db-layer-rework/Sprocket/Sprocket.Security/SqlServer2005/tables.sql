@@ -85,12 +85,12 @@ go
 IF OBJECT_ID(N'dbo.Permissions') IS NULL
 CREATE TABLE dbo.Permissions
 (
-	PermissionTypeID	bigint		PRIMARY KEY,
+	PermissionTypeID	bigint		NOT NULL,
 	UserID				bigint		NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
 	RoleID				bigint		NULL,
 	Value				bit			NOT NULL
 	
-	CONSTRAINT UNIQUE_Permissions UNIQUE(PermissionTypeID, UserID, RoleID)
+	CONSTRAINT PK_Permissions PRIMARY KEY(PermissionTypeID, UserID, RoleID)
 )
 
 go

@@ -232,7 +232,7 @@ namespace Sprocket.Web.CMS.Security
 			List<Role> roles = SecurityProvider.Instance.DataLayer.ListAccessibleRoles(CurrentUser.UserID);
 			List<RoleItem> items = new List<RoleItem>();
 			foreach (Role role in roles)
-				if (!role.Locked)
+				if (!role.Locked && !role.Hidden)
 					items.Add(new RoleItem(role.Name, role.RoleID));
 			return items;
 		}
@@ -267,7 +267,7 @@ namespace Sprocket.Web.CMS.Security
 			form.FieldBlocks.Add(block);
 
 			//List<Guid> roleDescendents = new List<Guid>();
-			List<Role> roleDescendents = SecurityProvider.Instance.DataLayer.ListDescendentRoles(roleID.Value);
+			//List<Role> roleDescendents = SecurityProvider.Instance.DataLayer.ListDescendentRoles(role.RoleID);
 			//IDbCommand cmd = Database.Main.CreateCommand("ListDescendentRoles", CommandType.StoredProcedure);
 			//Database.Main.AddParameter(cmd, "@RoleID", role.RoleID);
 			//DataSet ds = Database.Main.GetDataSet(cmd);

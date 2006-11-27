@@ -23,7 +23,7 @@ BEGIN
 		SET @date = GETDATE()
 
 		EXEC dbo.StoreClientSpace @ClientSpaceID, 'SprocketCMS', 1, @newUserID
-		EXEC dbo.StoreUser @newUserID, @ClientSpaceID, 'admin', @PasswordHash, 'System', 'Administrator', 'admin@localhost', 1, 0, 0, 0, 1, null, @date, 0
+		EXEC dbo.StoreUser @newUserID, @ClientSpaceID, 'admin', @PasswordHash, 'System', 'Administrator', 'admin@localhost', 1, 0, 1, 0, 1, null, @date, 0
 		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='SUPERUSER')
 			EXEC dbo.StorePermissionType @perm1ID, 'SUPERUSER', 'Unrestricted Access', 0
 		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='ACCESS_ADMIN')
@@ -481,35 +481,42 @@ CREATE PROCEDURE dbo.IsUserInRole
 	@IsUserInRole bit=NULL OUTPUT
 AS
 BEGIN
-	DECLARE @RoleID bigint
-	SELECT @RoleID = RoleID
-	  FROM Roles
-	 WHERE RoleCode = @RoleCode
-	   AND ClientSpaceID = (SELECT ClientSpaceID
-						 FROM Users
-						WHERE UserID = @UserID)
-	
-	CREATE TABLE #r ( RoleID bigint )
-	INSERT INTO #r (RoleID)
-		SELECT DISTINCT RoleID
-		  FROM UserToRole
-		 WHERE UserID = @UserID
-	
-	WHILE @@ROWCOUNT > 0
-		INSERT INTO #r (RoleID)
-			SELECT InheritsRoleID
-			  FROM RoleToRole
-			 WHERE RoleID IN (SELECT RoleID FROM #r)
-			   AND InheritsRoleID NOT IN (SELECT RoleID FROM #r)
-	
-	DELETE FROM #r
-	 WHERE RoleID IN
-		(SELECT RoleID FROM Roles WHERE Enabled=0)
-	
-	IF EXISTS (SELECT RoleID FROM #r WHERE RoleID = @RoleID)
+	DECLARE @SuperUser bit
+	EXEC DoesUserHavePermission @UserID, 'SUPERUSER', @SuperUser OUTPUT
+	IF @SuperUser = 1
 		SET @IsUserInRole = 1
 	ELSE
-		SET @IsUserInRole = 0
+	BEGIN
+		DECLARE @RoleID bigint
+		SELECT @RoleID = RoleID
+		  FROM Roles
+		 WHERE RoleCode = @RoleCode
+		   AND ClientSpaceID = (SELECT ClientSpaceID
+							 FROM Users
+							WHERE UserID = @UserID)
+		
+		CREATE TABLE #r ( RoleID bigint )
+		INSERT INTO #r (RoleID)
+			SELECT DISTINCT RoleID
+			  FROM UserToRole
+			 WHERE UserID = @UserID
+		
+		WHILE @@ROWCOUNT > 0
+			INSERT INTO #r (RoleID)
+				SELECT InheritsRoleID
+				  FROM RoleToRole
+				 WHERE RoleID IN (SELECT RoleID FROM #r)
+				   AND InheritsRoleID NOT IN (SELECT RoleID FROM #r)
+		
+		DELETE FROM #r
+		 WHERE RoleID IN
+			(SELECT RoleID FROM Roles WHERE Enabled=0)
+		
+		IF EXISTS (SELECT RoleID FROM #r WHERE RoleID = @RoleID)
+			SET @IsUserInRole = 1
+		ELSE
+			SET @IsUserInRole = 0
+	END
 END
 go
 
@@ -564,8 +571,8 @@ IF OBJECT_ID(N'dbo.AssignPermissionToUser') IS NOT NULL
 	DROP PROCEDURE AssignPermissionToUser
 go
 CREATE PROCEDURE dbo.AssignPermissionToUser
-	@PermissionTypeCode	nvarchar(100),
-	@PermissionTypeID	bigint,
+	@PermissionTypeCode	nvarchar(100)=null,
+	@PermissionTypeID	bigint=null,
 	@UserID				bigint
 AS
 BEGIN
@@ -573,12 +580,12 @@ BEGIN
 		SELECT @PermissionTypeID = PermissionTypeID
 		  FROM PermissionTypes
 		 WHERE PermissionTypeCode = @PermissionTypeCode
-	DELETE
-	  FROM Permissions
+
+	DELETE FROM [Permissions]
 	 WHERE UserID = @UserID
 	   AND PermissionTypeID = @PermissionTypeID
 	
-	INSERT INTO Permissions
+	INSERT INTO [Permissions]
 		(PermissionTypeID, UserID, Value)
 	VALUES
 		(@PermissionTypeID, @UserID, 1)
@@ -589,8 +596,8 @@ IF OBJECT_ID(N'dbo.AssignPermissionToRole') IS NOT NULL
 	DROP PROCEDURE AssignPermissionToRole
 go
 CREATE PROCEDURE dbo.AssignPermissionToRole
-	@PermissionTypeCode	nvarchar(100),
-	@PermissionTypeID	bigint,
+	@PermissionTypeCode	nvarchar(100)=null,
+	@PermissionTypeID	bigint=null,
 	@RoleID				bigint
 AS
 BEGIN
@@ -803,6 +810,40 @@ BEGIN
 	 WHERE r.Enabled = 1
   ORDER BY r.Name
 END
+go
+
+IF OBJECT_ID(N'dbo.ListAllRolesAgainstRole') IS NOT NULL
+	DROP PROCEDURE ListAllRolesAgainstRole
+go
+CREATE PROCEDURE dbo.ListAllRolesAgainstRole
+	@RoleID bigint
+AS
+BEGIN
+	SELECT *, CAST(CASE WHEN rr.InheritsRoleID IS NULL THEN 0 ELSE 1 END AS bit) as [Inherited]
+	  FROM Roles r
+ LEFT JOIN RoleToRole rr
+		ON r.RoleID = rr.InheritsRoleID
+	   AND rr.RoleID = @RoleID
+	 WHERE r.RoleID <> @RoleID
+  ORDER BY r.Name
+END
+go
+
+IF OBJECT_ID(N'dbo.ListAllPermissionTypesAgainstRole') IS NOT NULL
+	DROP PROCEDURE ListAllPermissionTypesAgainstRole
+go
+CREATE PROCEDURE dbo.ListAllPermissionTypesAgainstRole
+	@RoleID bigint
+AS
+BEGIN
+	SELECT *
+	  FROM PermissionTypes pt
+ LEFT JOIN Permissions p
+		ON p.PermissionTypeID = pt.PermissionTypeID
+	   AND p.RoleID = @RoleID
+  ORDER BY pt.PermissionTypeID
+END
+
 go
 
 IF OBJECT_ID(N'dbo.ListUsers') IS NOT NULL
