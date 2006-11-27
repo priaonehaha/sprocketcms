@@ -846,7 +846,19 @@ namespace Sprocket.Security
 
 		public List<Role> ListAccessibleRoles(long userID)
 		{
-			throw new Exception("The method or operation is not implemented.");
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("ListAccessibleRolesForUser", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				List<Role> list = new List<Role>();
+				while (reader.Read())
+					list.Add(new Role(reader));
+				reader.Close();
+				return list;
+			}
 		}
 
 		public List<PermissionTypeState> ListPermissionsForRole(long roleID)
@@ -883,12 +895,49 @@ namespace Sprocket.Security
 
 		public List<PermissionTypeState> ListAllPermissionTypesAgainstRole(long roleID)
 		{
-			throw new Exception("The method or operation is not implemented.");
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("ListAllPermissionTypesAgainstRole", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				List<PermissionTypeState> list = new List<PermissionTypeState>();
+				while (reader.Read())
+				{
+					PermissionState state = PermissionState.Disabled;
+					if (reader["Value"] != DBNull.Value)
+						if ((bool)reader["Value"])
+							state = PermissionState.Specified;
+					list.Add(new PermissionTypeState(new PermissionType(reader), state));
+				}
+				reader.Close();
+				return list;
+			}
 		}
 
 		public List<RoleState> ListAllRolesAgainstRole(long roleID)
 		{
-			throw new Exception("The method or operation is not implemented.");
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("ListAllRolesAgainstRole", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				List<RoleState> list = new List<RoleState>();
+				while (reader.Read())
+				{
+					PermissionState state;
+					if ((bool)reader["Inherited"])
+						state = PermissionState.Specified;
+					else
+						state = PermissionState.Disabled;
+					list.Add(new RoleState(new Role(reader), true, state));
+				}
+				reader.Close();
+				return list;
+			}
 		}
 
 		public List<RoleState> ListAllRolesAgainstUser(long userID)

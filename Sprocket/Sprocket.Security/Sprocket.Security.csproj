@@ -70,14 +70,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="DatabaseScripts\sqlserver_dropall.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="DatabaseScripts\sqlserver_data_001.sql" />
-    <EmbeddedResource Include="DatabaseScripts\sqlserver_procedures_001.sql" />
-    <EmbeddedResource Include="DatabaseScripts\sqlserver_tables_001.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="SQLite\SQLite Tables.sql" />
   </ItemGroup>
   <ItemGroup>
