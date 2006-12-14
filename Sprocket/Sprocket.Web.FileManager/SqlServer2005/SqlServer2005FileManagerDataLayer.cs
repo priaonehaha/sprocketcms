@@ -16,9 +16,11 @@ namespace Sprocket.Web.FileManager
 			get { return typeof(SqlServer2005Database); }
 		}
 
-		public Result InitialiseDatabase()
+		public void InitialiseDatabase(Result result)
 		{
-			Result result;
+			if (!result.Succeeded)
+				return;
+
 			SqlConnection conn = null;
 			try
 			{
@@ -26,16 +28,20 @@ namespace Sprocket.Web.FileManager
 				{
 					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SqlServer2005Database db = (SqlServer2005Database)DatabaseManager.DatabaseEngine;
-					result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.FileManager.SqlServer2005.scripts.sql"));
-					if (result.Succeeded)
-						scope.Complete();
+					Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.FileManager.SqlServer2005.scripts.sql"));
+					if (!r.Succeeded)
+					{
+						result.SetFailed(r.Message);
+						return;
+					}
+					scope.Complete();
 				}
 			}
 			finally
 			{
 				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
 			}
-			return result;
+			return;
 		}
 
 		public SqlParameter NewSqlParameter(string name, object value, SqlDbType dbType)
@@ -122,21 +128,24 @@ namespace Sprocket.Web.FileManager
 
 		public SprocketFile SelectSprocketFile(long id, bool getFileData)
 		{
-			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				conn.Open();
-				SqlCommand cmd = new SqlCommand("SprocketFile_Select", conn);
-				cmd.CommandType = CommandType.StoredProcedure;
-				cmd.Parameters.Add(new SqlParameter("@SprocketFileID", id));
-				cmd.Parameters.Add(new SqlParameter("@GetFileData", getFileData));
-				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-				SprocketFile entity;
-				if (!reader.Read())
-					entity = null;
-				else
-					entity = new SprocketFile(reader);
-				reader.Close();
-				return entity;
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("SprocketFile_Select", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@SprocketFileID", id));
+					cmd.Parameters.Add(new SqlParameter("@GetFileData", getFileData));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					SprocketFile entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new SprocketFile(reader);
+					reader.Close();
+					return entity;
+				}
 			}
 		}
 

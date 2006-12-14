@@ -11,6 +11,9 @@ namespace Sprocket.Web.CMS.SnapLayouts
 		Result InitialiseFromPanel(SnapPanel panel);
 		string Render();
 		string WidgetTypeID { get; }
+		string JavaScriptEditHandlerName { get; }
+		string HtmlHeadStandardBlock { get; }
+		string HtmlHeadEditModeBlock { get; }
 	}
 
 	public interface ISnapPanelWidgetCreator

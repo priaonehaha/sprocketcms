@@ -32,14 +32,31 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			return panel;
 		}
 
+		private long id;
 		public Result InitialiseFromPanel(SnapPanel panel)
 		{
+			id = panel.SnapPanelID;
 			return new Result();
 		}
 
 		public string Render()
 		{
-			return "<div style=\"background-color:#afa;width:100%;height:100%;\"></div>";
+			return "<div style=\"background-color:#afa;width:100%;height:100%;\">" + id + "</div>";
+		}
+
+		public string JavaScriptEditHandlerName
+		{
+			get { return "colorWidgetEdit"; }
+		}
+
+		public string HtmlHeadEditModeBlock
+		{
+			get { return "<script>function colorWidgetEdit(id) { alert(id); }</script>"; }
+		}
+
+		public string HtmlHeadStandardBlock
+		{
+			get { return ""; }
 		}
 	}
 

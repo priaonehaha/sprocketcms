@@ -10,7 +10,7 @@ namespace Sprocket.Web.FileManager
 		private int width = 0;
 		private int height = 0;
 		private int padding = 0;
-		private Color backgroundColor = Color.White;
+		private Color backgroundColor = Color.Black;
 		private Color borderColor = Color.Transparent;
 		private int borderSize = 0;
 		private int tileSpacing = 0;
@@ -129,6 +129,18 @@ namespace Sprocket.Web.FileManager
 			this.backgroundColor = backgroundColor;
 			this.displayType = Display.Crop;
 			this.anchor = anchor;
+			this.sprocketFileID = sprocketFileID;
+			SetFilename();
+		}
+
+		public SizingOptions(
+			int width, int height,
+			Display displayType,
+			long sprocketFileID)
+		{
+			this.height = height;
+			this.width = width;
+			this.displayType = displayType;
 			this.sprocketFileID = sprocketFileID;
 			SetFilename();
 		}

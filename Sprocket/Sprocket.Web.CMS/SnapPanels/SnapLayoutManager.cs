@@ -45,14 +45,12 @@ namespace Sprocket.Web.CMS.SnapLayouts
 
 		void DatabaseHandler_OnInitialise(Result result)
 		{
+			if (!result.Succeeded)
+				return;
 			if (dataLayer == null)
 				result.SetFailed("SnapLayoutHandler has no implementation for " + DatabaseManager.DatabaseEngine.Title);
 			else
-			{
-				Result r = dataLayer.InitialiseDatabase();
-				if (!r.Succeeded)
-					result.SetFailed(r.Message);
-			}
+				dataLayer.InitialiseDatabase(result);
 		}
 
 		void Core_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
@@ -73,12 +71,6 @@ namespace Sprocket.Web.CMS.SnapLayouts
 		}
 
 		public Dictionary<string, ISnapPanelWidgetCreator> widgetFactory = new Dictionary<string, ISnapPanelWidgetCreator>();
-
-		public string RenderCanvas(SnapCanvas canvas, bool editable)
-		{
-			PrepareCanvas(canvas);
-			return canvas.Render(editable);
-		}
 
 		public SnapCanvas PrepareCanvas(long canvasID)
 		{

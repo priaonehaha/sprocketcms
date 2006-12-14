@@ -53,14 +53,12 @@ namespace Sprocket.Web.FileManager
 
 		void DatabaseHandler_OnInitialise(Result result)
 		{
+			if (!result.Succeeded)
+				return;
 			if (dataLayer == null)
 				result.SetFailed("FileManager has no implementation for " + DatabaseManager.DatabaseEngine.Title);
 			else
-			{
-				Result r = dataLayer.InitialiseDatabase();
-				if (!r.Succeeded)
-					result.SetFailed(r.Message);
-			}
+				dataLayer.InitialiseDatabase(result);
 		}
 
 		public void TransmitImage(string filename)
@@ -305,15 +303,6 @@ namespace Sprocket.Web.FileManager
 							break;
 					}
 
-					if (options.DisplayType == SizingOptions.Display.Tile)
-					{
-						// draw the image a bunch of times
-					}
-					else
-					{
-						// draw the image normally
-					}
-
 					// draw the border last to ensure it doesn't get obscured;
 					if (options.BorderSize > 0)
 						gfx.DrawRectangle(pen, 0, 0, finalImage.Width - 1, finalImage.Height - 1);
@@ -337,6 +326,8 @@ namespace Sprocket.Web.FileManager
 					if (outStream != null)
 					{
 						finalImage.Save(outStream, encoder, prms);
+						if(outStream is MemoryStream)
+							outStream.Seek(0, SeekOrigin.Begin);
 					}
 					else
 					{

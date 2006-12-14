@@ -24,9 +24,11 @@ namespace Sprocket.Security.SQLite
 			return ResourceLoader.LoadTextResource("Sprocket.Security.SQLite." + name + ".sql");
 		}
 
-		public Result InitialiseDatabase()
+		public void InitialiseDatabase(Result result)
 		{
-			Result result = new Result();
+			if (!result.Succeeded)
+				return;
+
 			using (SQLiteConnection connection = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 			{
 				connection.Open();
@@ -53,7 +55,7 @@ namespace Sprocket.Security.SQLite
 					}
 				}
 			}
-			return result;
+			return;
 		}
 
 		public bool Authenticate(string username, string passwordHash)

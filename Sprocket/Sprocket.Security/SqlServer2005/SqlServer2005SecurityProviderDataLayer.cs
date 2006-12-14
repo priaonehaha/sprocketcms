@@ -17,9 +17,11 @@ namespace Sprocket.Security
 			get { return typeof(SqlServer2005Database); }
 		}
 
-		public Result InitialiseDatabase()
+		public void InitialiseDatabase(Result result)
 		{
-			Result result;
+			if (!result.Succeeded)
+				return;
+
 			SqlConnection conn = null;
 			try
 			{
@@ -30,9 +32,13 @@ namespace Sprocket.Security
 					result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.tables.sql"));
 					if (result.Succeeded)
 					{
-						result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.procedures.sql"));
-						if (result.Succeeded)
-							scope.Complete();
+						Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.procedures.sql"));
+						if (!r.Succeeded)
+						{
+							result.SetFailed(r.Message);
+							return;
+						}
+						scope.Complete();
 					}
 				}
 			}
@@ -40,7 +46,7 @@ namespace Sprocket.Security
 			{
 				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
 			}
-			return result;
+			return;
 		}
 
 		public Result InitialiseClientSpace(long clientSpaceID)

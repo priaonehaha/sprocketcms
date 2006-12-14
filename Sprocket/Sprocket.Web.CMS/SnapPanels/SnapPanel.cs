@@ -29,6 +29,7 @@ namespace Sprocket.Web.CMS.SnapLayouts
 		protected bool lockPosition = false;
 		protected bool lockSize = false;
 		protected bool allowDelete = false;
+		protected bool allowEdit = false;
 
 		#endregion
 
@@ -160,6 +161,15 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			set { allowDelete = value; }
 		}
 
+		///<summary>
+		///Gets or sets the value for AllowDelete
+		///</summary>
+		public bool AllowEdit
+		{
+			get { return allowEdit; }
+			set { allowEdit = value; }
+		}
+
 		#endregion
 
 		#region Constructors
@@ -168,7 +178,7 @@ namespace Sprocket.Web.CMS.SnapLayouts
 		{
 		}
 
-		public SnapPanel(long snapPanelID, long snapCanvasID, string widgetTypeID, short unitWidth, short unitHeight, short unitX, short unitY, short maxUnitWidth, short minUnitWidth, short maxUnitHeight, short minUnitHeight, bool lockPosition, bool lockSize, bool allowDelete)
+		public SnapPanel(long snapPanelID, long snapCanvasID, string widgetTypeID, short unitWidth, short unitHeight, short unitX, short unitY, short maxUnitWidth, short minUnitWidth, short maxUnitHeight, short minUnitHeight, bool lockPosition, bool lockSize, bool allowDelete, bool allowEdit)
 		{
 			this.snapPanelID = snapPanelID;
 			this.snapCanvasID = snapCanvasID;
@@ -184,6 +194,7 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			this.lockPosition = lockPosition;
 			this.lockSize = lockSize;
 			this.allowDelete = allowDelete;
+			this.allowEdit = allowEdit;
 		}
 
 		public SnapPanel(IDataReader reader)
@@ -202,6 +213,7 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			if (reader["LockPosition"] != DBNull.Value) lockPosition = (bool)reader["LockPosition"];
 			if (reader["LockSize"] != DBNull.Value) lockSize = (bool)reader["LockSize"];
 			if (reader["AllowDelete"] != DBNull.Value) allowDelete = (bool)reader["AllowDelete"];
+			if (reader["AllowEdit"] != DBNull.Value) allowEdit = (bool)reader["AllowEdit"];
 		}
 
 		#endregion
@@ -241,6 +253,8 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			JSON.EncodeNameValuePair(writer, "LockSize", lockSize);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "AllowDelete", allowDelete);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "AllowEdit", allowEdit);
 			writer.Write("}");
 		}
 
@@ -268,11 +282,12 @@ namespace Sprocket.Web.CMS.SnapLayouts
 
 		public string JavaScriptNewPanelExpression
 		{
+#error down there, {7} needs to refer to the function to be called by javascript when edit is clicked
 			get
 			{
 				return string.Format(
-					"new Panel({4}, {0}, {1}, {2}, {3}, null, $('panel-{4}'))",
-					UnitX, UnitY, UnitWidth, UnitHeight, snapPanelID
+					"new Panel({4}, {0}, {1}, {2}, {3}, null, $('panel-{4}'), {5}, {6}, {7})",
+					UnitX, UnitY, UnitWidth, UnitHeight, snapPanelID, allowEdit.ToString().ToLower(), allowDelete.ToString().ToLower()
 				);
 			}
 		}

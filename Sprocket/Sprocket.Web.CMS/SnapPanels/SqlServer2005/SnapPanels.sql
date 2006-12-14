@@ -26,7 +26,8 @@ CREATE TABLE dbo.SnapPanel
 	MinUnitHeight smallint NOT NULL,
 	LockPosition bit NOT NULL,
 	LockSize bit NOT NULL,
-	AllowDelete bit NOT NULL
+	AllowDelete bit NOT NULL,
+	AllowEdit bit NOT NULL
 )
 go
 
@@ -114,7 +115,8 @@ CREATE PROCEDURE dbo.SnapPanel_Store
 	@MinUnitHeight smallint,
 	@LockPosition bit,
 	@LockSize bit,
-	@AllowDelete bit
+	@AllowDelete bit,
+	@AllowEdit bit
 AS
 BEGIN
 	IF @SnapPanelID = 0 OR NOT EXISTS (SELECT SnapPanelID FROM SnapPanel WHERE SnapPanelID = @SnapPanelID)
@@ -122,9 +124,9 @@ BEGIN
 		IF @SnapPanelID = 0 OR @SnapPanelID IS NULL
 			EXEC GetUniqueID @SnapPanelID OUTPUT
 		INSERT INTO SnapPanel
-			(SnapPanelID, SnapCanvasID, WidgetTypeID, UnitWidth, UnitHeight, UnitX, UnitY, MaxUnitWidth, MinUnitWidth, MaxUnitHeight, MinUnitHeight, LockPosition, LockSize, AllowDelete)
+			(SnapPanelID, SnapCanvasID, WidgetTypeID, UnitWidth, UnitHeight, UnitX, UnitY, MaxUnitWidth, MinUnitWidth, MaxUnitHeight, MinUnitHeight, LockPosition, LockSize, AllowDelete, AllowEdit)
 		VALUES
-			(@SnapPanelID, @SnapCanvasID, @WidgetTypeID, @UnitWidth, @UnitHeight, @UnitX, @UnitY, @MaxUnitWidth, @MinUnitWidth, @MaxUnitHeight, @MinUnitHeight, @LockPosition, @LockSize, @AllowDelete)
+			(@SnapPanelID, @SnapCanvasID, @WidgetTypeID, @UnitWidth, @UnitHeight, @UnitX, @UnitY, @MaxUnitWidth, @MinUnitWidth, @MaxUnitHeight, @MinUnitHeight, @LockPosition, @LockSize, @AllowDelete, @AllowEdit)
 	END
 	ELSE
 	BEGIN
@@ -141,7 +143,8 @@ BEGIN
 			MinUnitHeight = @MinUnitHeight,
 			LockPosition = @LockPosition,
 			LockSize = @LockSize,
-			AllowDelete = @AllowDelete
+			AllowDelete = @AllowDelete,
+			AllowEdit = @AllowEdit
 		WHERE SnapPanelID = @SnapPanelID
 	END
 END

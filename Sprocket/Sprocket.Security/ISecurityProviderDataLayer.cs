@@ -10,7 +10,7 @@ namespace Sprocket.Security
 	public interface ISecurityProviderDataLayer
 	{
 		Type DatabaseHandlerType { get; }
-		Result InitialiseDatabase();
+		void InitialiseDatabase(Result result);
 		Result InitialiseClientSpace(long clientSpaceID);
 
 		bool Authenticate(string username, string passwordHash);

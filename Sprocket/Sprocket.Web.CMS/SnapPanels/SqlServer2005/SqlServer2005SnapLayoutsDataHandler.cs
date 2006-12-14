@@ -18,9 +18,11 @@ namespace Sprocket.Web.CMS
 			get { return typeof(SqlServer2005Database); }
 		}
 
-		public Result InitialiseDatabase()
+		public void InitialiseDatabase(Result result)
 		{
-			Result result;
+			if (!result.Succeeded)
+				return;
+
 			SqlConnection conn = null;
 			try
 			{
@@ -28,21 +30,20 @@ namespace Sprocket.Web.CMS
 				{
 					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SqlServer2005Database db = (SqlServer2005Database)DatabaseManager.DatabaseEngine;
-					result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.CMS.SnapPanels.SqlServer2005.SnapPanels.sql"));
-					if (result.Succeeded)
+					Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.CMS.SnapPanels.SqlServer2005.SnapPanels.sql"));
+					if (!r.Succeeded)
 					{
-						//result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.procedures.sql"));
-						//if (result.Succeeded)
-						scope.Complete();
-
+						result.SetFailed(r.Message);
+						return;
 					}
+					scope.Complete();
 				}
 			}
 			finally
 			{
 				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
 			}
-			return result;
+			return;
 		}
 
 		public SqlParameter NewSqlParameter(string name, object value, SqlDbType dbType)
@@ -174,6 +175,7 @@ namespace Sprocket.Web.CMS
 					cmd.Parameters.Add(NewSqlParameter("@LockPosition", snapPanel.LockPosition, SqlDbType.Bit));
 					cmd.Parameters.Add(NewSqlParameter("@LockSize", snapPanel.LockSize, SqlDbType.Bit));
 					cmd.Parameters.Add(NewSqlParameter("@AllowDelete", snapPanel.AllowDelete, SqlDbType.Bit));
+					cmd.Parameters.Add(NewSqlParameter("@AllowEdit", snapPanel.AllowEdit, SqlDbType.Bit));
 					cmd.ExecuteNonQuery();
 					snapPanel.SnapPanelID = (long)prm.Value;
 					scope.Complete();
