@@ -161,7 +161,28 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			set { panels = value; }
 		}
 
-		public string Render(bool editable)
+		public string RenderHeadBlock(bool editable)
+		{
+			List<string> headBlocks = new List<string>();
+			foreach (SnapPanel panel in panels)
+			{
+				string head = panel.Widget.HtmlHeadStandardBlock;
+				if (!headBlocks.Contains(head))
+					headBlocks.Add(head);
+				if (editable)
+				{
+					head = panel.Widget.HtmlHeadEditModeBlock;
+					if (!headBlocks.Contains(head))
+						headBlocks.Add(head);
+				}
+			}
+			StringBuilder sb = new StringBuilder();
+			foreach (string str in headBlocks)
+				sb.AppendLine(str);
+			return sb.ToString();
+		}
+
+		public string RenderInterface(bool editable)
 		{
 			StringBuilder sb = new StringBuilder(), js = new StringBuilder();
 			sb.AppendFormat("<div id=\"canvas-{0}\">", snapCanvasID);

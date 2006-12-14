@@ -8,7 +8,7 @@ namespace Sprocket.Web.CMS
 	public interface ISnapLayoutsDataLayer
 	{
 		Type DatabaseHandlerType { get; }
-		Result InitialiseDatabase();
+		void InitialiseDatabase(Result result);
 
 		#region Definitions for SnapCanvas
 

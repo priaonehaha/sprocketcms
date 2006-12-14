@@ -60,14 +60,14 @@ namespace Sprocket.Security
 
 		void Database_OnInitialise(Result result)
 		{
+			if (!result.Succeeded)
+				return;
 			if (dataLayer == null)
 				result.SetFailed("SecurityProvider has no implementation for " + DatabaseManager.DatabaseEngine.Title);
 			else
 			{
-				Result r = dataLayer.InitialiseDatabase();
-				if (!r.Succeeded)
-					result.SetFailed(r.Message);
-				long forceClientInit = ClientSpaceID;
+				dataLayer.InitialiseDatabase(result);
+//				long forceClientInit = ClientSpaceID;
 			}
 		}
 

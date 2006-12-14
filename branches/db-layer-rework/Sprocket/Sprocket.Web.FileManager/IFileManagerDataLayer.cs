@@ -7,7 +7,7 @@ namespace Sprocket.Web.FileManager
 	public interface IFileManagerDataLayer
 	{
 		Type DatabaseHandlerType { get; }
-		Result InitialiseDatabase();
+		void InitialiseDatabase(Result result);
 
 		#region Definitions for SprocketFile
 
