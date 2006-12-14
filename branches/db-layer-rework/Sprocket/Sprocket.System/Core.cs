@@ -100,7 +100,12 @@ namespace Sprocket
 		/// <returns>A reference to the module, or null if it doesn't exist.</returns>
 		public RegisteredModule this[string moduleNamespace]
 		{
-			get { return moduleHandler[moduleNamespace]; }
+			get
+			{
+				if (!moduleHandler.ModuleRegistry.IsRegistered(moduleNamespace))
+					return null;
+				return moduleHandler[moduleNamespace];
+			}
 		}
 
 		public RegisteredModule this[ISprocketModule module]

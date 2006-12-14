@@ -73,5 +73,35 @@ namespace Sprocket.Data
 		{
 			return -1;
 		}
+
+		#region IDatabaseHandler Members
+
+
+		public IDbConnection GetConnection()
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public void PersistConnection()
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public void ReleaseConnection(IDbConnection conn)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
+
+		#region IDatabaseHandler Members
+
+
+		public void ReleaseConnection()
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
 	}
 }

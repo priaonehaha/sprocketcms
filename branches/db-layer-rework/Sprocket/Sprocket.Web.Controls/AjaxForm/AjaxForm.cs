@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace Sprocket.Web.Controls
 {
-	[AjaxMethodHandler()]
+	[AjaxMethodHandler("AjaxFormHandler")]
 	[ModuleDescription("Provides a centralised facility for constructing, processing and validating html forms.")]
 	[ModuleTitle("Ajax Form Handler")]
 	public class AjaxFormHandler : ISprocketModule

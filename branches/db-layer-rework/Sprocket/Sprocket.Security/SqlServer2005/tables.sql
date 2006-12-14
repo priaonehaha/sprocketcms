@@ -90,7 +90,7 @@ CREATE TABLE dbo.Permissions
 	RoleID				bigint		NULL,
 	Value				bit			NOT NULL
 	
-	CONSTRAINT PK_Permissions PRIMARY KEY(PermissionTypeID, UserID, RoleID)
+	CONSTRAINT UNIQUE_Permissions UNIQUE(PermissionTypeID, UserID, RoleID)
 )
 
 go

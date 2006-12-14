@@ -12,25 +12,116 @@ using Sprocket;
 using Sprocket.Web;
 using Sprocket.Data;
 
-// make it so i can "generate" a thumbnail out of any file at any size or style, using the default icons if it's not an image
-
 namespace Sprocket.Web.FileManager
 {
-	public class SprocketFile : DataEntity
+	public class SprocketFile
 	{
 		#region Fields
 
-		protected Guid? sprocketFileID = null;
-		protected Guid? ownerID = null;
-		protected Guid? parentFileID = null;
-		protected Guid? clientID = null;
+		protected long sprocketFileID = 0;
+		protected long clientSpaceID = 0;
+		protected byte[] fileData = null;
 		protected string fileTypeExtension = "";
-		protected string sprocketPath = "";
+		protected string originalFileName = "";
 		protected string contentType = "";
-		protected string categoryCode = "";
-		protected string moduleRegCode = "";
+		protected string title = "";
 		protected string description = "";
-		protected DateTime uploadDate = DateTime.Now;
+		private long dataLength = 0;
+		protected DateTime uploadDate = DateTime.MinValue;
+
+		#endregion
+
+		#region Properties
+
+		public long DataLength
+		{
+			get { return dataLength; }
+		}
+
+		///<summary>
+		///Gets or sets the value for SprocketFileID
+		///</summary>
+		public long SprocketFileID
+		{
+			get { return sprocketFileID; }
+			set { sprocketFileID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ClientSpaceID
+		///</summary>
+		public long ClientSpaceID
+		{
+			get { return clientSpaceID; }
+			set { clientSpaceID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for FileData
+		///</summary>
+		public byte[] FileData
+		{
+			get { return fileData; }
+			set
+			{
+				fileData = value;
+				dataLength = fileData.Length;
+			}
+		}
+
+		///<summary>
+		///Gets or sets the value for FileTypeExtension
+		///</summary>
+		public string FileTypeExtension
+		{
+			get { return fileTypeExtension; }
+			set { fileTypeExtension = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for OriginalFileName
+		///</summary>
+		public string OriginalFileName
+		{
+			get { return originalFileName; }
+			set { originalFileName = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ContentType
+		///</summary>
+		public string ContentType
+		{
+			get { return contentType; }
+			set { contentType = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for Title
+		///</summary>
+		public string Title
+		{
+			get { return title; }
+			set { title = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for Description
+		///</summary>
+		public string Description
+		{
+			get { return description; }
+			set { description = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for UploadDate
+		///</summary>
+		public DateTime UploadDate
+		{
+			get { return uploadDate; }
+			set { uploadDate = value; }
+		}
 
 		#endregion
 
@@ -40,199 +131,95 @@ namespace Sprocket.Web.FileManager
 		{
 		}
 
-		public SprocketFile(DataRow row)
+		public SprocketFile(long sprocketFileID, long clientSpaceID, byte[] fileData, string fileTypeExtension, string originalFileName, string contentType, string title, string description, DateTime uploadDate)
 		{
-			sprocketFileID = row["SprocketFileID"] == DBNull.Value ? null : (Guid?)row["SprocketFileID"];
-			ownerID = row["OwnerID"] == DBNull.Value ? null : (Guid?)row["OwnerID"];
-			parentFileID = row["ParentFileID"] == DBNull.Value ? null : (Guid?)row["ParentFileID"];
-			if (row["FileTypeExtension"] != DBNull.Value) fileTypeExtension = (string)row["FileTypeExtension"];
-			if (row["SprocketPath"] != DBNull.Value) sprocketPath = (string)row["SprocketPath"];
-			if (row["ContentType"] != DBNull.Value) contentType = (string)row["ContentType"];
-			if (row["CategoryCode"] != DBNull.Value) categoryCode = (string)row["CategoryCode"];
-			if (row["ModuleRegCode"] != DBNull.Value) moduleRegCode = (string)row["ModuleRegCode"];
-			if (row["Description"] != DBNull.Value) description = (string)row["Description"];
-			if (row["ClientID"] != DBNull.Value) clientID = (Guid?)row["ClientID"];
-			IsNew = false;
-			WasNew = false;
+			this.sprocketFileID = sprocketFileID;
+			this.clientSpaceID = clientSpaceID;
+			this.fileData = fileData;
+			this.fileTypeExtension = fileTypeExtension;
+			this.originalFileName = originalFileName;
+			this.contentType = contentType;
+			this.title = title;
+			this.description = description;
+			this.uploadDate = uploadDate;
+			dataLength = fileData.Length;
+		}
+
+		public SprocketFile(long clientSpaceID, HttpPostedFile fileData, string title, string description)
+		{
+			this.clientSpaceID = clientSpaceID;
+			this.fileData = new byte[fileData.ContentLength];
+			fileData.InputStream.Read(this.fileData, 0, fileData.ContentLength);
+			this.originalFileName = fileData.FileName;
+			string[] arr = fileData.FileName.Split('.');
+			if (arr.Length > 1)
+				fileTypeExtension = arr[1];
+			else
+				fileTypeExtension = "";
+			this.contentType = fileData.ContentType;
+			this.title = title;
+			this.description = description;
+			this.uploadDate = DateTime.Now;
+			dataLength = fileData.ContentLength;
+		}
+
+		public SprocketFile(IDataReader reader)
+		{
+			if (reader["SprocketFileID"] != DBNull.Value) sprocketFileID = (long)reader["SprocketFileID"];
+			if (reader["ClientSpaceID"] != DBNull.Value) clientSpaceID = (long)reader["ClientSpaceID"];
+			if (reader["FileData"] != DBNull.Value) fileData = (byte[])reader["FileData"];
+			if (reader["FileTypeExtension"] != DBNull.Value) fileTypeExtension = (string)reader["FileTypeExtension"];
+			if (reader["OriginalFileName"] != DBNull.Value) originalFileName = (string)reader["OriginalFileName"];
+			if (reader["ContentType"] != DBNull.Value) contentType = (string)reader["ContentType"];
+			if (reader["Title"] != DBNull.Value) title = (string)reader["Title"];
+			if (reader["Description"] != DBNull.Value) description = (string)reader["Description"];
+			if (reader["UploadDate"] != DBNull.Value) uploadDate = (DateTime)reader["UploadDate"];
+			if (reader["DataLength"] != DBNull.Value) dataLength = (long)reader["DataLength"];
 		}
 
 		#endregion
 
-		#region Class Properties
+		#region JSON Methods
 
-		public Guid? SprocketFileID
+		/// <summary>
+		/// Writes this entity out as a JSON formatted string
+		/// </summary>
+		public void WriteJSON(StringWriter writer)
 		{
-			get { return sprocketFileID; }
-			set { sprocketFileID = value; }
-		}
-
-		public Guid? OwnerID
-		{
-			get { return ownerID; }
-			set { ownerID = value; }
-		}
-
-		public Guid? ParentFileID
-		{
-			get { return parentFileID; }
-			set { parentFileID = value; }
-		}
-
-		public Guid? ClientID
-		{
-			get { return clientID; }
-			set { clientID = value; }
-		}
-
-		public string FileTypeExtension
-		{
-			get { return fileTypeExtension; }
-			set { fileTypeExtension = value.ToLower().Trim('.'); }
-		}
-
-		public string SprocketPath
-		{
-			get { return sprocketPath; }
-			set { sprocketPath = value; }
-		}
-
-		public string ContentType
-		{
-			get { return contentType; }
-			set { contentType = value; }
-		}
-
-		public string CategoryCode
-		{
-			get { return categoryCode; }
-			set { categoryCode = value; }
-		}
-
-		public string ModuleRegCode
-		{
-			get { return moduleRegCode; }
-			set { moduleRegCode = value; }
-		}
-
-		public string Description
-		{
-			get { return description; }
-			set { description = value; }
-		}
-
-		public DateTime UploadDate
-		{
-			get { return uploadDate; }
-			set { uploadDate = value; }
+			writer.Write("{");
+			JSON.EncodeNameValuePair(writer, "SprocketFileID", sprocketFileID);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ClientSpaceID", clientSpaceID);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "FileTypeExtension", fileTypeExtension);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "OriginalFileName", originalFileName);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ContentType", contentType);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "Title", title);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "Description", description);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "UploadDate", uploadDate);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "DataLength", dataLength);
+			writer.Write("}");
 		}
 
 		#endregion
 
-		#region Data Parameter Handling
-
-		protected void AddParameters(IDbCommand cmd)
+		public static string GetCachePath(long sprocketFileID, string filename)
 		{
-			Database.Main.AddParameter(cmd, "@SprocketFileID", SprocketFileID);
-			Database.Main.AddParameter(cmd, "@OwnerID", OwnerID);
-			Database.Main.AddParameter(cmd, "@ParentFileID", ParentFileID);
-			Database.Main.AddParameter(cmd, "@FileTypeExtension", FileTypeExtension);
-			Database.Main.AddParameter(cmd, "@SprocketPath", SprocketPath);
-			Database.Main.AddParameter(cmd, "@ContentType", ContentType);
-			Database.Main.AddParameter(cmd, "@CategoryCode", CategoryCode);
-			Database.Main.AddParameter(cmd, "@ModuleRegCode", ModuleRegCode);
-			Database.Main.AddParameter(cmd, "@Description", Description);
-			Database.Main.AddParameter(cmd, "@ClientID", ClientID);
-			Database.Main.AddParameter(cmd, "@UploadDate", UploadDate);
+			long f1 = sprocketFileID % 200;
+			long f2 = ((sprocketFileID - f1) / 200) % 200;
+			return WebUtility.MapPath(string.Format("datastore/filecache/{0}/{1}/{2}", f1, f2, filename));
 		}
+	}
+}
 
-		#endregion
-
-		#region Saving and Loading
-
-		public Guid Save()
-		{
-			string procName = IsNew ? "InsertSprocketFile" : "UpdateSprocketFile";
-			if (SprocketFileID == null) SprocketFileID = Guid.NewGuid();
-			IDbCommand cmd = Database.Main.CreateCommand(procName, CommandType.StoredProcedure);
-			AddParameters(cmd);
-			cmd.ExecuteNonQuery();
-			SetSaved();
-			return SprocketFileID.Value;
-		}
-
-		public static void Delete(Guid sprocketfileID)
-		{
-			IDbCommand cmd = Database.Main.CreateCommand("DeleteSprocketFile", CommandType.StoredProcedure);
-			Database.Main.AddParameter(cmd, "@SprocketFileID", sprocketfileID);
-			cmd.ExecuteNonQuery();
-		}
-
-		public static SprocketFile Load(Guid sprocketfileID)
-		{
-			Database.Main.RememberOpenState();
-			IDbCommand cmd = Database.Main.CreateCommand("SelectSprocketFile", CommandType.StoredProcedure);
-			Database.Main.AddParameter(cmd, "@SprocketFileID", sprocketfileID);
-			DataSet ds = Database.Main.GetDataSet(cmd);
-			Database.Main.CloseIfWasntOpen();
-			if (ds.Tables[0].Rows.Count == 0)
-				throw new SprocketException("Cannot load SprocketFile with SprocketFileID of " + sprocketfileID + ". Record does not exist.");
-			return new SprocketFile(ds.Tables[0].Rows[0]);
-		}
-
-		public static SprocketFile Load(string sprocketPath)
-		{
-			Database.Main.RememberOpenState();
-			IDbCommand cmd = Database.Main.CreateCommand("SelectSprocketFileByPath", CommandType.StoredProcedure);
-			Database.Main.AddParameter(cmd, "@SprocketPath", sprocketPath);
-			DataSet ds = Database.Main.GetDataSet(cmd);
-			Database.Main.CloseIfWasntOpen();
-			if (ds.Tables[0].Rows.Count == 0)
-				return null;
-			return new SprocketFile(ds.Tables[0].Rows[0]);
-		}
-
-		public static SprocketFile[] Load(DataTable sprocketfileDataTable)
-		{
-			SprocketFile[] arr = new SprocketFile[sprocketfileDataTable.Rows.Count];
-			for (int i = 0; i < sprocketfileDataTable.Rows.Count; i++)
-				arr[i] = new SprocketFile(sprocketfileDataTable.Rows[i]);
-			return arr;
-		}
-
-		public static SprocketFile[] LoadByOwner(Guid ownerID)
-		{
-			Database.Main.RememberOpenState();
-			IDbCommand cmd = Database.Main.CreateCommand("SelectSprocketFilesByOwner", CommandType.StoredProcedure);
-			Database.Main.AddParameter(cmd, "@OwnerID", ownerID);
-			DataSet ds = Database.Main.GetDataSet(cmd);
-			Database.Main.CloseIfWasntOpen();
-			SprocketFile[] arr = new SprocketFile[ds.Tables[0].Rows.Count];
-			for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
-				arr[i] = new SprocketFile(ds.Tables[0].Rows[i]);
-			return arr;
-		}
-
-		#endregion
-
-		#region Custom Properties
-
-		public string FileName
-		{
-			get { return Path.GetFileName(sprocketPath); }
-		}
-
-		public string PhysicalPath
-		{
-			get { return WebUtility.MapPath("datastore/filemanager/uploads/" + sprocketFileID + ".file"); }
-		}
-
-		public FileInfo FileInfo
-		{
-			get { return new FileInfo(PhysicalPath); }
-		}
-
-		#endregion
-
+#region old
+/*
 		public static SprocketFile Upload(HttpPostedFile upload, Guid? clientID, Guid? ownerID,
 			Guid? parentFileID, string sprocketPath, string categoryCode, string moduleRegCode,
 			string description)
@@ -513,5 +500,5 @@ namespace Sprocket.Web.FileManager
 		}
 
 		#endregion
-	}
-}
+		*/
+#endregion

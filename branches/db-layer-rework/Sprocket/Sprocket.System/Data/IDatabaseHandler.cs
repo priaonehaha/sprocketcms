@@ -48,5 +48,38 @@ namespace Sprocket.Data
 		/// </summary>
 		/// <returns>A unique long value</returns>
 		long GetUniqueID();
+
+		/// <summary>
+		/// This should first check to see if a connection has been created and held
+		/// by PersistConnection(), and if so, return that. Otherwise, simply return
+		/// a new connection initialised and opened with the default ConnectionString.
+		/// </summary>
+		IDbConnection GetConnection();
+		
+		/// <summary>
+		/// This will request that the database handler open and hold a reference to a
+		/// connection object which will be used in place of new connections in
+		/// subsequent queries. Use this to ensure that all queries in a
+		/// TransactionScope use the same connection object and don't escalate their
+		/// operation to MSDTC. PersistConnection() should be called immediately
+		/// after the TransactionScope using statement. An accompanying call to
+		/// ReleaseConnection should be made outside the TransactionScope closing
+		/// brace. PersistConnection should generally not be used inside a data layer
+		/// class, rather it is intended for for the purpose of linking multiple calls
+		/// to different unrelated data handler methods to a single transaction.
+		/// </summary>
+		void PersistConnection();
+
+		/// <summary>
+		/// This should remove any reference to a connection object created by
+		/// PersistConnection(), including closing and disposing the reference.
+		/// </summary>
+		void ReleaseConnection();
+
+		/// <summary>
+		/// This should close the specified connection if it was not created by PersistConnection().
+		/// </summary>
+		/// <param name="conn">The connection to close</param>
+		void ReleaseConnection(IDbConnection conn);
 	}
 }
