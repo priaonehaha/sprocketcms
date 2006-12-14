@@ -14,7 +14,7 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Security
 {
-	[AjaxMethodHandler()]
+	[AjaxMethodHandler("WebSecurity")]
 	partial class WebSecurity
 	{
 		void OnAjaxRequestAuthenticationCheck(System.Reflection.MethodInfo source, Result result)

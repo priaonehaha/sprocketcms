@@ -8,6 +8,7 @@ using System.IO;
 using System.Transactions;
 using System.Text.RegularExpressions;
 
+using Sprocket.Web;
 using Sprocket.Utility;
 
 namespace Sprocket.Data
@@ -19,15 +20,25 @@ namespace Sprocket.Data
 		public Result Initialise()
 		{
 			Result result;
-			using (SqlConnection conn = new SqlConnection(connectionString))
+			try
 			{
-				conn.Open();
-				result = ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Data.SqlServer2005.scripts.sql"));
-				conn.Close();
+				using (TransactionScope scope = new TransactionScope())
+				{
+					DatabaseManager.DatabaseEngine.PersistConnection();
+
+					SqlConnection conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					result = ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Data.SqlServer2005.scripts.sql"));
+					if (result.Succeeded && OnInitialise != null)
+						OnInitialise(result);
+					if (result.Succeeded)
+						scope.Complete();
+					return result;
+				}
 			}
-			if (result.Succeeded && OnInitialise != null)
-				OnInitialise(result);
-			return result;
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
 		}
 
 		public string ConnectionString
@@ -105,6 +116,48 @@ namespace Sprocket.Data
 				scope.Complete();
 				return new Result();
 			}
+		}
+
+		public IDbConnection GetConnection()
+		{
+			SqlConnection conn = Conn as SqlConnection;
+			if (conn == null)
+				conn = new SqlConnection(ConnectionString);
+			if (conn.State == ConnectionState.Closed)
+				conn.Open();
+			return conn;
+		}
+
+		public void PersistConnection()
+		{
+			SqlConnection conn = new SqlConnection(ConnectionString);
+			conn.Open();
+			Conn = conn;
+		}
+
+		public void ReleaseConnection(IDbConnection conn)
+		{
+			if (conn != Conn && conn != null)
+				if (conn.State != ConnectionState.Closed)
+					conn.Close();
+		}
+
+		public void ReleaseConnection()
+		{
+			SqlConnection conn = Conn as SqlConnection;
+			if (conn != null)
+			{
+				if (conn.State != ConnectionState.Closed)
+					conn.Close();
+				conn.Dispose();
+			}
+			Conn = null;
+		}
+
+		private SqlConnection Conn
+		{
+			get { return CurrentRequest.Value["PersistedSqlConnection"] as SqlConnection; }
+			set { CurrentRequest.Value["PersistedSqlConnection"] = value; }
 		}
 	}
 }

@@ -49,7 +49,7 @@ AS
 BEGIN
 	SELECT @IsValid = u.Enabled
 	  FROM Users u
- LEFT JOIN Clients c ON u.ClientID = c.ClientID
+ LEFT JOIN ClientSpaces c ON u.ClientSpaceID = c.ClientSpaceID
 	 WHERE u.Username = @Username
 	   AND u.PasswordHash = @PasswordHash
 	   AND u.Enabled = 1

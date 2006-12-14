@@ -28,6 +28,8 @@ namespace Sprocket.Web.CMS.Pages
 		private void Init()
 		{
 			xmlDocPath = WebUtility.MapPath("resources/definitions/general.xml");
+			if (!File.Exists(xmlDocPath))
+				return;
 			xmlDoc = new XmlDocument();
 			xmlDoc.Load(xmlDocPath);
 			fileDate = File.GetLastWriteTime(xmlDocPath);

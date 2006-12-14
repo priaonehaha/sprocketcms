@@ -184,7 +184,7 @@ namespace Sprocket.Web
 
     #endregion
 
-    internal sealed class JavaScriptCondenser
+    public sealed class JavaScriptCondenser
     {
         private JavaScriptCondenser() {}
 

@@ -6,59 +6,18 @@
    --------------------------------------------------------------------------------------- */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
-using System.Reflection;
-using System.Globalization;
 using System.IO;
 
 using Sprocket;
 using Sprocket.Data;
-using Sprocket.Utility;
 using Sprocket.Web;
 
 namespace [namespace]
 {
 	public partial class [classname][:IJSONEncoder]
 	{
-		#region Utility Members
-		
-		private bool isNew = true;
-		private bool wasNew = true;
-
-		/// <summary>
-		/// Gets or sets whether or not this entity already exists as a record in a database.
-		/// This information is useful for knowing whether to perform an INSERT or UPDATE
-		/// database operation.
-		/// </summary>
-		public bool IsNew
-		{
-			get { return isNew; }
-			protected set { isNew = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets whether or not this entity was constructed as a new entity or from
-		/// data that was retrieved from the database. This is useful if we've saved the data,
-		/// hence setting IsNew to false, but still need to know if this was a new object so
-		/// that we know that we should perform INSERT operations on dependent data, rather than
-		/// UPDATE operations.
-		/// </summary>
-		public bool WasNew
-		{
-			get { return wasNew; }
-			protected set { wasNew = value; }
-		}
-
-		internal void SetSaved()
-		{
-			isNew = false;
-		}
-		
-		#endregion
-
 		#region Fields
 		
 		[fields]
@@ -75,157 +34,118 @@ namespace [namespace]
 
 		public [classname]()
 		{
-			WasNew = true;
-			IsNew = true;
 		}
 		
 		public [classname]([fieldlistparams])
 		{
 			[fieldparamassignments]
-			
-			WasNew = true;
-			IsNew = true;
 		}
 		
-		public [classname](DataRow row)
+		public [classname](IDataReader reader)
 		{
 			[rowassigns]
-
-			WasNew = false;
-			IsNew = false;
 		}
 
-		#endregion
-		
-		#region Saving and Loading
-		
-		public [classidfieldtype] Save()
-		{
-			string procName = IsNew ? "[classname]_Insert" : "[classname]_UpdateExplicit";
-			IDbCommand cmd = Database.Main.CreateCommand(procName, CommandType.StoredProcedure);
-			[commandparameters]
-			cmd.ExecuteNonQuery();
-			SetSaved();
-			return [classidfield];
-		}
-
-		public static void Delete([classidfieldtype] [classidfield])
-		{
-			IDbCommand cmd = Database.Main.CreateCommand("[classname]_Delete", CommandType.StoredProcedure);
-			Database.Main.AddParameter(cmd, "@[primarykey]", [classidfield]);
-			cmd.ExecuteNonQuery();
-		}
-
-		/// <summary>
-		/// Attempts to load an instance of [classname] from the supplied [classidfield].
-		/// An exception is thrown if the record does not exist.
-		/// </summary>
-		public static [classname] Load([classidfieldtype] [classidfield])
-		{
-			Database.Main.RememberOpenState();
-			IDbCommand cmd = Database.Main.CreateCommand("[classname]_Select", CommandType.StoredProcedure);
-			Database.Main.AddParameter(cmd, "@[primarykey]", [classidfield]);
-			DataSet ds = Database.Main.GetDataSet(cmd);
-			Database.Main.CloseIfWasntOpen();
-			if(ds.Tables[0].Rows.Count == 0)
-				throw new SprocketException("Cannot load [classname] with [primarykey] of " + [classidfield] + ". Record does not exist.");
-			return new [classname](ds.Tables[0].Rows[0]);
-		}
-
-		/// <summary>
-		/// Attempts to load an instance of [classname] from the supplied [classidfield].
-		/// If the record does not exist, null is returned.
-		/// </summary>
-		public static [classname] TryLoad([classidfieldtype] [classidfield])
-		{
-			Database.Main.RememberOpenState();
-			IDbCommand cmd = Database.Main.CreateCommand("[classname]_Select", CommandType.StoredProcedure);
-			Database.Main.AddParameter(cmd, "@[primarykey]", [classidfield]);
-			DataSet ds = Database.Main.GetDataSet(cmd);
-			Database.Main.CloseIfWasntOpen();
-			if(ds.Tables[0].Rows.Count == 0)
-				return null;
-			return new [classname](ds.Tables[0].Rows[0]);
-		}
-
-		public static [classname][] Load(DataTable [lesserclassname]DataTable)
-		{
-			[classname][] arr = new [classname][[lesserclassname]DataTable.Rows.Count];
-			for(int i=0; i<[lesserclassname]DataTable.Rows.Count; i++)
-				arr[i] = new [classname]([lesserclassname]DataTable.Rows[i]);
-			return arr;
-		}
-		
-		public static Dictionary<[classidfieldtype], [classname]> Filter([filterparams])
-		{
-			Database.Main.RememberOpenState();
-			Dictionary<[classidfieldtype], [classname]> results = new Dictionary<[classidfieldtype], [classname]>();
-			IDbCommand cmd = Database.Main.CreateCommand("[classname]_Filter", CommandType.StoredProcedure);
-			[filtercommandparameters]
-			DataSet ds = Database.Main.GetDataSet(cmd);
-			Database.Main.CloseIfWasntOpen();
-			foreach(DataRow row in ds.Tables[0].Rows)
-			{
-				[classname] o = new [classname](row);
-				results.Add(o.[classidfield], o);
-			}
-			return results;
-		}
-		
-		public static List<[classname]> FilterSorted([filterparams], Field orderByField, OrderDirection direction)
-		{
-			int? tmp;
-			return FilterSorted([filterparamsvalsonly], orderByField, direction, null, null, out tmp);
-		}
-		
-		public static List<[classname]> FilterSorted([filterparams], Field orderByField, OrderDirection direction, int maxResults)
-		{
-			int? tmp;
-			return FilterSorted([filterparamsvalsonly], orderByField, direction, maxResults, 1, out tmp);
-		}
-		
-		public static List<[classname]> FilterSorted([filterparams], Field orderByField, OrderDirection direction, int? resultsPerPage, int? pageNumber, out int? totalResults)
-		{
-			Database.Main.RememberOpenState();
-			List<[classname]> results = new List<[classname]>();
-			IDbCommand cmd = Database.Main.CreateCommand("[classname]_Filter", CommandType.StoredProcedure);
-			[filtercommandparameters]
-			Database.Main.AddParameter(cmd, "@OrderByFieldName", FieldNames.GetName(orderByField));
-			Database.Main.AddParameter(cmd, "@OrderDirection", direction == OrderDirection.Ascending);
-			Database.Main.AddParameter(cmd, "@ResultsPerPage", resultsPerPage);
-			Database.Main.AddParameter(cmd, "@PageNumber", pageNumber);
-			IDataParameter outPrm = Database.Main.AddOutputParameter(cmd, "@TotalResults", DbType.Int32);
-			DataSet ds = Database.Main.GetDataSet(cmd);
-			Database.Main.CloseIfWasntOpen();
-			foreach(DataRow row in ds.Tables[0].Rows)
-				results.Add(new [classname](row));
-			totalResults = outPrm.Value == DBNull.Value ? null : (int?)outPrm.Value;
-			return results;
-		}
-[keyvalmethods]
-		#endregion
-
-		#region Field Names
-		
-		private static class FieldNames
-		{
-			public static string GetName(Field field)
-			{
-				switch(field)
-				{
-					[fieldnamecases]
-					default:
-						return null;
-				}
-			}
-		}
-		
-		public enum Field
-		{
-			[enumfieldnames]
-		}
-		
 		#endregion
 [jsonmethods]
+	}
+	
+	class DataLayer
+	{
+		public SqlParameter NewSqlParameter(string name, object value, SqlDbType dbType)
+		{
+			SqlParameter prm = new SqlParameter(name, value);
+			prm.SqlDbType = dbType;
+			return prm;
+		}
+		
+		public Result Store([classname] [lesserclassname])
+		{
+			using (TransactionScope scope = new TransactionScope())
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					try
+					{
+						conn.Open();
+						SqlCommand cmd = new SqlCommand("[classname]_Store", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						SqlParameter prm = new SqlParameter("@[primarykey]", [lesserclassname].[primarykey]);
+						prm.Direction = ParameterDirection.InputOutput;
+						cmd.Parameters.Add(prm);
+						[commandparameters]
+						cmd.ExecuteNonQuery();
+						[lesserclassname].[primarykey] = (long)prm.Value;
+						scope.Complete();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
+					finally
+					{
+						conn.Close();
+					}
+				}
+			}
+			return new Result();
+		}
+		
+		public event InterruptableEventHandler<[classname]> OnBeforeDelete[classname];
+		public event NotificationEventHandler<[classname]> On[classname]Deleted;
+		public Result Delete([classname] [lesserclassname])
+		{
+			Result result = new Result();
+			if (OnBeforeDelete[classname] != null)
+				OnBeforeDelete[classname]([lesserclassname], result);
+			if (result.Succeeded)
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+					{
+						try
+						{
+							conn.Open();
+							SqlCommand cmd = new SqlCommand("[classname]_Delete", conn);
+							cmd.CommandType = CommandType.StoredProcedure;
+							cmd.Parameters.Add(new SqlParameter("@[primarykey]", [lesserclassname].[primarykey]));
+							cmd.ExecuteNonQuery();
+							scope.Complete();
+						}
+						catch (Exception ex)
+						{
+							return new Result(ex.Message);
+						}
+						finally
+						{
+							conn.Close();
+						}
+					}
+				}
+				if (On[classname]Deleted != null)
+					On[classname]Deleted([lesserclassname]);
+			}
+			return result;
+		}
+
+		public [classname] Select[classname]([classidfieldtype] id)
+		{
+			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			{
+				conn.Open();
+				SqlCommand cmd = new SqlCommand("[classname]_Select", conn);
+				cmd.CommandType = CommandType.StoredProcedure;
+				cmd.Parameters.Add(new SqlParameter("@[primarykey]", id));
+				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+				[classname] entity;
+				if (!reader.Read())
+					entity = null;
+				else
+					entity = new [classname](reader);
+				reader.Close();
+				return entity;
+			}
+		}
 	}
 }

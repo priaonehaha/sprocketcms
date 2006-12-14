@@ -49,7 +49,6 @@ namespace ClassGenerator
 			this.ExecuteAllSQLButton = new System.Windows.Forms.Button();
 			this.TablesList = new System.Windows.Forms.CheckedListBox();
 			this.label8 = new System.Windows.Forms.Label();
-			this.splitContainer4 = new System.Windows.Forms.SplitContainer();
 			this.Output = new System.Windows.Forms.RichTextBox();
 			this.label5 = new System.Windows.Forms.Label();
 			this.SaveButton = new System.Windows.Forms.Button();
@@ -57,6 +56,21 @@ namespace ClassGenerator
 			this.label6 = new System.Windows.Forms.Label();
 			this.Procedures = new System.Windows.Forms.RichTextBox();
 			this.SaveSQLFileButton = new System.Windows.Forms.Button();
+			this.tabControl1 = new System.Windows.Forms.TabControl();
+			this.tabPage1 = new System.Windows.Forms.TabPage();
+			this.tabPage2 = new System.Windows.Forms.TabPage();
+			this.tabPage3 = new System.Windows.Forms.TabPage();
+			this.tabPage4 = new System.Windows.Forms.TabPage();
+			this.DataLayerInterface = new System.Windows.Forms.RichTextBox();
+			this.label9 = new System.Windows.Forms.Label();
+			this.DataLayerMethods = new System.Windows.Forms.RichTextBox();
+			this.label10 = new System.Windows.Forms.Label();
+			this.tabPage5 = new System.Windows.Forms.TabPage();
+			this.tabPage6 = new System.Windows.Forms.TabPage();
+			this.ClassMain = new System.Windows.Forms.RichTextBox();
+			this.label11 = new System.Windows.Forms.Label();
+			this.ClassOutline = new System.Windows.Forms.RichTextBox();
+			this.label12 = new System.Windows.Forms.Label();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
 			this.splitContainer1.SuspendLayout();
@@ -66,9 +80,13 @@ namespace ClassGenerator
 			this.splitContainer3.Panel1.SuspendLayout();
 			this.splitContainer3.Panel2.SuspendLayout();
 			this.splitContainer3.SuspendLayout();
-			this.splitContainer4.Panel1.SuspendLayout();
-			this.splitContainer4.Panel2.SuspendLayout();
-			this.splitContainer4.SuspendLayout();
+			this.tabControl1.SuspendLayout();
+			this.tabPage1.SuspendLayout();
+			this.tabPage2.SuspendLayout();
+			this.tabPage3.SuspendLayout();
+			this.tabPage4.SuspendLayout();
+			this.tabPage5.SuspendLayout();
+			this.tabPage6.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// splitContainer1
@@ -97,7 +115,7 @@ namespace ClassGenerator
 			// splitContainer1.Panel2
 			// 
 			this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
-			this.splitContainer1.Size = new System.Drawing.Size(776, 579);
+			this.splitContainer1.Size = new System.Drawing.Size(1002, 649);
 			this.splitContainer1.SplitterDistance = 101;
 			this.splitContainer1.TabIndex = 0;
 			// 
@@ -127,7 +145,7 @@ namespace ClassGenerator
 			// LoadButton
 			// 
 			this.LoadButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.LoadButton.Location = new System.Drawing.Point(669, 6);
+			this.LoadButton.Location = new System.Drawing.Point(895, 6);
 			this.LoadButton.Name = "LoadButton";
 			this.LoadButton.Size = new System.Drawing.Size(101, 23);
 			this.LoadButton.TabIndex = 4;
@@ -141,7 +159,7 @@ namespace ClassGenerator
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.Namespace.Location = new System.Drawing.Point(113, 31);
 			this.Namespace.Name = "Namespace";
-			this.Namespace.Size = new System.Drawing.Size(550, 20);
+			this.Namespace.Size = new System.Drawing.Size(776, 20);
 			this.Namespace.TabIndex = 3;
 			this.Namespace.Text = "Sprocket";
 			// 
@@ -151,9 +169,9 @@ namespace ClassGenerator
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.Server.Location = new System.Drawing.Point(408, 7);
 			this.Server.Name = "Server";
-			this.Server.Size = new System.Drawing.Size(255, 20);
+			this.Server.Size = new System.Drawing.Size(481, 20);
 			this.Server.TabIndex = 2;
-			this.Server.Text = "(local)";
+			this.Server.Text = "SNOWMAN\\SQL2005";
 			// 
 			// Password
 			// 
@@ -162,6 +180,7 @@ namespace ClassGenerator
 			this.Password.PasswordChar = '*';
 			this.Password.Size = new System.Drawing.Size(87, 20);
 			this.Password.TabIndex = 1;
+			this.Password.Text = "nathan";
 			// 
 			// Username
 			// 
@@ -224,8 +243,8 @@ namespace ClassGenerator
 			// 
 			// splitContainer2.Panel2
 			// 
-			this.splitContainer2.Panel2.Controls.Add(this.splitContainer4);
-			this.splitContainer2.Size = new System.Drawing.Size(776, 474);
+			this.splitContainer2.Panel2.Controls.Add(this.tabControl1);
+			this.splitContainer2.Size = new System.Drawing.Size(1002, 544);
 			this.splitContainer2.SplitterDistance = 200;
 			this.splitContainer2.TabIndex = 0;
 			// 
@@ -248,8 +267,8 @@ namespace ClassGenerator
 			this.splitContainer3.Panel2.Controls.Add(this.ExecuteAllSQLButton);
 			this.splitContainer3.Panel2.Controls.Add(this.TablesList);
 			this.splitContainer3.Panel2.Controls.Add(this.label8);
-			this.splitContainer3.Size = new System.Drawing.Size(200, 474);
-			this.splitContainer3.SplitterDistance = 136;
+			this.splitContainer3.Size = new System.Drawing.Size(200, 544);
+			this.splitContainer3.SplitterDistance = 156;
 			this.splitContainer3.TabIndex = 0;
 			// 
 			// DatabaseList
@@ -261,7 +280,7 @@ namespace ClassGenerator
 			this.DatabaseList.IntegralHeight = false;
 			this.DatabaseList.Location = new System.Drawing.Point(9, 16);
 			this.DatabaseList.Name = "DatabaseList";
-			this.DatabaseList.Size = new System.Drawing.Size(191, 120);
+			this.DatabaseList.Size = new System.Drawing.Size(191, 140);
 			this.DatabaseList.TabIndex = 0;
 			this.DatabaseList.SelectedIndexChanged += new System.EventHandler(this.DatabaseList_SelectedIndexChanged);
 			// 
@@ -278,7 +297,7 @@ namespace ClassGenerator
 			// SaveCSFilesButton
 			// 
 			this.SaveCSFilesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveCSFilesButton.Location = new System.Drawing.Point(9, 269);
+			this.SaveCSFilesButton.Location = new System.Drawing.Point(9, 319);
 			this.SaveCSFilesButton.Name = "SaveCSFilesButton";
 			this.SaveCSFilesButton.Size = new System.Drawing.Size(188, 23);
 			this.SaveCSFilesButton.TabIndex = 6;
@@ -289,7 +308,7 @@ namespace ClassGenerator
 			// SaveSQLFilesButton
 			// 
 			this.SaveSQLFilesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.SaveSQLFilesButton.Location = new System.Drawing.Point(9, 298);
+			this.SaveSQLFilesButton.Location = new System.Drawing.Point(9, 348);
 			this.SaveSQLFilesButton.Name = "SaveSQLFilesButton";
 			this.SaveSQLFilesButton.Size = new System.Drawing.Size(188, 23);
 			this.SaveSQLFilesButton.TabIndex = 6;
@@ -300,7 +319,7 @@ namespace ClassGenerator
 			// ExecuteAllSQLButton
 			// 
 			this.ExecuteAllSQLButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.ExecuteAllSQLButton.Location = new System.Drawing.Point(9, 240);
+			this.ExecuteAllSQLButton.Location = new System.Drawing.Point(9, 290);
 			this.ExecuteAllSQLButton.Name = "ExecuteAllSQLButton";
 			this.ExecuteAllSQLButton.Size = new System.Drawing.Size(188, 23);
 			this.ExecuteAllSQLButton.TabIndex = 6;
@@ -318,7 +337,7 @@ namespace ClassGenerator
 			this.TablesList.IntegralHeight = false;
 			this.TablesList.Location = new System.Drawing.Point(9, 24);
 			this.TablesList.Name = "TablesList";
-			this.TablesList.Size = new System.Drawing.Size(188, 210);
+			this.TablesList.Size = new System.Drawing.Size(188, 260);
 			this.TablesList.TabIndex = 1;
 			this.TablesList.SelectedValueChanged += new System.EventHandler(this.TablesList_SelectedValueChanged);
 			// 
@@ -332,40 +351,15 @@ namespace ClassGenerator
 			this.label8.TabIndex = 0;
 			this.label8.Text = "Table List:";
 			// 
-			// splitContainer4
-			// 
-			this.splitContainer4.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
-			this.splitContainer4.Location = new System.Drawing.Point(3, 0);
-			this.splitContainer4.Name = "splitContainer4";
-			this.splitContainer4.Orientation = System.Windows.Forms.Orientation.Horizontal;
-			// 
-			// splitContainer4.Panel1
-			// 
-			this.splitContainer4.Panel1.Controls.Add(this.Output);
-			this.splitContainer4.Panel1.Controls.Add(this.label5);
-			this.splitContainer4.Panel1.Controls.Add(this.SaveButton);
-			// 
-			// splitContainer4.Panel2
-			// 
-			this.splitContainer4.Panel2.Controls.Add(this.ExecuteSQLButton);
-			this.splitContainer4.Panel2.Controls.Add(this.label6);
-			this.splitContainer4.Panel2.Controls.Add(this.Procedures);
-			this.splitContainer4.Panel2.Controls.Add(this.SaveSQLFileButton);
-			this.splitContainer4.Size = new System.Drawing.Size(563, 466);
-			this.splitContainer4.SplitterDistance = 230;
-			this.splitContainer4.TabIndex = 4;
-			// 
 			// Output
 			// 
 			this.Output.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.Output.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Output.Location = new System.Drawing.Point(0, 16);
+			this.Output.Location = new System.Drawing.Point(6, 19);
 			this.Output.Name = "Output";
-			this.Output.Size = new System.Drawing.Size(563, 183);
+			this.Output.Size = new System.Drawing.Size(769, 458);
 			this.Output.TabIndex = 0;
 			this.Output.Text = "";
 			this.Output.WordWrap = false;
@@ -374,7 +368,7 @@ namespace ClassGenerator
 			// 
 			this.label5.AutoSize = true;
 			this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label5.Location = new System.Drawing.Point(-3, 0);
+			this.label5.Location = new System.Drawing.Point(6, 3);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(119, 13);
 			this.label5.TabIndex = 0;
@@ -384,7 +378,7 @@ namespace ClassGenerator
 			// 
 			this.SaveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.SaveButton.Enabled = false;
-			this.SaveButton.Location = new System.Drawing.Point(462, 205);
+			this.SaveButton.Location = new System.Drawing.Point(674, 483);
 			this.SaveButton.Name = "SaveButton";
 			this.SaveButton.Size = new System.Drawing.Size(101, 23);
 			this.SaveButton.TabIndex = 5;
@@ -396,7 +390,7 @@ namespace ClassGenerator
 			// 
 			this.ExecuteSQLButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.ExecuteSQLButton.Enabled = false;
-			this.ExecuteSQLButton.Location = new System.Drawing.Point(355, 209);
+			this.ExecuteSQLButton.Location = new System.Drawing.Point(567, 483);
 			this.ExecuteSQLButton.Name = "ExecuteSQLButton";
 			this.ExecuteSQLButton.Size = new System.Drawing.Size(101, 23);
 			this.ExecuteSQLButton.TabIndex = 6;
@@ -408,7 +402,7 @@ namespace ClassGenerator
 			// 
 			this.label6.AutoSize = true;
 			this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label6.Location = new System.Drawing.Point(-3, 0);
+			this.label6.Location = new System.Drawing.Point(6, 3);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(116, 13);
 			this.label6.TabIndex = 0;
@@ -420,9 +414,9 @@ namespace ClassGenerator
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.Procedures.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Procedures.Location = new System.Drawing.Point(0, 16);
+			this.Procedures.Location = new System.Drawing.Point(9, 19);
 			this.Procedures.Name = "Procedures";
-			this.Procedures.Size = new System.Drawing.Size(563, 187);
+			this.Procedures.Size = new System.Drawing.Size(766, 458);
 			this.Procedures.TabIndex = 0;
 			this.Procedures.Text = "";
 			this.Procedures.WordWrap = false;
@@ -431,7 +425,7 @@ namespace ClassGenerator
 			// 
 			this.SaveSQLFileButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.SaveSQLFileButton.Enabled = false;
-			this.SaveSQLFileButton.Location = new System.Drawing.Point(462, 209);
+			this.SaveSQLFileButton.Location = new System.Drawing.Point(674, 483);
 			this.SaveSQLFileButton.Name = "SaveSQLFileButton";
 			this.SaveSQLFileButton.Size = new System.Drawing.Size(101, 23);
 			this.SaveSQLFileButton.TabIndex = 5;
@@ -439,11 +433,195 @@ namespace ClassGenerator
 			this.SaveSQLFileButton.UseVisualStyleBackColor = true;
 			this.SaveSQLFileButton.Click += new System.EventHandler(this.SaveSQLFileButton_Click);
 			// 
+			// tabControl1
+			// 
+			this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tabControl1.Controls.Add(this.tabPage1);
+			this.tabControl1.Controls.Add(this.tabPage2);
+			this.tabControl1.Controls.Add(this.tabPage3);
+			this.tabControl1.Controls.Add(this.tabPage4);
+			this.tabControl1.Controls.Add(this.tabPage5);
+			this.tabControl1.Controls.Add(this.tabPage6);
+			this.tabControl1.Location = new System.Drawing.Point(3, 0);
+			this.tabControl1.Name = "tabControl1";
+			this.tabControl1.SelectedIndex = 0;
+			this.tabControl1.Size = new System.Drawing.Size(789, 538);
+			this.tabControl1.TabIndex = 8;
+			// 
+			// tabPage1
+			// 
+			this.tabPage1.Controls.Add(this.Output);
+			this.tabPage1.Controls.Add(this.label5);
+			this.tabPage1.Controls.Add(this.SaveButton);
+			this.tabPage1.Location = new System.Drawing.Point(4, 22);
+			this.tabPage1.Name = "tabPage1";
+			this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPage1.Size = new System.Drawing.Size(781, 512);
+			this.tabPage1.TabIndex = 0;
+			this.tabPage1.Text = "Entity Class";
+			this.tabPage1.UseVisualStyleBackColor = true;
+			// 
+			// tabPage2
+			// 
+			this.tabPage2.Controls.Add(this.ExecuteSQLButton);
+			this.tabPage2.Controls.Add(this.label6);
+			this.tabPage2.Controls.Add(this.SaveSQLFileButton);
+			this.tabPage2.Controls.Add(this.Procedures);
+			this.tabPage2.Location = new System.Drawing.Point(4, 22);
+			this.tabPage2.Name = "tabPage2";
+			this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPage2.Size = new System.Drawing.Size(781, 512);
+			this.tabPage2.TabIndex = 1;
+			this.tabPage2.Text = "Stored Procedures";
+			this.tabPage2.UseVisualStyleBackColor = true;
+			// 
+			// tabPage3
+			// 
+			this.tabPage3.Controls.Add(this.DataLayerInterface);
+			this.tabPage3.Controls.Add(this.label9);
+			this.tabPage3.Location = new System.Drawing.Point(4, 22);
+			this.tabPage3.Name = "tabPage3";
+			this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPage3.Size = new System.Drawing.Size(781, 512);
+			this.tabPage3.TabIndex = 2;
+			this.tabPage3.Text = "Data Layer Interface";
+			this.tabPage3.UseVisualStyleBackColor = true;
+			// 
+			// tabPage4
+			// 
+			this.tabPage4.Controls.Add(this.DataLayerMethods);
+			this.tabPage4.Controls.Add(this.label10);
+			this.tabPage4.Location = new System.Drawing.Point(4, 22);
+			this.tabPage4.Name = "tabPage4";
+			this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPage4.Size = new System.Drawing.Size(781, 512);
+			this.tabPage4.TabIndex = 3;
+			this.tabPage4.Text = "Data Layer Methods";
+			this.tabPage4.UseVisualStyleBackColor = true;
+			// 
+			// DataLayerInterface
+			// 
+			this.DataLayerInterface.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.DataLayerInterface.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.DataLayerInterface.Location = new System.Drawing.Point(6, 22);
+			this.DataLayerInterface.Name = "DataLayerInterface";
+			this.DataLayerInterface.Size = new System.Drawing.Size(769, 484);
+			this.DataLayerInterface.TabIndex = 2;
+			this.DataLayerInterface.Text = "";
+			this.DataLayerInterface.WordWrap = false;
+			// 
+			// label9
+			// 
+			this.label9.AutoSize = true;
+			this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label9.Location = new System.Drawing.Point(6, 6);
+			this.label9.Name = "label9";
+			this.label9.Size = new System.Drawing.Size(194, 13);
+			this.label9.TabIndex = 1;
+			this.label9.Text = "Section for Data Layer Interface:";
+			// 
+			// DataLayerMethods
+			// 
+			this.DataLayerMethods.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.DataLayerMethods.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.DataLayerMethods.Location = new System.Drawing.Point(6, 22);
+			this.DataLayerMethods.Name = "DataLayerMethods";
+			this.DataLayerMethods.Size = new System.Drawing.Size(769, 484);
+			this.DataLayerMethods.TabIndex = 4;
+			this.DataLayerMethods.Text = "";
+			this.DataLayerMethods.WordWrap = false;
+			// 
+			// label10
+			// 
+			this.label10.AutoSize = true;
+			this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label10.Location = new System.Drawing.Point(6, 6);
+			this.label10.Name = "label10";
+			this.label10.Size = new System.Drawing.Size(173, 13);
+			this.label10.TabIndex = 3;
+			this.label10.Text = "Section for Data Layer Class:";
+			// 
+			// tabPage5
+			// 
+			this.tabPage5.Controls.Add(this.ClassMain);
+			this.tabPage5.Controls.Add(this.label11);
+			this.tabPage5.Location = new System.Drawing.Point(4, 22);
+			this.tabPage5.Name = "tabPage5";
+			this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPage5.Size = new System.Drawing.Size(781, 512);
+			this.tabPage5.TabIndex = 4;
+			this.tabPage5.Text = "Class Main Region";
+			this.tabPage5.UseVisualStyleBackColor = true;
+			// 
+			// tabPage6
+			// 
+			this.tabPage6.Controls.Add(this.ClassOutline);
+			this.tabPage6.Controls.Add(this.label12);
+			this.tabPage6.Location = new System.Drawing.Point(4, 22);
+			this.tabPage6.Name = "tabPage6";
+			this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPage6.Size = new System.Drawing.Size(781, 512);
+			this.tabPage6.TabIndex = 5;
+			this.tabPage6.Text = "Class Outline";
+			this.tabPage6.UseVisualStyleBackColor = true;
+			// 
+			// ClassMain
+			// 
+			this.ClassMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.ClassMain.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ClassMain.Location = new System.Drawing.Point(6, 22);
+			this.ClassMain.Name = "ClassMain";
+			this.ClassMain.Size = new System.Drawing.Size(769, 484);
+			this.ClassMain.TabIndex = 6;
+			this.ClassMain.Text = "";
+			this.ClassMain.WordWrap = false;
+			// 
+			// label11
+			// 
+			this.label11.AutoSize = true;
+			this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label11.Location = new System.Drawing.Point(6, 6);
+			this.label11.Name = "label11";
+			this.label11.Size = new System.Drawing.Size(116, 13);
+			this.label11.TabIndex = 5;
+			this.label11.Text = "Class Main Region:";
+			// 
+			// ClassOutline
+			// 
+			this.ClassOutline.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.ClassOutline.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ClassOutline.Location = new System.Drawing.Point(6, 22);
+			this.ClassOutline.Name = "ClassOutline";
+			this.ClassOutline.Size = new System.Drawing.Size(769, 484);
+			this.ClassOutline.TabIndex = 6;
+			this.ClassOutline.Text = "";
+			this.ClassOutline.WordWrap = false;
+			// 
+			// label12
+			// 
+			this.label12.AutoSize = true;
+			this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label12.Location = new System.Drawing.Point(6, 6);
+			this.label12.Name = "label12";
+			this.label12.Size = new System.Drawing.Size(81, 13);
+			this.label12.TabIndex = 5;
+			this.label12.Text = "Class Outline";
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(776, 579);
+			this.ClientSize = new System.Drawing.Size(1002, 649);
 			this.Controls.Add(this.splitContainer1);
 			this.Name = "MainForm";
 			this.Text = "Sprocket Data Entity Generator";
@@ -459,11 +637,19 @@ namespace ClassGenerator
 			this.splitContainer3.Panel2.ResumeLayout(false);
 			this.splitContainer3.Panel2.PerformLayout();
 			this.splitContainer3.ResumeLayout(false);
-			this.splitContainer4.Panel1.ResumeLayout(false);
-			this.splitContainer4.Panel1.PerformLayout();
-			this.splitContainer4.Panel2.ResumeLayout(false);
-			this.splitContainer4.Panel2.PerformLayout();
-			this.splitContainer4.ResumeLayout(false);
+			this.tabControl1.ResumeLayout(false);
+			this.tabPage1.ResumeLayout(false);
+			this.tabPage1.PerformLayout();
+			this.tabPage2.ResumeLayout(false);
+			this.tabPage2.PerformLayout();
+			this.tabPage3.ResumeLayout(false);
+			this.tabPage3.PerformLayout();
+			this.tabPage4.ResumeLayout(false);
+			this.tabPage4.PerformLayout();
+			this.tabPage5.ResumeLayout(false);
+			this.tabPage5.PerformLayout();
+			this.tabPage6.ResumeLayout(false);
+			this.tabPage6.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -490,7 +676,6 @@ namespace ClassGenerator
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.Label label7;
 		private System.Windows.Forms.Label label8;
-		private System.Windows.Forms.SplitContainer splitContainer4;
 		private System.Windows.Forms.CheckBox AllowKeyValueMethodGeneration;
 		private System.Windows.Forms.Button ExecuteSQLButton;
 		private System.Windows.Forms.Button SaveSQLFileButton;
@@ -499,6 +684,21 @@ namespace ClassGenerator
 		private System.Windows.Forms.Button SaveCSFilesButton;
 		private System.Windows.Forms.Button SaveSQLFilesButton;
 		private System.Windows.Forms.Button ExecuteAllSQLButton;
+		private System.Windows.Forms.TabControl tabControl1;
+		private System.Windows.Forms.TabPage tabPage1;
+		private System.Windows.Forms.TabPage tabPage2;
+		private System.Windows.Forms.TabPage tabPage3;
+		private System.Windows.Forms.TabPage tabPage4;
+		private System.Windows.Forms.RichTextBox DataLayerInterface;
+		private System.Windows.Forms.Label label9;
+		private System.Windows.Forms.RichTextBox DataLayerMethods;
+		private System.Windows.Forms.Label label10;
+		private System.Windows.Forms.TabPage tabPage5;
+		private System.Windows.Forms.RichTextBox ClassMain;
+		private System.Windows.Forms.Label label11;
+		private System.Windows.Forms.TabPage tabPage6;
+		private System.Windows.Forms.RichTextBox ClassOutline;
+		private System.Windows.Forms.Label label12;
 
 	}
 }

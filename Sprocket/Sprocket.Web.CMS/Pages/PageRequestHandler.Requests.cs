@@ -30,19 +30,27 @@ namespace Sprocket.Web.CMS.Pages
 
 		private Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers = new Dictionary<string, IPlaceHolderRenderer>();
 		public delegate void RegisteringPlaceHolderRenderers(Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers);
+		public delegate void BeforeRenderPage(PageEntry page, string sprocketPath, string[] pathSections);
 		public event RegisteringPlaceHolderRenderers OnRegisteringPlaceHolderRenderers;
+		public event BeforeRenderPage OnBeforeRenderPage;
+
 		internal Dictionary<string, IPlaceHolderRenderer> PlaceHolderRenderers
 		{
 			get { return placeHolderRenderers; }
 		}
 		private void RegisterPlaceHolderRenderers()
 		{
+			placeHolderRenderers.Add("name", new NamePlaceHolderRenderer());
 			placeHolderRenderers.Add("xml", new XmlPlaceHolderRenderer());
 			placeHolderRenderers.Add("externalxml", new ExternalXmlPlaceHolderRenderer());
 			placeHolderRenderers.Add("embed", new EmbedPlaceHolderRenderer());
+			placeHolderRenderers.Add("embedsecure", new EmbedSecurePlaceHolderRenderer());
+			placeHolderRenderers.Add("template", new TemplatePlaceHolderRenderer());
+			placeHolderRenderers.Add("templatesecure", new TemplateSecurePlaceHolderRenderer());
 			placeHolderRenderers.Add("list", new ListPlaceHolderRenderer());
 			placeHolderRenderers.Add("pageentry", new PageEntryPlaceHolderRenderer());
 			placeHolderRenderers.Add("path", new PathPlaceHolderRenderer());
+			placeHolderRenderers.Add("ajaxscripts", new AjaxScriptsPlaceHolderRenderer());
 			if (OnRegisteringPlaceHolderRenderers != null)
 				OnRegisteringPlaceHolderRenderers(placeHolderRenderers);
 		}
@@ -84,6 +92,8 @@ namespace Sprocket.Web.CMS.Pages
 					PageEntry page = PageRegistry.Pages.FromPath(sprocketPath);
 					if(page == null)
 						return;
+					if (OnBeforeRenderPage != null)
+						OnBeforeRenderPage(page, sprocketPath, pathSections);
 					string output = page.Render();
 					if (output == null)
 						return;

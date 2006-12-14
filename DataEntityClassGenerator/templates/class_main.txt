@@ -1,0 +1,32 @@
+		#region Constructor, Fields, Properties, JSON Methods
+		#region Fields
+		
+		[fields]
+		
+		#endregion
+
+		#region Properties
+		
+[properties]
+		
+		#endregion
+
+		#region Constructors
+
+		public [classname]()
+		{
+		}
+		
+		public [classname]([fieldlistparams])
+		{
+			[fieldparamassignments]
+		}
+		
+		public [classname](IDataReader reader)
+		{
+			[rowassigns]
+		}
+
+		#endregion
+[jsonmethods]
+		#endregion

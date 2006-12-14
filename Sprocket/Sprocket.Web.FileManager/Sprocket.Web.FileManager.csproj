@@ -31,33 +31,33 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SprocketFile.cs" />
+    <Compile Include="IFileManagerDataLayer.cs" />
+    <Compile Include="SprocketFile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SqlServer2005\SqlServer2005FileManagerDataLayer.cs" />
+    <Compile Include="TestModule.cs" />
+    <Compile Include="SizingOptions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sprocket.Data\Sprocket.Data.csproj">
-      <Project>{903AD3DC-FA63-4C6C-9D1F-A80B50A19E4E}</Project>
-      <Name>Sprocket.Data</Name>
+    <EmbeddedResource Include="SqlServer2005\scripts.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sprocket.Security\Sprocket.Security.csproj">
+      <Project>{C4A4A15A-4756-4AF2-8F5D-E246B04265E2}</Project>
+      <Name>Sprocket.Security</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sprocket.System\Sprocket.System.csproj">
+    <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
       <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
-      <Name>Sprocket.System</Name>
+      <Name>Sprocket</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sprocket.Web\Sprocket.Web.csproj">
-      <Project>{10CE83A9-2E6D-4972-8486-D380816C7027}</Project>
-      <Name>Sprocket.Web</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="DatabaseScripts\tables.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="DatabaseScripts\procedures.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

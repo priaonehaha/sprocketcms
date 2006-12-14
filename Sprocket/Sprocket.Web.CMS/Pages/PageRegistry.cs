@@ -40,8 +40,9 @@ namespace Sprocket.Web.CMS.Pages
 				return;
 			pagesDoc.Load(pagesDocPath);
 			fileDate = File.GetLastWriteTime(pagesDocPath);
-			foreach (XmlElement node in pagesDoc.DocumentElement.ChildNodes)
-				LoadEntry(node, null);
+			foreach (XmlNode node in pagesDoc.DocumentElement.ChildNodes)
+				if(node is XmlElement)
+					LoadEntry((XmlElement)node, null);
 		}
 
 		private PageEntry LoadEntry(XmlElement xml, PageEntry parent)

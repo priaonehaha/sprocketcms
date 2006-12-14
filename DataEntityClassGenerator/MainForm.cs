@@ -84,13 +84,17 @@ namespace ClassGenerator
 		private string className = "";
 		private void TablesList_SelectedValueChanged(object sender, EventArgs e)
 		{
-			string cs, sql;
-			GenerateCode(TablesList.SelectedItem.ToString(), out cs, out sql);
+			string cs, sql, csoutline, csinterface, csdatalayer, csmain;
+			GenerateCode(TablesList.SelectedItem.ToString(), out cs, out sql, out csmain, out csoutline, out csdatalayer, out csinterface);
 			Output.Text = cs;
 			Procedures.Text = sql;
+			DataLayerInterface.Text = csinterface;
+			DataLayerMethods.Text = csdatalayer;
+			ClassMain.Text = csmain;
+			ClassOutline.Text = csoutline;
 		}
 
-		void GenerateCode(string tableName, out string cs, out string sql)
+		void GenerateCode(string tableName, out string cs, out string sql, out string csmain, out string csoutline, out string csdatalayer, out string csinterface)
 		{
 			SaveButton.Enabled = true;
 			ExecuteSQLButton.Enabled = true;
@@ -104,7 +108,7 @@ namespace ClassGenerator
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.ToString(), "Connection String Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				cs = ""; sql = "";
+				cs = ""; sql = ""; csmain = ""; csdatalayer = ""; csoutline = ""; csinterface = "";
 				return;
 			}
 			SqlCommand cmd = conn.CreateCommand();
@@ -125,9 +129,14 @@ namespace ClassGenerator
 			string sKeyVal = ResourceLoader.LoadTextResource("keyvalmethods.txt");
 			string sJSON = ResourceLoader.LoadTextResource("jsonmethods.txt");
 
+			string sClassDataLayer = ResourceLoader.LoadTextResource("class_datalayer.txt");
+			string sClassMain = ResourceLoader.LoadTextResource("class_main.txt");
+			string sClassOutline = ResourceLoader.LoadTextResource("class_outline.txt");
+			string sClassInterface = ResourceLoader.LoadTextResource("datalayer_interface.txt");
+
 			className = tableName.ToString();
-			if (className.ToLower().EndsWith("s"))
-				className = className.Substring(0, className.Length - 1);
+			//if (className.ToLower().EndsWith("s"))
+			//    className = className.Substring(0, className.Length - 1);
 			string lesserClassName = className.Substring(0, 1).ToLower() + className.Substring(1, className.Length - 1);
 			string primaryKey = ds.Tables[0].PrimaryKey[0].ColumnName;
 			string classIDField = primaryKey.Substring(0, 1).ToLower() + primaryKey.Substring(1, primaryKey.Length - 1);
@@ -206,27 +215,30 @@ namespace ClassGenerator
 						filterOrderByClause += "WHEN '" + prName + "' THEN [" + c.ColumnName + "]";
 				}
 
-				if (!isIdentity)
+				if (!isIdentity && !columnIsID)
 				{
-					if (prms.Length > 0) prms += Environment.NewLine + "\t\t\t";
-					prms += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", DbType." + DbTypeFromType(c.DataType).ToString() + ");";
+					if (prms.Length > 0) prms += Environment.NewLine + "\t\t\t\t\t";
+					prms += "cmd.Parameters.Add(NewSqlParameter(\"@" + c.ColumnName + "\", " + lesserClassName + "." + c.ColumnName + ", SqlDbType." + SqlDbTypeFromType(c.DataType).ToString() + "));";
 				}
 
 				if (filterCommandParams.Length > 0) filterCommandParams += Environment.NewLine + "\t\t\t";
 				if (c.DataType.Name == "DateTime")
 				{
-					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Min\", " + fldName + "Min, DbType." + DbTypeFromType(c.DataType).ToString() + ");";
+					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Min\", " + fldName + "Min, DbType." + SqlDbTypeFromType(c.DataType).ToString() + ");";
 					filterCommandParams += Environment.NewLine + "\t\t\t";
-					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Max\", " + fldName + "Max, DbType." + DbTypeFromType(c.DataType).ToString() + ");";
+					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Max\", " + fldName + "Max, DbType." + SqlDbTypeFromType(c.DataType).ToString() + ");";
 				}
 				else
-					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", DbType." + DbTypeFromType(c.DataType).ToString() + ");";
+					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", DbType." + SqlDbTypeFromType(c.DataType).ToString() + ");";
 
 				if (!isIdentity)
 				{
 					if (insertProcParams.Length > 0) insertProcParams += "," + Environment.NewLine + "\t";
 					insertProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
-					if (!columnIsID && c.AllowDBNull) insertProcParams += " = null";
+					if (!columnIsID && c.AllowDBNull)
+						insertProcParams += " = null";
+					else if (columnIsID)
+						insertProcParams += " OUTPUT";
 				}
 
 				if (!isIdentity)
@@ -238,7 +250,7 @@ namespace ClassGenerator
 
 				if (!isIdentity)
 				{
-					if (updateExplicitProcParams.Length > 0) updateExplicitProcParams += "," + Environment.NewLine + "\t";
+					if (updateExplicitProcParams.Length > 0) updateExplicitProcParams += "," + Environment.NewLine + "\t\t";
 					updateExplicitProcParams += "@" + c.ColumnName + " " + GetSqlDataType(c);
 				}
 
@@ -261,7 +273,7 @@ namespace ClassGenerator
 				if (!columnIsID && !isIdentity)
 				{
 					if (updateExplicitSqlSets.Length > 0)
-						updateExplicitSqlSets += "," + Environment.NewLine + "\t\t";
+						updateExplicitSqlSets += "," + Environment.NewLine + "\t\t\t";
 					updateExplicitSqlSets += c.ColumnName + " = @" + c.ColumnName;
 				}
 
@@ -394,6 +406,98 @@ namespace ClassGenerator
 				.Replace("[filterconditions]", filterProcSelectConditions)
 				.Replace("[filterorderbyclause]", filterOrderByClause)
 				;
+
+			csmain = sClassMain
+				.Replace("[classname]", className)
+				.Replace("[lesserclassname]", lesserClassName)
+				.Replace("[classidfield]", classIDField)
+				.Replace("[classidfieldtype]", classIDFieldType)
+				.Replace("[namespace]", Namespace.Text)
+				.Replace("[fields]", classFields)
+				.Replace("[commandparameters]", prms)
+				.Replace("[filtercommandparameters]", filterCommandParams)
+				.Replace("[properties]", classProperties)
+				.Replace("[fieldlistparams]", classconstructorparams)
+				.Replace("[fieldparamassignments]", constructorFieldsFromParams)
+				.Replace("[rowassigns]", constructorFieldAssignsFromDataRow)
+				.Replace("[keyvalmethods]", keyvalmethods)
+				.Replace("[jsonmethods]", jsonMethods)
+				.Replace("[:IJSONEncoder]", ijsonencoder)
+				.Replace("[primarykey]", primaryKey)
+				.Replace("[filterparams]", filterMethodParams)
+				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
+				.Replace("[fieldnamecases]", fieldNameCaseStatements)
+				.Replace("[enumfieldnames]", enumFieldNames)
+				;
+
+			csdatalayer = sClassDataLayer
+				.Replace("[classname]", className)
+				.Replace("[lesserclassname]", lesserClassName)
+				.Replace("[classidfield]", classIDField)
+				.Replace("[classidfieldtype]", classIDFieldType)
+				.Replace("[namespace]", Namespace.Text)
+				.Replace("[fields]", classFields)
+				.Replace("[commandparameters]", prms)
+				.Replace("[filtercommandparameters]", filterCommandParams)
+				.Replace("[properties]", classProperties)
+				.Replace("[fieldlistparams]", classconstructorparams)
+				.Replace("[fieldparamassignments]", constructorFieldsFromParams)
+				.Replace("[rowassigns]", constructorFieldAssignsFromDataRow)
+				.Replace("[keyvalmethods]", keyvalmethods)
+				.Replace("[jsonmethods]", jsonMethods)
+				.Replace("[:IJSONEncoder]", ijsonencoder)
+				.Replace("[primarykey]", primaryKey)
+				.Replace("[filterparams]", filterMethodParams)
+				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
+				.Replace("[fieldnamecases]", fieldNameCaseStatements)
+				.Replace("[enumfieldnames]", enumFieldNames)
+				;
+
+			csinterface = sClassInterface
+				.Replace("[classname]", className)
+				.Replace("[lesserclassname]", lesserClassName)
+				.Replace("[classidfield]", classIDField)
+				.Replace("[classidfieldtype]", classIDFieldType)
+				.Replace("[namespace]", Namespace.Text)
+				.Replace("[fields]", classFields)
+				.Replace("[commandparameters]", prms)
+				.Replace("[filtercommandparameters]", filterCommandParams)
+				.Replace("[properties]", classProperties)
+				.Replace("[fieldlistparams]", classconstructorparams)
+				.Replace("[fieldparamassignments]", constructorFieldsFromParams)
+				.Replace("[rowassigns]", constructorFieldAssignsFromDataRow)
+				.Replace("[keyvalmethods]", keyvalmethods)
+				.Replace("[jsonmethods]", jsonMethods)
+				.Replace("[:IJSONEncoder]", ijsonencoder)
+				.Replace("[primarykey]", primaryKey)
+				.Replace("[filterparams]", filterMethodParams)
+				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
+				.Replace("[fieldnamecases]", fieldNameCaseStatements)
+				.Replace("[enumfieldnames]", enumFieldNames)
+				;
+
+			csoutline = sClassOutline
+				.Replace("[classname]", className)
+				.Replace("[lesserclassname]", lesserClassName)
+				.Replace("[classidfield]", classIDField)
+				.Replace("[classidfieldtype]", classIDFieldType)
+				.Replace("[namespace]", Namespace.Text)
+				.Replace("[fields]", classFields)
+				.Replace("[commandparameters]", prms)
+				.Replace("[filtercommandparameters]", filterCommandParams)
+				.Replace("[properties]", classProperties)
+				.Replace("[fieldlistparams]", classconstructorparams)
+				.Replace("[fieldparamassignments]", constructorFieldsFromParams)
+				.Replace("[rowassigns]", constructorFieldAssignsFromDataRow)
+				.Replace("[keyvalmethods]", keyvalmethods)
+				.Replace("[jsonmethods]", jsonMethods)
+				.Replace("[:IJSONEncoder]", ijsonencoder)
+				.Replace("[primarykey]", primaryKey)
+				.Replace("[filterparams]", filterMethodParams)
+				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
+				.Replace("[fieldnamecases]", fieldNameCaseStatements)
+				.Replace("[enumfieldnames]", enumFieldNames)
+				;
 		}
 
 		private string GetDefaultValue(DataColumn c)
@@ -413,6 +517,7 @@ namespace ClassGenerator
 					t = c.AllowDBNull ? "null" : "Guid.NewGuid()";
 					break;
 
+				case "Int16":
 				case "Int32":
 				case "Int64":
 				case "Single":
@@ -445,6 +550,11 @@ namespace ClassGenerator
 
 				case "Boolean":
 					t = "bool";
+					if (c.AllowDBNull || forceNullable) t += "?";
+					break;
+
+				case "Int16":
+					t = "short";
 					if (c.AllowDBNull || forceNullable) t += "?";
 					break;
 
@@ -505,6 +615,8 @@ namespace ClassGenerator
 						return "nvarchar(" + c.MaxLength + ")";
 				case "Boolean":
 					return "bit";
+				case "Int16":
+					return "smallint";
 				case "Int32":
 					return "int";
 				case "Int64":
@@ -522,29 +634,29 @@ namespace ClassGenerator
 			}
 		}
 
-		private DbType DbTypeFromType(Type t)
+		private SqlDbType SqlDbTypeFromType(Type t)
 		{
 			switch (t.Name)
 			{
-				case "Boolean": return DbType.Boolean;
-				case "Byte": return DbType.Byte;
-				case "Byte[]": return DbType.Byte;
-				case "Char": return DbType.String;
-				case "DateTime": return DbType.DateTime;
-				case "Decimal": return DbType.Decimal;
-				case "Double": return DbType.Double;
-				case "Float": return DbType.Single;
-				case "Guid": return DbType.Guid;
-				case "Object": return DbType.Object;
-				case "String": return DbType.String;
-				case "TimeSpan": return DbType.Time;
-				case "Int16": return DbType.Int16;
-				case "Int32": return DbType.Int32;
-				case "Int64": return DbType.Int64;
-				case "UInt16": return DbType.UInt16;
-				case "UInt32": return DbType.UInt32;
-				case "UInt64": return DbType.UInt64;
-				default: return DbType.String;
+				case "Boolean": return SqlDbType.Bit;
+				case "Byte": return SqlDbType.VarBinary;
+				case "Byte[]": return SqlDbType.VarBinary;
+				case "Char": return SqlDbType.Char;
+				case "DateTime": return SqlDbType.DateTime;
+				case "Decimal": return SqlDbType.Decimal;
+				case "Double": return SqlDbType.Float;
+				case "Float": return SqlDbType.Real;
+				case "Guid": return SqlDbType.UniqueIdentifier;
+				case "Object": return SqlDbType.VarBinary;
+				case "String": return SqlDbType.NVarChar;
+				case "TimeSpan": return SqlDbType.DateTime;
+				case "Int16": return SqlDbType.SmallInt;
+				case "Int32": return SqlDbType.Int;
+				case "Int64": return SqlDbType.BigInt;
+				case "UInt16": return SqlDbType.SmallInt;
+				case "UInt32": return SqlDbType.Int;
+				case "UInt64": return SqlDbType.BigInt;
+				default: return SqlDbType.NVarChar;
 			}
 		}
 
@@ -627,8 +739,8 @@ namespace ClassGenerator
 		{
 			foreach (string name in TablesList.CheckedItems)
 			{
-				string cs, sql;
-				GenerateCode(name, out cs, out sql);
+				string cs, sql, cs1, cs2, cs3, cs4;
+				GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4);
 				ExecuteSQL(sql);
 			}
 		}
@@ -644,8 +756,8 @@ namespace ClassGenerator
 					string cname = name;
 					if (cname.ToLower().EndsWith("s"))
 						cname = cname.Substring(0, cname.Length - 1);
-					string cs, sql;
-					GenerateCode(name, out cs, out sql);
+					string cs, sql, cs1, cs2, cs3, cs4;
+					GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4);
 					StreamWriter writer = new StreamWriter(dlg.SelectedPath + "\\" + cname + ".Entity.cs");
 					writer.Write(cs);
 					writer.Flush();
@@ -671,8 +783,8 @@ namespace ClassGenerator
 					string cname = name;
 					if (cname.ToLower().EndsWith("s"))
 						cname = cname.Substring(0, cname.Length - 1);
-					string cs, sql;
-					GenerateCode(name, out cs, out sql);
+					string cs, sql, cs1, cs2, cs3, cs4;
+					GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4);
 					allsql += sql;
 				}
 				StreamWriter writer = new StreamWriter(dlg.FileName);

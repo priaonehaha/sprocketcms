@@ -47,76 +47,104 @@ namespace Sprocket.Web
 			get { return (WebClientScripts)Core.Instance[typeof(WebClientScripts)].Module; }
 		}
 
+		private static Dictionary<Type, AjaxModuleRef> ajaxScripts = null;
 		/// <summary>
 		/// Builds a set of javascript methods which are mapped to corresponding ModuleBase-derived
 		/// class methods which are marked with the AjaxMethod attribute.
 		/// </summary>
-		/// <param name="registry">A reference to the module registry</param>
+		/// <param name="restrictToTypes"></param>
 		/// <returns>A block of javascript defining objects and methods that encapsulate ajax calls to
 		/// matching server-side methods</returns>
-		private string GetAjaxMethodsScript(ModuleRegistry registry)
+		public string GetAjaxMethodsScript(params Type[] restrictToTypes)
 		{
-			Dictionary<string, List<AjaxModuleRef>> modules = new Dictionary<string, List<AjaxModuleRef>>();
-
-			foreach (RegisteredModule module in registry)
+			if (ajaxScripts == null)
 			{
-				if (module.Module.GetType().GetCustomAttributes(typeof(AjaxMethodHandlerAttribute), false).Length != 1)
-					continue;
-				MethodInfo[] infos = module.Module.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance);
-				bool nameAdded = false;
-				foreach (MethodInfo info in infos)
+				ajaxScripts = new Dictionary<Type, AjaxModuleRef>();
+				foreach (RegisteredModule module in Core.Modules.ModuleRegistry)
 				{
-					object[] attrs = info.GetCustomAttributes(typeof(AjaxMethodAttribute), false);
-					if (attrs.Length == 1)
+					Type t = module.Module.GetType();
+					// don't include modules that don't have the correct attribute
+					AjaxMethodHandlerAttribute[] amh = (AjaxMethodHandlerAttribute[])t.GetCustomAttributes(typeof(AjaxMethodHandlerAttribute), false);
+					if (amh.Length != 1)
+						continue;
+
+					AjaxModuleRef modref = new AjaxModuleRef(t, amh[0].AjaxTypeName);
+
+					// get all the methods for the module
+					MethodInfo[] infos = module.Module.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance);
+					bool nameAdded = false;
+					foreach (MethodInfo info in infos)
 					{
-						string[] arr = module.Namespace.Split('.');
-						string name = arr[arr.Length - 1];
-						if (!nameAdded)
-						{
-							nameAdded = true;
-							modules.Add(name, new List<AjaxModuleRef>());
-						}
-						AjaxModuleRef amr = new AjaxModuleRef();
-						amr.MethodName = info.Name;
-						amr.Namespace = module.Namespace;
-						modules[name].Add(amr);
+						// make sure the method has the appropriate attribute
+						object[] attrs = info.GetCustomAttributes(typeof(AjaxMethodAttribute), false);
+						if (attrs.Length == 1)
+							modref.AddMethod(info.Name);
 					}
+					ajaxScripts.Add(t, modref);
 				}
 			}
 
 			StringBuilder sb = new StringBuilder();
-			sb.Append(Environment.NewLine);
 			sb.Append("Ajax = {};");
 			sb.Append(Environment.NewLine);
-
-			foreach (KeyValuePair<string, List<AjaxModuleRef>> kvp in modules)
+			foreach (AjaxModuleRef m in ajaxScripts.Values)
 			{
-				sb.Append("Ajax.");
-				sb.Append(kvp.Key);
-				sb.Append(" = {");
-				sb.Append(Environment.NewLine);
-				for (int i = 0; i < kvp.Value.Count; i++)
-				{
-					sb.Append("\t");
-					sb.Append(kvp.Value[i].MethodName);
-					sb.Append(" : function() { SprocketAjax.Request('");
-					sb.Append(kvp.Value[i].Namespace);
-					sb.Append(".");
-					sb.Append(kvp.Value[i].MethodName);
-					sb.Append("', arguments); }");
-					if (i < kvp.Value.Count - 1) sb.Append(",");
-					sb.Append(Environment.NewLine);
-				}
-				sb.Append("}");
-				sb.Append(Environment.NewLine);
+				// if restrictions have been specified, make sure this module is included in the accepted module types
+				if (restrictToTypes.Length > 0)
+					if (Array.IndexOf<Type>(restrictToTypes, m.Type) == -1)
+						continue;
+
+				sb.Append(m.ToString());
 			}
+
 			return sb.ToString();
 		}
 
 		private class AjaxModuleRef
 		{
-			public string Namespace;
-			public string MethodName;
+			public string AjaxTypeName;
+
+			private Type type;
+			public Type Type
+			{
+				get { return type; }
+			}
+
+			private StringBuilder sb = new StringBuilder();
+			bool isFirstMethod = true;
+			public AjaxModuleRef(Type t, string ajaxTypeName)
+			{
+				type = t;
+				AjaxTypeName = ajaxTypeName;
+				sb.Append(Environment.NewLine);
+				sb.Append("Ajax.");
+				sb.Append(ajaxTypeName);
+				sb.Append(" = {");
+				sb.Append(Environment.NewLine);
+			}
+
+			public void AddMethod(string methodName)
+			{
+				if (!isFirstMethod)
+				{
+					sb.Append(",");
+					sb.Append(Environment.NewLine);
+				}
+				else
+					isFirstMethod = false;
+				sb.Append("\t");
+				sb.Append(methodName);
+				sb.Append(" : function() { SprocketAjax.Request('");
+				sb.Append(type.FullName);
+				sb.Append(".");
+				sb.Append(methodName);
+				sb.Append("', arguments); }");
+			}
+
+			public override string ToString()
+			{
+				return sb.ToString() + Environment.NewLine + "};" + Environment.NewLine;
+			}
 		}
 
 		private string standardScripts = null;
@@ -132,7 +160,7 @@ namespace Sprocket.Web
 						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.browser-tools.js"),
 						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.json.js"),
 						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.ajax.js"),
-						GetAjaxMethodsScript(Core.Instance.ModuleRegistry)
+						GetAjaxMethodsScript()
 						);
 				}
 				return standardScripts;
@@ -158,6 +186,11 @@ namespace Sprocket.Web
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+		}
+
+		public static bool CompressJavaScript
+		{
+			get { return SprocketSettings.GetBooleanValue("CompressJavaScript"); }
 		}
 	}
 
@@ -209,7 +242,7 @@ namespace Sprocket.Web
 					js = js.Replace(key.Key, key.Value.ToString());
 				sb.Append("<script language=\"JavaScript\">");
 				sb.Append(Environment.NewLine);
-				if (SprocketSettings.GetValue("CompressJavaScript").ToLower() == "true")
+				if (WebClientScripts.CompressJavaScript)
 					js = JavaScriptCondenser.Condense(js);
 				sb.Append(js);
 				sb.Append(Environment.NewLine);
@@ -246,5 +279,15 @@ namespace Sprocket.Web
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple=false)]
 	public class AjaxMethodHandlerAttribute : Attribute
 	{
+		private string ajaxTypeName = null;
+		public AjaxMethodHandlerAttribute(string ajaxTypeName)
+		{
+			this.ajaxTypeName = ajaxTypeName;
+		}
+
+		public string AjaxTypeName
+		{
+			get { return ajaxTypeName; }
+		}
 	}
 }

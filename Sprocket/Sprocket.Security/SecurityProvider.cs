@@ -29,6 +29,13 @@ namespace Sprocket.Security
 		{
 			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
 			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
+			WebAuthentication.Instance.OnValidatingLogin += new WebAuthentication.LoginAuthenticationHandler(WebAuthentication_OnValidatingLogin);
+		}
+
+		void WebAuthentication_OnValidatingLogin(string username, string passwordHash, Result result)
+		{
+			if (!dataLayer.Authenticate(username, passwordHash))
+				result.SetFailed("Invalid username and/or password");
 		}
 
 		ISecurityProviderDataLayer dataLayer = null;
@@ -39,6 +46,7 @@ namespace Sprocket.Security
 
 		void Instance_OnDatabaseHandlerLoaded(IDatabaseHandler source)
 		{
+			source.OnInitialise += new InterruptableEventHandler(Database_OnInitialise);
 			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(ISecurityProviderDataLayer)))
 			{
 				ISecurityProviderDataLayer layer = (ISecurityProviderDataLayer)Activator.CreateInstance(t);
@@ -48,7 +56,6 @@ namespace Sprocket.Security
 					break;
 				}
 			}
-			source.OnInitialise += new InterruptableEventHandler(Database_OnInitialise);
 		}
 
 		void Database_OnInitialise(Result result)
@@ -86,7 +93,8 @@ namespace Sprocket.Security
 						Result result = Instance.dataLayer.InitialiseClientSpace(clientSpaceID);
 						if (!result.Succeeded)
 							throw new Exception(result.Message);
-						using (FileStream file = File.OpenWrite(path))
+						new FileInfo(path).Directory.Create();
+						using (FileStream file = File.Create(path))
 						{
 							file.Write(BitConverter.GetBytes(clientSpaceID), 0, sizeof(long));
 							file.Close();

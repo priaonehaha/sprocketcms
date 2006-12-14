@@ -31,12 +31,15 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Admin\Admin.cs" />
     <Compile Include="Admin\AdminInterfaceSections.cs" />
+    <Compile Include="Pages\PlaceHolderRenderers\NamePlaceHolderRenderer.cs" />
+    <Compile Include="SnapPanels\ISnapLayoutsDataHandler.cs" />
     <Compile Include="Pages\GeneralRegistry.cs" />
     <Compile Include="Pages\IOutputFormatter.cs" />
     <Compile Include="Pages\IPlaceHolderRenderer.cs" />
@@ -52,12 +55,22 @@
     <Compile Include="Pages\PageRequestHandler.ISprocketModule.cs" />
     <Compile Include="Pages\PageRequestHandler.Requests.cs" />
     <Compile Include="Pages\PlaceHolder.cs" />
+    <Compile Include="Pages\PlaceHolderRenderers\AjaxScriptsPlaceHolderRenderer.cs" />
+    <Compile Include="Pages\PlaceHolderRenderers\TemplateSecurePlaceHolderRenderer.cs" />
+    <Compile Include="Pages\PlaceHolderRenderers\TemplatePlaceHolderRenderer.cs" />
+    <Compile Include="Pages\PlaceHolderRenderers\EmbedSecurePlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\EmbedPlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\ExternalXmlPlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\ListPlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\PageEntryPlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\PathPlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\XmlPlaceHolderRenderer.cs" />
+    <Compile Include="SnapPanels\ColorWidget.cs" />
+    <Compile Include="SnapPanels\ISnapPanelWidget.cs" />
+    <Compile Include="SnapPanels\SnapCanvas.cs" />
+    <Compile Include="SnapPanels\SnapPanel.cs" />
+    <Compile Include="SnapPanels\SnapLayoutManager.cs" />
+    <Compile Include="SnapPanels\SqlServer2005\SqlServer2005CMSDataHandler.cs" />
     <Compile Include="Pages\Template.cs" />
     <Compile Include="Pages\TemplateRegistry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -71,6 +84,9 @@
       <Project>{22980F70-9AB4-4F34-8BB9-D53C0E1818BB}</Project>
       <Name>Sprocket.Web.Controls</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SnapPanels\SqlServer2005\SnapPanels.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
