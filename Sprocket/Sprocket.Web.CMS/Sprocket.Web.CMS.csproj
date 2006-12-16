@@ -39,7 +39,6 @@
     <Compile Include="Admin\Admin.cs" />
     <Compile Include="Admin\AdminInterfaceSections.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\NamePlaceHolderRenderer.cs" />
-    <Compile Include="SnapPanels\ISnapLayoutsDataHandler.cs" />
     <Compile Include="Pages\GeneralRegistry.cs" />
     <Compile Include="Pages\IOutputFormatter.cs" />
     <Compile Include="Pages\IPlaceHolderRenderer.cs" />
@@ -65,15 +64,17 @@
     <Compile Include="Pages\PlaceHolderRenderers\PageEntryPlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\PathPlaceHolderRenderer.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\XmlPlaceHolderRenderer.cs" />
-    <Compile Include="SnapPanels\ColorWidget.cs" />
-    <Compile Include="SnapPanels\ISnapPanelWidget.cs" />
-    <Compile Include="SnapPanels\SnapCanvas.cs" />
-    <Compile Include="SnapPanels\SnapPanel.cs" />
-    <Compile Include="SnapPanels\SnapLayoutManager.cs" />
     <Compile Include="Pages\Template.cs" />
     <Compile Include="Pages\TemplateRegistry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SnapPanels\SqlServer2005\SqlServer2005SnapLayoutsDataHandler.cs" />
+    <Compile Include="SnapLayouts\ColorWidget.cs" />
+    <Compile Include="SnapLayouts\ISnapLayoutsDataHandler.cs" />
+    <Compile Include="SnapLayouts\ISnapPanelWidget.cs" />
+    <Compile Include="SnapLayouts\SnapCanvas.cs" />
+    <Compile Include="SnapLayouts\SnapLayoutManager.cs" />
+    <Compile Include="SnapLayouts\SnapPanel.cs" />
+    <Compile Include="SnapLayouts\SqlServer2005\SqlServer2005SnapLayoutsDataHandler.cs" />
+    <Compile Include="SnapLayouts\WidgetDescriptor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
@@ -86,7 +87,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SnapPanels\SqlServer2005\SnapPanels.sql" />
+    <None Include="SnapLayouts\SqlServer2005\SnapPanels.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
