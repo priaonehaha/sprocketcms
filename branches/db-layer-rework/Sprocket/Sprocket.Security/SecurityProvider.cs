@@ -28,8 +28,14 @@ namespace Sprocket.Security
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
+			DatabaseSetup.Instance.Completed += new EmptyEventHandler(DatabaseSetup_Completed);
 			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
 			WebAuthentication.Instance.OnValidatingLogin += new WebAuthentication.LoginAuthenticationHandler(WebAuthentication_OnValidatingLogin);
+		}
+
+		void DatabaseSetup_Completed()
+		{
+			VerifyClientSpaceID();
 		}
 
 		void WebAuthentication_OnValidatingLogin(string username, string passwordHash, Result result)
@@ -96,34 +102,38 @@ namespace Sprocket.Security
 			{
 				lock (WebUtility.GetSyncObject("DefaultClientSpaceID"))
 				{
-					if (clientSpaceID != -1)
-						return clientSpaceID;
-					string path = WebUtility.MapPath("datastore/ClientSpace.ID");
-					if (!File.Exists(path))
-					{
-						clientSpaceID = DatabaseManager.GetUniqueID();
-						Result result = Instance.dataLayer.InitialiseClientSpace(clientSpaceID);
-						if (!result.Succeeded)
-							throw new Exception(result.Message);
-						new FileInfo(path).Directory.Create();
-						using (FileStream file = File.Create(path))
-						{
-							file.Write(BitConverter.GetBytes(clientSpaceID), 0, sizeof(long));
-							file.Close();
-						}
-					}
-					else
-					{
-						byte[] bytes = new byte[sizeof(long)];
-						using (FileStream file = File.OpenRead(path))
-						{
-							file.Read(bytes, 0, bytes.Length);
-							file.Close();
-						}
-						clientSpaceID = BitConverter.ToInt64(bytes, 0);
-					}
+					if (clientSpaceID == -1)
+						VerifyClientSpaceID();
 					return clientSpaceID;
 				}
+			}
+		}
+
+		public static void VerifyClientSpaceID()
+		{
+			string path = WebUtility.MapPath("datastore/ClientSpace.ID");
+			if (!File.Exists(path))
+			{
+				clientSpaceID = DatabaseManager.GetUniqueID();
+				Result result = Instance.dataLayer.InitialiseClientSpace(clientSpaceID);
+				if (!result.Succeeded)
+					throw new Exception(result.Message);
+				new FileInfo(path).Directory.Create();
+				using (FileStream file = File.Create(path))
+				{
+					file.Write(BitConverter.GetBytes(clientSpaceID), 0, sizeof(long));
+					file.Close();
+				}
+			}
+			else
+			{
+				byte[] bytes = new byte[sizeof(long)];
+				using (FileStream file = File.OpenRead(path))
+				{
+					file.Read(bytes, 0, bytes.Length);
+					file.Close();
+				}
+				clientSpaceID = BitConverter.ToInt64(bytes, 0);
 			}
 		}
 

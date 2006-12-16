@@ -14,14 +14,19 @@ namespace Sprocket.Web
 	[ModuleTitle("Database Setup Interface")]
 	public class DatabaseSetup : ISprocketModule
 	{
+		public event EmptyEventHandler Completed;
 		void Instance_OnLoadRequestedPath(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
 		{
 			if (handled.Handled) return;
 			if (sprocketPath == "$dbsetup")
 			{
 				Result result = DatabaseManager.DatabaseEngine.Initialise();
-				if(result.Succeeded)
+				if (result.Succeeded)
+				{
 					HttpContext.Current.Response.Write("<p>Database setup completed.</p>");
+					if (Completed != null)
+						Completed();
+				}
 				else
 					HttpContext.Current.Response.Write("<h2>Unable to Initialise Database</h2><p>" + result.Message + "</p>");
 				handled.Set();

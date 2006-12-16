@@ -42,5 +42,22 @@ namespace Sprocket.Utility
             r.Close();
             return str;
         }
-    }
+
+		public static Stream LoadResource(string fullNamespaceFilename)
+		{
+			return LoadResource(Assembly.GetCallingAssembly(), fullNamespaceFilename);
+		}
+
+		public static Stream LoadResource(Assembly asm, string fullNamespaceFilename)
+		{
+			try
+			{
+				return asm.GetManifestResourceStream(fullNamespaceFilename);
+			}
+			catch
+			{
+				throw new SprocketException("Cannot load resource " + fullNamespaceFilename + " from assembly " + asm.FullName);
+			}
+		}
+	}
 }

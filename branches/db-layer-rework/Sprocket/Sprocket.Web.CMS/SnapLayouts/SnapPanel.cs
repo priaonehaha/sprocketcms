@@ -174,11 +174,11 @@ namespace Sprocket.Web.CMS.SnapLayouts
 
 		#region Constructors
 
-		public SnapPanel()
+		internal SnapPanel()
 		{
 		}
 
-		public SnapPanel(long snapPanelID, long snapCanvasID, string widgetTypeID, short unitWidth, short unitHeight, short unitX, short unitY, short maxUnitWidth, short minUnitWidth, short maxUnitHeight, short minUnitHeight, bool lockPosition, bool lockSize, bool allowDelete, bool allowEdit)
+		internal SnapPanel(long snapPanelID, long snapCanvasID, string widgetTypeID, short unitWidth, short unitHeight, short unitX, short unitY, short maxUnitWidth, short minUnitWidth, short maxUnitHeight, short minUnitHeight, bool lockPosition, bool lockSize, bool allowDelete, bool allowEdit)
 		{
 			this.snapPanelID = snapPanelID;
 			this.snapCanvasID = snapCanvasID;
@@ -197,7 +197,7 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			this.allowEdit = allowEdit;
 		}
 
-		public SnapPanel(IDataReader reader)
+		internal SnapPanel(IDataReader reader)
 		{
 			if (reader["SnapPanelID"] != DBNull.Value) snapPanelID = (long)reader["SnapPanelID"];
 			if (reader["SnapCanvasID"] != DBNull.Value) snapCanvasID = (long)reader["SnapCanvasID"];
@@ -261,6 +261,14 @@ namespace Sprocket.Web.CMS.SnapLayouts
 		#endregion
 		#endregion
 
+		public void SetDimensions(short x, short y, short width, short height)
+		{
+			unitX = x;
+			unitY = y;
+			unitWidth = width;
+			unitHeight = height;
+		}
+
 		private ISnapPanelWidget widget;
 		public ISnapPanelWidget Widget
 		{
@@ -284,11 +292,15 @@ namespace Sprocket.Web.CMS.SnapLayouts
 		{
 			get
 			{
+				string f = widget.JavaScriptEditHandlerName;
+				if (f == null)
+					f = "null";
+				else if (widget.JavaScriptEditHandlerName.Trim() == "")
+					f = "null";
 				return string.Format(
 					"new Panel({4}, {0}, {1}, {2}, {3}, null, $('panel-{4}'), {5}, {6}, {7})",
 					UnitX, UnitY, UnitWidth, UnitHeight, snapPanelID,
-					allowEdit.ToString().ToLower(), allowDelete.ToString().ToLower(),
-					widget.JavaScriptEditHandlerName
+					allowEdit.ToString().ToLower(), allowDelete.ToString().ToLower(), f
 				);
 			}
 		}

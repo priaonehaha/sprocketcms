@@ -30,7 +30,7 @@ namespace Sprocket.Web.CMS
 				{
 					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SqlServer2005Database db = (SqlServer2005Database)DatabaseManager.DatabaseEngine;
-					Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.CMS.SnapPanels.SqlServer2005.SnapPanels.sql"));
+					Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.CMS.SnapLayouts.SqlServer2005.SnapPanels.sql"));
 					if (!r.Succeeded)
 					{
 						result.SetFailed(r.Message);
@@ -128,20 +128,23 @@ namespace Sprocket.Web.CMS
 
 		public SnapCanvas SelectSnapCanvas(long id)
 		{
-			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				conn.Open();
-				SqlCommand cmd = new SqlCommand("SnapCanvas_Select", conn);
-				cmd.CommandType = CommandType.StoredProcedure;
-				cmd.Parameters.Add(new SqlParameter("@SnapCanvasID", id));
-				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-				SnapCanvas entity;
-				if (!reader.Read())
-					entity = null;
-				else
-					entity = new SnapCanvas(reader);
-				reader.Close();
-				return entity;
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("SnapCanvas_Select", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@SnapCanvasID", id));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					SnapCanvas entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new SnapCanvas(reader);
+					reader.Close();
+					return entity;
+				}
 			}
 		}
 
@@ -230,20 +233,23 @@ namespace Sprocket.Web.CMS
 
 		public SnapPanel SelectSnapPanel(long id)
 		{
-			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				conn.Open();
-				SqlCommand cmd = new SqlCommand("SnapPanel_Select", conn);
-				cmd.CommandType = CommandType.StoredProcedure;
-				cmd.Parameters.Add(new SqlParameter("@SnapPanelID", id));
-				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-				SnapPanel entity;
-				if (!reader.Read())
-					entity = null;
-				else
-					entity = new SnapPanel(reader);
-				reader.Close();
-				return entity;
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("SnapPanel_Select", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@SnapPanelID", id));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					SnapPanel entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new SnapPanel(reader);
+					reader.Close();
+					return entity;
+				}
 			}
 		}
 
@@ -251,19 +257,22 @@ namespace Sprocket.Web.CMS
 
 		public List<SnapPanel> ListPanelsForCanvas(long canvasID)
 		{
-			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				conn.Open();
-				SqlCommand cmd = new SqlCommand("SnapCanvas_ListPanels", conn);
-				cmd.CommandType = CommandType.StoredProcedure;
-				cmd.Parameters.Add(new SqlParameter("@SnapCanvasID", canvasID));
-				SqlDataReader reader = cmd.ExecuteReader();
-				List<SnapPanel> list = new List<SnapPanel>();
-				while (reader.Read())
-					list.Add(new SnapPanel(reader));
-				reader.Close();
-				conn.Close();
-				return list;
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("SnapCanvas_ListPanels", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@SnapCanvasID", canvasID));
+					SqlDataReader reader = cmd.ExecuteReader();
+					List<SnapPanel> list = new List<SnapPanel>();
+					while (reader.Read())
+						list.Add(new SnapPanel(reader));
+					reader.Close();
+					conn.Close();
+					return list;
+				}
 			}
 		}
 	}
