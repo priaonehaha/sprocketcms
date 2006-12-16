@@ -38,6 +38,18 @@ namespace Sprocket.Security
 				result.SetFailed("Invalid username and/or password");
 		}
 
+		public static User CurrentUser
+		{
+			get
+			{
+				if (!WebAuthentication.Instance.IsLoggedIn)
+					return null;
+				if (CurrentRequest.Value["CurrentUser"] == null)
+					CurrentRequest.Value["CurrentUser"] = User.Select(ClientSpaceID, WebAuthentication.Instance.CurrentUsername);
+				return CurrentRequest.Value["CurrentUser"] as User;
+			}
+		}
+
 		ISecurityProviderDataLayer dataLayer = null;
 		public ISecurityProviderDataLayer DataLayer
 		{

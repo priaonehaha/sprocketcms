@@ -19,7 +19,7 @@ namespace Sprocket.Web.CMS.Security
 	{
 		void OnAjaxRequestAuthenticationCheck(System.Reflection.MethodInfo source, Result result)
 		{
-			if (!CurrentUser.Enabled)
+			if (!SecurityProvider.CurrentUser.Enabled)
 			{
 				result.SetFailed("Ajax method called failed because your account has been disabled.");
 				return;
@@ -28,13 +28,13 @@ namespace Sprocket.Web.CMS.Security
 			Attribute[] roleAttr = Attribute.GetCustomAttributes(source, typeof(RequiresRoleAttribute));
 			Attribute[] permAttr = Attribute.GetCustomAttributes(source, typeof(RequiresPermissionAttribute));
 			for (int i = 0; i < roleAttr.Length; i++)
-				if (!CurrentUser.HasRole(((RequiresRoleAttribute)roleAttr[i]).RoleCode))
+				if (!SecurityProvider.CurrentUser.HasRole(((RequiresRoleAttribute)roleAttr[i]).RoleCode))
 				{
 					result.SetFailed("Ajax method call failed because you do not have one or more required roles.");
 					return;
 				}
 			for (int i = 0; i < permAttr.Length; i++)
-				if (!CurrentUser.HasPermission(((RequiresPermissionAttribute)permAttr[i]).PermissionTypeCode))
+				if (!SecurityProvider.CurrentUser.HasPermission(((RequiresPermissionAttribute)permAttr[i]).PermissionTypeCode))
 				{
 					result.SetFailed("Ajax method call failed because you do not have one or more required permissions.");
 					return;
@@ -79,7 +79,7 @@ namespace Sprocket.Web.CMS.Security
 		public UserFilterResults FilterUsers(string username, string firstname, string surname, string email, int max)
 		{
 			int total;
-			List<User> users = SecurityProvider.Instance.DataLayer.FilterUsers(username, firstname, surname, email, max, CurrentUser.UserID, null, out total);
+			List<User> users = SecurityProvider.Instance.DataLayer.FilterUsers(username, firstname, surname, email, max, SecurityProvider.CurrentUser.UserID, null, out total);
 			UserFilterResults results = new UserFilterResults(total, users);
 			return results;
 		}
@@ -123,7 +123,7 @@ namespace Sprocket.Web.CMS.Security
 			block.Rank = -10000;
 			form.FieldBlocks.Add(block);
 
-			if (!locked && username != CurrentUser.Username)
+			if (!locked && username != SecurityProvider.CurrentUser.Username)
 			{
 				block = new AjaxFormFieldBlock("Roles", "Assigned Roles");
 				block.Rank = 998;
@@ -229,7 +229,7 @@ namespace Sprocket.Web.CMS.Security
 		[RequiresPermission(PermissionType.RoleAdministrator)]
 		public List<RoleItem> GetAccessibleRoles()
 		{
-			List<Role> roles = SecurityProvider.Instance.DataLayer.ListAccessibleRoles(CurrentUser.UserID);
+			List<Role> roles = SecurityProvider.Instance.DataLayer.ListAccessibleRoles(SecurityProvider.CurrentUser.UserID);
 			List<RoleItem> items = new List<RoleItem>();
 			foreach (Role role in roles)
 				if (!role.Locked && !role.Hidden)
@@ -326,7 +326,7 @@ namespace Sprocket.Web.CMS.Security
 		public Result DeleteRole(long roleID)
 		{
 			Role role = Role.Select (roleID);
-			if (!CurrentUser.HasRole(role.RoleCode))
+			if (!SecurityProvider.CurrentUser.HasRole(role.RoleCode))
 				return new Result("You don't have permission to modify this role.");
 			if (role.Locked)
 				return new Result("This role cannot be deleted.");
