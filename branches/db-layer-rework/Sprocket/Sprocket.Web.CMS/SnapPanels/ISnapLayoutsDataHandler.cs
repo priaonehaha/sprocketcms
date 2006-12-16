@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Sprocket.Web.CMS.SnapLayouts;
 
-namespace Sprocket.Web.CMS
+namespace Sprocket.Web.CMS.SnapLayouts
 {
 	public interface ISnapLayoutsDataLayer
 	{
