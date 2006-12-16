@@ -109,10 +109,17 @@ namespace Sprocket.Web
 		{
 			get
 			{
-				HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
-				if (cookie == null)
-					return false;
-				return ValidateLogin(cookie["a"], cookie["b"]).Succeeded;
+				if (CurrentRequest.Value["CurrentUser_Authenticated"] == null)
+				{
+					HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
+					if (cookie == null)
+						return false;
+					bool result = ValidateLogin(cookie["a"], cookie["b"]).Succeeded;
+					CurrentRequest.Value["CurrentUser_Authenticated"] = result;
+					return result;
+				}
+				else
+					return (bool)CurrentRequest.Value["CurrentUser_Authenticated"];
 			}
 		}
 

@@ -34,23 +34,6 @@ namespace Sprocket.Web.CMS.Security
 			}
 		}
 
-		/// <summary>
-		/// Gets a reference to the currently-logged-in user.
-		/// </summary>
-		public static User CurrentUser
-		{
-			get
-			{
-				if(CurrentRequest.Value["CurrentUser"] == null)
-					CurrentRequest.Value["CurrentUser"] = User.Select(SecurityProvider.ClientSpaceID, WebAuthentication.Instance.CurrentUsername);
-				return (User)CurrentRequest.Value["CurrentUser"];
-			}
-			set
-			{
-				CurrentRequest.Value["CurrentUser"] = value;
-			}
-		}
-
 		public static WebSecurity Instance
 		{
 			get { return (WebSecurity)Core.Instance[typeof(WebSecurity)].Module; }
@@ -65,11 +48,17 @@ namespace Sprocket.Web.CMS.Security
 			AjaxFormHandler.Instance.OnValidateForm += new AjaxFormSubmissionHandler(OnValidateForm);
 			AjaxFormHandler.Instance.OnSaveForm += new AjaxFormSubmissionHandler(OnSaveForm);
 			AjaxRequestHandler.Instance.OnAjaxRequestAuthenticationCheck += new InterruptableEventHandler<System.Reflection.MethodInfo>(OnAjaxRequestAuthenticationCheck);
+			Pages.PageRequestHandler.Instance.OnRegisteringPlaceHolderRenderers += new Sprocket.Web.CMS.Pages.PageRequestHandler.RegisteringPlaceHolderRenderers(Instance_OnRegisteringPlaceHolderRenderers);
+		}
+
+		void Instance_OnRegisteringPlaceHolderRenderers(Dictionary<string, Sprocket.Web.CMS.Pages.IPlaceHolderRenderer> placeHolderRenderers)
+		{
+			placeHolderRenderers.Add("currentuser", new CurrentUserPlaceHolderRenderer());
 		}
 
 		void OnCMSAdminAuthenticationSuccess(string source, Result result)
 		{
-			if (!CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
+			if (!SecurityProvider.CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
 				result.SetFailed("You don't have access to this area.");
 		}
 
@@ -85,7 +74,7 @@ namespace Sprocket.Web.CMS.Security
 
 			admin.WebsiteName = CurrentClientSpace.Name;
 
-			if (!CurrentUser.HasPermission(PermissionType.UserAdministrator))
+			if (!SecurityProvider.CurrentUser.HasPermission(PermissionType.UserAdministrator))
 				return;
 
 			admin.AddMainMenuLink(new AdminMenuLink("Users and Roles", WebUtility.MakeFullPath("admin/security"), 0));
@@ -105,7 +94,7 @@ namespace Sprocket.Web.CMS.Security
 				string scr = ResourceLoader.LoadTextResource("Sprocket.Security.CMS.security.js")
 					.Replace("50,//{defaultMaxFilterMatches}", defaultMaxFilterMatches.ToString() + ",")
 					.Replace("if(true)//{ifUserCanAccessRoleManagement}",
-						CurrentUser.HasPermission(PermissionType.RoleAdministrator) ? "" : "if(false)");
+						SecurityProvider.CurrentUser.HasPermission(PermissionType.RoleAdministrator) ? "" : "if(false)");
 				admin.AddInterfaceScript(new RankedString(scr, 0));
 				admin.AddBodyOnLoadScript(new RankedString("SecurityInterface.Run()", 0));
 				

@@ -55,7 +55,7 @@ namespace Sprocket.Web.CMS.Security
 			switch (form.FormName)
 			{
 				case "UserEditForm":
-					if(!SecurityProvider.Instance.DataLayer.DoesUserHavePermission(CurrentUser.UserID, PermissionType.UserAdministrator))
+					if (!SecurityProvider.Instance.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.UserAdministrator))
 						return;
 					AjaxFormSubmittedValues.Block block = form.Blocks["MainUserFields"];
 					string pw = block.Fields["Password"].Value;
@@ -100,17 +100,17 @@ namespace Sprocket.Web.CMS.Security
 						if (user.Locked) return; // don't muck with permissions/roles
 					}
 
-					if (user.Username != CurrentUser.Username) // users can't alter their own permissions
+					if (user.Username != SecurityProvider.CurrentUser.Username) // users can't alter their own permissions
 					{
 						if (form.Blocks.ContainsKey("Roles"))
 							foreach (KeyValuePair<string, AjaxFormSubmittedValues.Field> kvp in form.Blocks["Roles"].Fields)
-								if (WebSecurity.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
+								if (SecurityProvider.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
 									if (kvp.Value.Value == "True")
 										roleCodes.Add(kvp.Value.Name);
 										//sql.AppendFormat("exec AssignUserToRole '{0}', '{1}'\r\n", user.UserID, kvp.Value.Name.Replace("'", "''"));
 						if (form.Blocks.ContainsKey("Permissions"))
 							foreach (KeyValuePair<string, AjaxFormSubmittedValues.Field> kvp in form.Blocks["Permissions"].Fields)
-								if (WebSecurity.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
+								if (SecurityProvider.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
 									if (kvp.Value.Value == "True")
 										permissionTypeCodes.Add(kvp.Value.Name);
 										//sql.AppendFormat("exec AssignPermission '{0}', null, '{1}'\r\n", kvp.Value.Name.Replace("'", "''"), user.UserID);
@@ -123,7 +123,7 @@ namespace Sprocket.Web.CMS.Security
 					break;
 
 				case "RoleEditForm":
-					if (!SecurityProvider.Instance.DataLayer.DoesUserHavePermission(CurrentUser.UserID, PermissionType.RoleAdministrator))
+					if (!SecurityProvider.Instance.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.RoleAdministrator))
 						return;
 					block = form.Blocks["RoleDetails"];
 					string name = block.Fields["Name"].Value;
@@ -149,13 +149,13 @@ namespace Sprocket.Web.CMS.Security
 					//sql = new StringBuilder();
 					if (form.Blocks.ContainsKey("Roles"))
 						foreach (KeyValuePair<string, AjaxFormSubmittedValues.Field> kvp in form.Blocks["Roles"].Fields)
-							if (WebSecurity.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
+							if (SecurityProvider.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
 								if (kvp.Value.Value == "True")
 									roleCodes.Add(kvp.Value.Name);
 									//sql.AppendFormat("exec InheritRoleFrom '{0}', '{1}'\r\n", role.RoleID, kvp.Value.Name.Replace("'", "''"));
 					if (form.Blocks.ContainsKey("Permissions"))
 						foreach (KeyValuePair<string, AjaxFormSubmittedValues.Field> kvp in form.Blocks["Permissions"].Fields)
-							if (WebSecurity.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
+							if (SecurityProvider.CurrentUser.HasRole(kvp.Value.Name)) //make sure the logged in user has the right to assign this role
 								if (kvp.Value.Value == "True")
 									permissionTypeCodes.Add(kvp.Value.Name);
 									//sql.AppendFormat("exec AssignPermission '{0}', null, '{1}'\r\n", kvp.Value.Name.Replace("'", "''"), role.RoleID);
@@ -307,7 +307,7 @@ namespace Sprocket.Web.CMS.Security
 			}
 			else
 			{
-				long myuserid = CurrentUser.UserID;
+				long myuserid = SecurityProvider.CurrentUser.UserID;
 				// string myoldusername = CurrentUser.Username;
 				user = User.Select(form.RecordID.Value);
 				// user.Username = block.Fields["Username"].Value;

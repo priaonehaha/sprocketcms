@@ -282,12 +282,13 @@ namespace Sprocket.Web.CMS.SnapLayouts
 
 		public string JavaScriptNewPanelExpression
 		{
-#error down there, {7} needs to refer to the function to be called by javascript when edit is clicked
 			get
 			{
 				return string.Format(
 					"new Panel({4}, {0}, {1}, {2}, {3}, null, $('panel-{4}'), {5}, {6}, {7})",
-					UnitX, UnitY, UnitWidth, UnitHeight, snapPanelID, allowEdit.ToString().ToLower(), allowDelete.ToString().ToLower()
+					UnitX, UnitY, UnitWidth, UnitHeight, snapPanelID,
+					allowEdit.ToString().ToLower(), allowDelete.ToString().ToLower(),
+					widget.JavaScriptEditHandlerName
 				);
 			}
 		}
