@@ -14,12 +14,13 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			get { return true; }
 		}
 
-		public SnapPanel CreatePanel()
+		public SnapPanel CreatePanel(SnapCanvas canvas)
 		{
 			SnapPanel panel = new SnapPanel();
+			panel.SnapCanvasID = canvas.SnapCanvasID;
 			panel.AllowDelete = true;
-			panel.MaxUnitHeight = 6;
-			panel.MaxUnitWidth = 5;
+			panel.MaxUnitHeight = 0;
+			panel.MaxUnitWidth = 0;
 			panel.MinUnitHeight = 1;
 			panel.MinUnitWidth = 1;
 			panel.UnitHeight = 1;
@@ -28,12 +29,12 @@ namespace Sprocket.Web.CMS.SnapLayouts
 			panel.WidgetTypeID = WidgetTypeID;
 			panel.LockSize = false;
 			panel.LockPosition = false;
-			panel.AllowDelete = true;
+			panel.AllowEdit = false;
 			return panel;
 		}
 
 		private long id;
-		public Result InitialiseFromPanel(SnapPanel panel)
+		public Result LoadSettings(SnapPanel panel)
 		{
 			id = panel.SnapPanelID;
 			return new Result();
@@ -41,22 +42,32 @@ namespace Sprocket.Web.CMS.SnapLayouts
 
 		public string Render()
 		{
-			return "<div style=\"background-color:#afa;width:100%;height:100%;\">" + id + "</div>";
+			return "<div style=\"background-color:#afa;width:100%;height:100%;\"></div>";
 		}
 
 		public string JavaScriptEditHandlerName
 		{
-			get { return "colorWidgetEdit"; }
+			get { return ""; }
 		}
 
 		public string HtmlHeadEditModeBlock
 		{
-			get { return "<script>function colorWidgetEdit(id) { alert(id); }</script>"; }
+			get { return ""; }
 		}
 
 		public string HtmlHeadStandardBlock
 		{
 			get { return ""; }
+		}
+
+		public Result SaveSettings()
+		{
+			return new Result();
+		}
+
+		public Result DeleteSettings()
+		{
+			return new Result();
 		}
 	}
 
@@ -67,6 +78,12 @@ namespace Sprocket.Web.CMS.SnapLayouts
 		public ISnapPanelWidget Create()
 		{
 			return new ColorWidget();
+		}
+
+		public void Describe(WidgetDescriptor descriptor)
+		{
+			descriptor.Title = "Color Widget";
+			descriptor.Description = "This is the basic testing widget used for development purposes. It may be later converted into a real widget.";
 		}
 	}
 }

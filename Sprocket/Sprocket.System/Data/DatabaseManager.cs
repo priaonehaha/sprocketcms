@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Sprocket;
 using Sprocket.Utility;
+using System.Transactions;
 
 using System.Data;
 
@@ -23,7 +24,10 @@ namespace Sprocket.Data
 
 		public static long GetUniqueID()
 		{
-			return dbHandler.GetUniqueID();
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				return dbHandler.GetUniqueID();
+			}
 		}
 
 		private static IDatabaseHandler dbHandler = null;

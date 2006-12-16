@@ -47,6 +47,32 @@ if(typeof XMLHttpRequest == 'undefined')
 	Context objects are simply arguments that are passed to your callback function, so ensure
 	that your callback function defines the appropriate matching arguments in the function
 	declaration.
+	
+	You can also optionally specify the object that the callback function should be called on behalf of.
+	Normally simply specifying a callback function will mean that it gets called independently of where
+	it is defined. So for example if you have an object called Dog and Dog has a method called Bark() and
+	you specify Bark() as the callback function, then using the keyword "this" inside the Bark() method
+	will cause problems because "this" won't refer to the Dog object when it is called when the Ajax
+	operation returns.
+		To get around this problem, instead of specifying the callback function directly, you can place
+	it in a two-element array where the first element is the function, and the second element is a
+	reference to the object that owns the function and that the function should be called in the context
+	of. For example:
+	
+	var dog = new Object();
+	dog.Bark = function() { alert('Woof! My name is ' + this.Name); }
+	dog.Name = 'Spot';
+	Ajax.SomeServerObject.SomeMethod(arg1, arg2, [dog.Bark, dog]);
+	
+	When the Ajax method returns from the server, it will call the Bark method as though you had typed
+	dog.Bark() instead of just Bark() by itself. The line above would produce a message box that says
+	"Woof! My name is Spot"
+	
+	If however you had called the Ajax method like this:
+	Ajax.SomeServerObject.SomeMethod(arg1, arg2, dog.Bark);
+	The messagebox would say:
+	"Woof! My name is undefined"
+	
 */
 SprocketAjax = {
 	RequestPool : [],
@@ -66,23 +92,38 @@ SprocketAjax = {
 		return x;
 	},
 	
-	// This method is to be called from server-generated methods. Those methods are called in the
-	// format: ModuleName.MethodName(arg1, ..., argN[, callbackFunction[, context1[..., contextN]]])
+	// This method is to be called from server-generated methods. Those methods are called in one
+	// of the following formats:
+	// 1) ModuleName.MethodName(arg1, ..., argN[, callbackFunction[, context1[..., contextN]]])
+	// 2) ModuleName.MethodName(arg1, ..., argN[, [callbackFunction, callAs][, context1[..., contextN]]])
 	// The "context" argument is passed back to the callback function.
 	// The callback is called in the format: callbackFunction(responseObject, context1, ..., contextN)
 	Request : function(moduleName, args) {
 		var req = this.CreateRequest();
 		var serverArgsCount = 0;
 		for(var i=0; i<args.length; i++) {
-			if(typeof args[i] == 'function') {
-				var callback = args[i];
+			var isCBFunc = false;
+			var callback, callbackObject;
+			if(args[i] instanceof Function) {
+				isCBFunc = true;
+				callback = args[i];
+				callbackObject = null;
+			} else if(args[i] instanceof Array) {
+				if(args[i].length == 2)
+					if(args[i][0] instanceof Function && args[i][1] instanceof Object) {
+						isCBFunc = true;
+						callback = args[i][0];
+						callbackObject = args[i][1];
+					}
+			}
+			if(isCBFunc) {
 				var context = null;
 				if(i+1 < args.length) {
 					context = [];
 					for(var k=i+1; k<args.length; k++)
 						context[k-(i+1)] = args[k];
 				}
-				this.ExecuteCall(moduleName, args, callback, serverArgsCount, context);
+				this.ExecuteCall(moduleName, args, callback, callbackObject, serverArgsCount, context);
 				return;
 			} else { // check the value of each argument
 				if(args[i] != null)
@@ -91,19 +132,20 @@ SprocketAjax = {
 				serverArgsCount++;
 			}
 		}
-		this.ExecuteCall(moduleName, args, this.DefaultCallback, serverArgsCount, null);
+		this.ExecuteCall(moduleName, args, this.DefaultCallback, null, serverArgsCount, null);
 	},
 	
 	callNumber : 0,
 	
 	// This method is used internally by the Request() method.
-	ExecuteCall : function(moduleName, serverArgs, callback, serverArgsCount, context) {
+	ExecuteCall : function(moduleName, serverArgs, callback, callbackObject, serverArgsCount, context) {
 		var cnum = this.callNumber++; // keep track of how many ajax calls have been made since the page was loaded
 		this.WriteConsole('-&gt;[' + cnum + ']: ' + moduleName); // optionally log the call to a console area on the page
 		var req = this.CreateRequest();
 		req.onreadystatechange = function() { // define the callback function
 			if(req.readyState == 4) {
-				var contextArgs = context;
+				if(!SprocketAjax) return;
+				var contextArgs = context ? context : [];
 				var callnum = cnum;
 				SprocketAjax.WriteConsole('&lt;-[' + cnum + ']: ' + moduleName +
 					'<span onclick="this.nextSibling.style.display=\'\';">[Response]</span><div style="display:none">' + req.responseText + '</div>');
@@ -114,19 +156,26 @@ SprocketAjax = {
 						return;
 					alert('There was an error parsing the JSON response. The error was:\n\n' + ex.message + '\n\nThe response text was:\n\n' + req.responseText);
 				}
-				if(response.__error)
-					SprocketAjax.DefaultCallback(response);
-				else {
-					if(!contextArgs)
-						callback(response, callnum);
-					else {
-						var call = 'callback(response, callnum';
-						for(var i=0; i<contextArgs.length; i++)
-							call += ', contextArgs[' + i + ']';
-						call += ');';
-						eval(call);
+				if(response)
+					if(response.__error) {
+						if(response.__error.toLowerCase().indexOf('authentication failed') > -1) {
+							if(SprocketAjax.authfailed)
+								return;
+							SprocketAjax.authfailed = true;
+							SprocketAjax.AuthenticationFailed(response.__error);
+						} else
+							SprocketAjax.DefaultCallback(response);
+						return;
 					}
-				}
+				var call;
+				if(callbackObject)
+					call = 'callback.call(callbackObject, response, callnum';
+				else
+					call = 'callback(response, callnum';
+				for(var i=0; i<contextArgs.length; i++)
+					call += ', contextArgs[' + i + ']';
+				call += ');';
+				eval(call);
 			}
 		}
 		
@@ -148,6 +197,11 @@ SprocketAjax = {
 		
 		// send the data asyncronously to the server and return control to calling object
 		req.send(JSON.stringify(data));
+	},
+	
+	authfailed : false,
+	AuthenticationFailed : function(error) {
+		alert(error);
 	},
 	
 	// This is the default callback method used when none is specified.

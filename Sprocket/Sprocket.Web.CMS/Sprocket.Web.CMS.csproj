@@ -31,6 +31,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
@@ -87,7 +88,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SnapLayouts\SqlServer2005\SnapPanels.sql" />
+    <EmbeddedResource Include="SnapLayouts\SqlServer2005\SnapPanels.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SnapLayouts\defaultIcon.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

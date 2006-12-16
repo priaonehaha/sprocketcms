@@ -7,8 +7,10 @@ namespace Sprocket.Web.CMS.SnapLayouts
 	public interface ISnapPanelWidget
 	{
 		bool Cacheable { get; }
-		SnapPanel CreatePanel();
-		Result InitialiseFromPanel(SnapPanel panel);
+		SnapPanel CreatePanel(SnapCanvas canvas);
+		Result LoadSettings(SnapPanel panel);
+		Result SaveSettings();
+		Result DeleteSettings();
 		string Render();
 		string WidgetTypeID { get; }
 		string JavaScriptEditHandlerName { get; }
@@ -19,6 +21,7 @@ namespace Sprocket.Web.CMS.SnapLayouts
 	public interface ISnapPanelWidgetCreator
 	{
 		ISnapPanelWidget Create();
+		void Describe(WidgetDescriptor descriptor);
 		string WidgetTypeID { get; }
 	}
 }
