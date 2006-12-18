@@ -10,13 +10,13 @@ let me know.
  #1 Make sure ASP.Net 2.0 and SQL Server 2000 (or better) is installed. You'll need to go
 and set up a SQL Server database of course and organise login details so you can fill in
 the connection string for Sprocket so it knows how to connect to the database.
- #Sprocket requires its root folder to be a proper IIS website or virtual directory. It
+ #2 Sprocket requires its root folder to be a proper IIS website or virtual directory. It
 won't work in an unconfigured subdirectory. Just go into IIS and if you're running WinXP
 Pro, create a new virtual directory or website, and point it to wherever you extracted
 Sprocket to. Make sure you set up full permissions so that Sprocket can read and write
 files and folders. Don't turn on directory browsing because Sprocket requests usually
 refer to locations that don't actually physically exist.
- #An IIS wildcard mapping is required for ASP.Net requests. Basically, you must open up
+ #3 An IIS wildcard mapping is required for ASP.Net requests. Basically, you must open up
 the website or virtual directory properties, click the "configuration" button and add a
 new mapping. For Windows Server 2003, you add a wildcard mapping, which has its own
 section at the bottom of the dialog box. IIS 6 (WinXP Pro) is the same, except you have to
@@ -24,11 +24,11 @@ add it in the same place as all the other mappings. The file type is just "`.*`"
 to `C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727` (or wherever your 2.0 framework is
 installed) and select the `aspnet_isapi.dll` file to handle the request. Make sure the
 "check that file exists" checkbox is unchecked.
- # Modify the connection string in the Web.config file so that it points at your SQL
+ #4 Modify the connection string in the Web.config file so that it points at your SQL
 Server database. Feel free to make any other changes that blow your skirt up.
- # Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for basic
-stored procedures and whatnot to be created.
- # Next point your browser at your the admin folder of your Sprocket location (e.g.
+ #5 Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for
+basic stored procedures and whatnot to be created.
+ #6 Next point your browser at your the admin folder of your Sprocket location (e.g.
 http://localhost/Sprocket/admin) and hey presto, you're away! Initially there's nothing
 configured for the root location of Sprocket so you'll get a 404. Point it at /admin. (Yes
 I know there's not actually an admin folder, but don't worry about that, Sprocket will
