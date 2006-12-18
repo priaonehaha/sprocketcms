@@ -24,7 +24,7 @@ new mapping. For Windows Server 2003, you add a wildcard mapping, which has its 
 section at the bottom of the dialog box. IIS 6 (WinXP Pro) is the same, except you have to
 add it in the same place as all the other mappings. The file type is just ".*". Navigate
 to C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727 (or wherever your 2.0 framework is
-installed) and select the aspnet_isapi.dll file to handle the request. Make sure the
+installed) and select the `aspnet_isapi.dll` file to handle the request. Make sure the
 "check that file exists" checkbox is unchecked.
 
 # Modify the connection string in the Web.config file so that it points at your SQL Server
@@ -50,4 +50,3 @@ Got questions? Email me at snowdevil@gmail.com.
 Sorry about the sparsely commented code, it's a work in progress. I'll stick up a proper
 Sprocket website once I get the content handling module done. It would be weird to build a
 website about Sprocket and not actually use Sprocket to do it, wouldn't it?
-
