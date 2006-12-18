@@ -24,11 +24,11 @@ add it in the same place as all the other mappings. The file type is just "`.*`"
 to `C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727` (or wherever your 2.0 framework is
 installed) and select the `aspnet_isapi.dll` file to handle the request. Make sure the
 "check that file exists" checkbox is unchecked.
- #Modify the connection string in the Web.config file so that it points at your SQL Server
-database. Feel free to make any other changes that blow your skirt up.
- #Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for
-basic stored procedures and whatnot to be created.
- #Next point your browser at your the admin folder of your Sprocket location (e.g.
+ # Modify the connection string in the Web.config file so that it points at your SQL
+Server database. Feel free to make any other changes that blow your skirt up.
+ # Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for basic
+stored procedures and whatnot to be created.
+ # Next point your browser at your the admin folder of your Sprocket location (e.g.
 http://localhost/Sprocket/admin) and hey presto, you're away! Initially there's nothing
 configured for the root location of Sprocket so you'll get a 404. Point it at /admin. (Yes
 I know there's not actually an admin folder, but don't worry about that, Sprocket will
@@ -37,8 +37,7 @@ password.
 
 Note: There's this whole nifty CMS page serving engine developed that I haven't even
 remotely finished documenting yet. Check out Documentation\Sprocket Page Content
-System.doc for more
-information. We'll include a demo site in the source code soon.
+System.doc for more information. We'll include a demo site in the source code soon.
 
 Got questions? Email me at snowdevil@gmail.com.
 
