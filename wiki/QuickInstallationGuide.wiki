@@ -7,7 +7,7 @@ website, damnit! ;) Oh also, I have no idea how well it works in Safari seeing a
 have access to a Mac. If you find Safari/Opera/CrapBrowser problems and wanna help out,
 let me know.
 
- #Make sure ASP.Net 2.0 and SQL Server 2000 (or better) is installed. You'll need to go
+ #1 Make sure ASP.Net 2.0 and SQL Server 2000 (or better) is installed. You'll need to go
 and set up a SQL Server database of course and organise login details so you can fill in
 the connection string for Sprocket so it knows how to connect to the database.
  #Sprocket requires its root folder to be a proper IIS website or virtual directory. It
