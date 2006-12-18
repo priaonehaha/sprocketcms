@@ -22,8 +22,8 @@ refer to locations that don't actually physically exist.
 the website or virtual directory properties, click the "configuration" button and add a
 new mapping. For Windows Server 2003, you add a wildcard mapping, which has its own
 section at the bottom of the dialog box. IIS 6 (WinXP Pro) is the same, except you have to
-add it in the same place as all the other mappings. The file type is just ".*". Navigate
-to C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727 (or wherever your 2.0 framework is
+add it in the same place as all the other mappings. The file type is just "`.*`". Navigate
+to `C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727` (or wherever your 2.0 framework is
 installed) and select the `aspnet_isapi.dll` file to handle the request. Make sure the
 "check that file exists" checkbox is unchecked.
 
