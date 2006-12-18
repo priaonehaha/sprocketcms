@@ -68,14 +68,6 @@
     <Compile Include="Pages\Template.cs" />
     <Compile Include="Pages\TemplateRegistry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SnapLayouts\ColorWidget.cs" />
-    <Compile Include="SnapLayouts\ISnapLayoutsDataHandler.cs" />
-    <Compile Include="SnapLayouts\ISnapPanelWidget.cs" />
-    <Compile Include="SnapLayouts\SnapCanvas.cs" />
-    <Compile Include="SnapLayouts\SnapLayoutManager.cs" />
-    <Compile Include="SnapLayouts\SnapPanel.cs" />
-    <Compile Include="SnapLayouts\SqlServer2005\SqlServer2005SnapLayoutsDataHandler.cs" />
-    <Compile Include="SnapLayouts\WidgetDescriptor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
@@ -86,12 +78,6 @@
       <Project>{22980F70-9AB4-4F34-8BB9-D53C0E1818BB}</Project>
       <Name>Sprocket.Web.Controls</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="SnapLayouts\SqlServer2005\SnapPanels.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="SnapLayouts\defaultIcon.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
