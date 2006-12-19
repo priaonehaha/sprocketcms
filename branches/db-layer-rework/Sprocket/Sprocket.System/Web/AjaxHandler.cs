@@ -154,6 +154,8 @@ namespace Sprocket.Web
 					{
 						if (parsedArguments[i] == null)
 							prmValuesForMethod[i] = null;
+						else if (t.Name == "Object")
+							prmValuesForMethod[i] = parsedArguments[i];
 						else if (t.Name == "DateTime")
 							prmValuesForMethod[i] = DateTime.Parse(parsedArguments[i].ToString());
 						else if (t.IsArray || t.IsSubclassOf(typeof(IList)))
