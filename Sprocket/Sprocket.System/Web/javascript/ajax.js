@@ -1,14 +1,6 @@
 /*
 	// Sprocket AJAX Engine //
 	-----------------------------------
-	The code in this file is a very heavily modified version of the code found in
-	an early version of Ajax.Net, by Michael Schwartz, which can be found at
-	http://ajax.schwarz-interactive.de. The server-side code has been completely
-	rewritten to suit Sprocket's requirements and the client side (this file) is maybe
-	20% intact from the original version. The modifications build in Sprocket's
-	authentication requirements and pass request handling directly to the Sprocket
-	modules rather than an ASP.Net page class.
-	-----------------------------------
 	Nathan Ridley / snowdevil@gmail.com
 */
 
@@ -196,7 +188,8 @@ SprocketAjax = {
 		}
 		
 		// send the data asyncronously to the server and return control to calling object
-		req.send(JSON.stringify(data));
+		var sdata = JSON.stringify(data);
+		req.send(sdata);
 	},
 	
 	authfailed : false,

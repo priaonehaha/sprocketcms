@@ -40,6 +40,7 @@ namespace Sprocket.Web.CMS.Pages
 				ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.ajax.js")
+					.Replace("$APPLICATIONROOT$", WebUtility.BasePath)
 				+ WebClientScripts.Instance.GetAjaxMethodsScript(types);
 			if (WebClientScripts.CompressJavaScript)
 				return JavaScriptCondenser.Condense(scr);
