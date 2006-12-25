@@ -83,7 +83,7 @@ namespace Sprocket.Security
 		protected bool enabled = true, locked = false, activated = false, deleted = false;
 		protected bool hidden = false; // for special users used internally only
 		protected int localTimeOffsetHours = 0;
-		protected DateTime? activationReminderSent = null;
+		protected DateTime? activationReminderSent = null, lastAuthenticated = null;
 		protected DateTime created = DateTime.Now;
 
 		private Dictionary<string, PermissionState> permissions = null;
@@ -130,6 +130,7 @@ namespace Sprocket.Security
 			activated = (bool)reader["Activated"];
 			created = (DateTime)reader["Created"];
 			activationReminderSent = reader["ActivationReminderSent"] == DBNull.Value ? null : (DateTime?)reader["ActivationReminderSent"];
+			lastAuthenticated = reader["LastAuthenticated"] == DBNull.Value ? null : (DateTime?)reader["LastAuthenticated"];
 			localTimeOffsetHours = (int)reader["LocalTimeOffsetHours"];
 		}
 
@@ -147,6 +148,12 @@ namespace Sprocket.Security
 		{
 			get { return activationReminderSent; }
 			set { activationReminderSent = value; }
+		}
+
+		public DateTime? LastAuthenticated
+		{
+			get { return lastAuthenticated; }
+			set { lastAuthenticated = value; }
 		}
 
 		public DateTime Created

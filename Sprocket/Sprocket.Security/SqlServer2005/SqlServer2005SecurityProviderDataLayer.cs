@@ -179,6 +179,9 @@ namespace Sprocket.Security
 						cmd.Parameters.Add(new SqlParameter("@Name", client.Name));
 						cmd.Parameters.Add(new SqlParameter("@Enabled", client.Enabled));
 						cmd.Parameters.Add(new SqlParameter("@PrimaryUserID", client.PrimaryUserID));
+						for (int i = 0; i < cmd.Parameters.Count; i++)
+							if (cmd.Parameters[i].Value == null)
+								cmd.Parameters[i].Value = DBNull.Value;
 						cmd.ExecuteNonQuery();
 						client.ClientSpaceID = (long)prm.Value;
 						scope.Complete();
@@ -224,7 +227,11 @@ namespace Sprocket.Security
 						cmd.Parameters.Add(new SqlParameter("@Activated", user.Activated));
 						cmd.Parameters.Add(new SqlParameter("@ActivationReminderSent", user.Activated));
 						cmd.Parameters.Add(new SqlParameter("@Created", user.Created));
+						cmd.Parameters.Add(new SqlParameter("@LastAuthenticated", user.LastAuthenticated));
 						cmd.Parameters.Add(new SqlParameter("@LocalTimeOffsetHours", user.LocalTimeOffsetHours));
+						for (int i = 0; i < cmd.Parameters.Count; i++)
+							if (cmd.Parameters[i].Value == null)
+								cmd.Parameters[i].Value = DBNull.Value;
 						cmd.ExecuteNonQuery();
 						user.UserID = (long)prm.Value;
 						scope.Complete();
@@ -263,6 +270,9 @@ namespace Sprocket.Security
 						cmd.Parameters.Add(new SqlParameter("@Enabled", role.Enabled));
 						cmd.Parameters.Add(new SqlParameter("@Locked", role.Locked));
 						cmd.Parameters.Add(new SqlParameter("@Hidden", role.Hidden));
+						for (int i = 0; i < cmd.Parameters.Count; i++)
+							if (cmd.Parameters[i].Value == null)
+								cmd.Parameters[i].Value = DBNull.Value;
 						cmd.ExecuteNonQuery();
 						role.RoleID = (long)prm.Value;
 						scope.Complete();
@@ -298,6 +308,9 @@ namespace Sprocket.Security
 						cmd.Parameters.Add(new SqlParameter("@PermissionTypeCode", permissionType.PermissionTypeCode));
 						cmd.Parameters.Add(new SqlParameter("@Description", permissionType.Description));
 						cmd.Parameters.Add(new SqlParameter("@DefaultValue", permissionType.DefaultValue));
+						for (int i = 0; i < cmd.Parameters.Count; i++)
+							if (cmd.Parameters[i].Value == null)
+								cmd.Parameters[i].Value = DBNull.Value;
 						cmd.ExecuteNonQuery();
 						permissionType.PermissionTypeID = (long)prm.Value;
 						scope.Complete();
