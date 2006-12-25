@@ -58,6 +58,15 @@ BEGIN
 
 	IF @IsValid IS NULL
 		SET @IsValid = 0
+	ELSE IF @IsValid = 1
+	BEGIN
+		DECLARE @dt DATETIME
+		SET @dt = GETDATE()
+		UPDATE Users
+		   SET LastAuthenticated = @dt
+		 WHERE Username = @Username
+		   AND ClientSpaceID = @ClientSpaceID
+	END
 END
 go
 
@@ -154,6 +163,7 @@ CREATE PROCEDURE dbo.StoreUser
 	@Activated					bit,
 	@ActivationReminderSent		datetime,
 	@Created					datetime,
+	@LastAuthenticated			datetime,
 	@LocalTimeOffsetHours		int
 AS
 BEGIN
@@ -173,6 +183,7 @@ BEGIN
 			Activated = COALESCE(@Activated, Activated),
 			ActivationReminderSent = COALESCE(@ActivationReminderSent, ActivationReminderSent),
 			Created = COALESCE(@Created, Created),
+			LastAuthenticated = COALESCE(@LastAuthenticated, LastAuthenticated),
 			LocalTimeOffsetHours = COALESCE(@LocalTimeOffsetHours, LocalTimeOffsetHours)
 		WHERE
 			UserID = @UserID
@@ -182,9 +193,9 @@ BEGIN
 		IF @UserID = 0 OR @UserID IS NULL
 			EXEC GetUniqueID @UserID OUTPUT
 		INSERT INTO Users
-			(UserID, ClientSpaceID,Username, PasswordHash, FirstName, Surname, Email, Enabled, Hidden, Locked, Deleted, Activated, ActivationReminderSent, Created, LocalTimeOffsetHours)
+			(UserID, ClientSpaceID,Username, PasswordHash, FirstName, Surname, Email, Enabled, Hidden, Locked, Deleted, Activated, ActivationReminderSent, Created, LastAuthenticated, LocalTimeOffsetHours)
 		VALUES
-			(@UserID, @ClientSpaceID, @Username, @PasswordHash, @FirstName, @Surname, @Email, @Enabled, @Hidden, @Locked, @Deleted, @Activated, @ActivationReminderSent, @Created, @LocalTimeOffsetHours)
+			(@UserID, @ClientSpaceID, @Username, @PasswordHash, @FirstName, @Surname, @Email, @Enabled, @Hidden, @Locked, @Deleted, @Activated, @ActivationReminderSent, @Created, @LastAuthenticated, @LocalTimeOffsetHours)
 	END
 END
 go

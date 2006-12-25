@@ -26,11 +26,31 @@ namespace Sprocket.Web.FileManager
 
 		public enum Display
 		{
+			/// <summary>
+			/// Fits the image inside the area, maintaining aspect ratio and leaving the background showing through, letterbox style
+			/// </summary>
 			Letterbox = 0,
+			/// <summary>
+			/// Stretches the image to exactly fit the dimensions
+			/// </summary>
 			Stretch = 1,
+			/// <summary>
+			/// Tiles the image inside the area until the background is covered over
+			/// </summary>
 			Tile = 2,
+			/// <summary>
+			/// Fits the smaller dimension of the image into the area, cropping off the remaining portion(s) of the image
+			/// </summary>
 			Crop = 3,
+			/// <summary>
+			/// Centers the image inside the area without sizing it up or down
+			/// </summary>
 			Center = 4,
+			/// <summary>
+			/// Resizes the image and maintains its aspect ratio whilst making sure that neither dimension in the resultant image is larger than
+			/// the specified dimensions. This means in most cases, the final image will only match one of the specified dimensions as the other
+			/// dimension will be reduced or enlarged to maintain the original aspect ratio.
+			/// </summary>
 			Constrain = 5
 		}
 

@@ -26,6 +26,7 @@ CREATE TABLE dbo.Users
 	Activated				bit					NOT NULL,
 	ActivationReminderSent	datetime,
 	Created					datetime			NOT NULL,
+	LastAuthenticated		datetime,
 	LocalTimeOffsetHours	int					NOT NULL
 	
 	CONSTRAINT UC_Users_UsernameClientID UNIQUE CLUSTERED(ClientSpaceID, Username)
