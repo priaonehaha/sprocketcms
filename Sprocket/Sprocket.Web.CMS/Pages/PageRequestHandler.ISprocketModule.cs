@@ -18,7 +18,7 @@ namespace Sprocket.Web.CMS.Pages
 	//[ModuleDependency(typeof(SecurityProvider))]
 	//[ModuleDependency(typeof(FileManager))]
 	[ModuleDescription("Handles requests website pages and performs other page-related tasks")]
-	[ModuleTitle("Web Page Request Handler")]
+	[ModuleTitle("CMS Page Request Handler")]
 	public partial class PageRequestHandler : ISprocketModule
 	{
 		public void AttachEventHandlers(ModuleRegistry registry)
