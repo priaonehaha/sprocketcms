@@ -20,6 +20,7 @@ namespace Sprocket.Web.CMS.Security
 	[ModuleDependency(typeof(SprocketSettings))]
 	[ModuleDependency(typeof(SecurityProvider))]
 	[ModuleDependency(typeof(WebsiteAdmin))]
+	[ModuleTitle("Security CMS Interface")]
 	[ModuleDescription("The CMS interface for managing users and roles provided by the SecurityProvider module.")]
 	public partial class WebSecurity : ISprocketModule
 	{

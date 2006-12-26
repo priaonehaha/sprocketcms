@@ -23,7 +23,7 @@ BEGIN
 		SET @date = GETDATE()
 
 		EXEC dbo.StoreClientSpace @ClientSpaceID, 'SprocketCMS', 1, @newUserID
-		EXEC dbo.StoreUser @newUserID, @ClientSpaceID, 'admin', @PasswordHash, 'System', 'Administrator', 'admin@localhost', 1, 0, 1, 0, 1, null, @date, 0
+		EXEC dbo.StoreUser @newUserID, @ClientSpaceID, 'admin', @PasswordHash, 'System', 'Administrator', 'admin@localhost', 1, 0, 1, 0, 1, null, @date, null, 0
 		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='SUPERUSER')
 			EXEC dbo.StorePermissionType @perm1ID, 'SUPERUSER', 'Unrestricted Access', 0
 		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='ACCESS_ADMIN')
@@ -193,7 +193,7 @@ BEGIN
 		IF @UserID = 0 OR @UserID IS NULL
 			EXEC GetUniqueID @UserID OUTPUT
 		INSERT INTO Users
-			(UserID, ClientSpaceID,Username, PasswordHash, FirstName, Surname, Email, Enabled, Hidden, Locked, Deleted, Activated, ActivationReminderSent, Created, LastAuthenticated, LocalTimeOffsetHours)
+			(UserID, ClientSpaceID, Username, PasswordHash, FirstName, Surname, Email, Enabled, Hidden, Locked, Deleted, Activated, ActivationReminderSent, Created, LastAuthenticated, LocalTimeOffsetHours)
 		VALUES
 			(@UserID, @ClientSpaceID, @Username, @PasswordHash, @FirstName, @Surname, @Email, @Enabled, @Hidden, @Locked, @Deleted, @Activated, @ActivationReminderSent, @Created, @LastAuthenticated, @LocalTimeOffsetHours)
 	END

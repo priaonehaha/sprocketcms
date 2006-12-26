@@ -19,8 +19,9 @@ namespace Sprocket.Web.FileManager
 {
 	[AjaxMethodHandler("TestModule")]
 	[ModuleDependency(typeof(WebEvents))]
+	[ModuleDependency(typeof(FileManager))]
 	[ModuleDescription("A module for writing test code.")]
-	[ModuleTitle("Testing Module")]
+	[ModuleTitle("FileManager Testing Module")]
 	public class TestModule : ISprocketModule
 	{
 		HttpRequest Request { get { return HttpContext.Current.Request; } }
