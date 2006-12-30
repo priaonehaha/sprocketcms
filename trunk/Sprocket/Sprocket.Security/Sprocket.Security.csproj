@@ -53,24 +53,6 @@
     <Compile Include="SqlServer2005\SqlServer2005SecurityProviderDataLayer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sprocket.Mail\Sprocket.Mail.csproj">
-      <Project>{6941A8A2-614E-4FD8-B006-038E60191405}</Project>
-      <Name>Sprocket.Mail</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
-      <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
-      <Name>Sprocket</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Sprocket.Web.CMS\Sprocket.Web.CMS.csproj">
-      <Project>{8BE3F644-9B56-4D93-9FE8-797CE35061AE}</Project>
-      <Name>Sprocket.Web.CMS</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Sprocket.Web.Controls\Sprocket.Web.Controls.csproj">
-      <Project>{22980F70-9AB4-4F34-8BB9-D53C0E1818BB}</Project>
-      <Name>Sprocket.Web.Controls</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="SQLite\SQLite Tables.sql" />
   </ItemGroup>
   <ItemGroup>
@@ -108,6 +90,24 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CMS\security.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sprocket.Mail\Sprocket.Mail.csproj">
+      <Project>{6941A8A2-614E-4FD8-B006-038E60191405}</Project>
+      <Name>Sprocket.Mail</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
+      <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
+      <Name>Sprocket</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sprocket.Web.CMS\Sprocket.Web.CMS.csproj">
+      <Project>{8BE3F644-9B56-4D93-9FE8-797CE35061AE}</Project>
+      <Name>Sprocket.Web.CMS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sprocket.Web.Controls\Sprocket.Web.Controls.csproj">
+      <Project>{22980F70-9AB4-4F34-8BB9-D53C0E1818BB}</Project>
+      <Name>Sprocket.Web.Controls</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

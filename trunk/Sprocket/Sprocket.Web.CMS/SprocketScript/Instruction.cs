@@ -31,7 +31,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		/// After processing, index should be left at the first position not processed by either directly or indirectly
 		/// (recursively) by this instruction</param>
 		void Build(List<Token> tokens, ref int index);
-		bool Execute(ExecutionState state);
+		void Execute(ExecutionState state);
 	}
 
 	public interface IInstructionCreator
@@ -46,12 +46,20 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 	{
 		public const string Keyword = "section";
 		List<IInstruction> list = new List<IInstruction>();
+		private bool acceptELSEInPlaceOfEND = false;
+
+		public bool AcceptELSEInPlaceOfEND
+		{
+			get { return acceptELSEInPlaceOfEND; }
+			set { acceptELSEInPlaceOfEND = value; }
+		}
+
 		public void Build(List<Token> tokens, ref int index)
 		{
 			while (index < tokens.Count)
 			{
 				Token token = tokens[index];
-				if (Token.IsEnd(token))
+				if (Token.IsEnd(token) || (acceptELSEInPlaceOfEND && Token.IsElse(token)))
 				{
 					index++;
 					return;
@@ -60,12 +68,10 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			}
 		}
 
-		public bool Execute(ExecutionState state)
+		public void Execute(ExecutionState state)
 		{
 			foreach (IInstruction instruction in list)
-				if (!instruction.Execute(state))
-					return false;
-			return true;
+				instruction.Execute(state);
 		}
 	}
 
@@ -90,8 +96,6 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 	{
 		private IExpression expression = null;
 
-		public const string Keyword = "show";
-
 		public void Build(List<Token> tokens, ref int index)
 		{
 			Build(tokens, ref index, false);
@@ -105,25 +109,59 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 				expression = TokenParser.BuildExpression(tokens, ref index);
 		}
 
-		public bool Execute(ExecutionState state)
+		public void Execute(ExecutionState state)
 		{
 			string text = expression.Evaluate(state).ToString();
 			state.Output.Write(text);
-			return true;
 		}
 	}
 
 	internal class ShowInstructionCreator : IInstructionCreator
 	{
-		public string Keyword
+		public string Keyword { get { return "show"; } }
+		public IInstruction Create() { return new ShowInstruction(); }
+	}
+
+	internal class ShowInstructionCreator2 : IInstructionCreator
+	{
+		public string Keyword { get { return "?"; } }
+		public IInstruction Create() { return new ShowInstruction(); }
+	}
+
+	#endregion
+
+	#region IfInstruction
+
+	public class IfInstruction : IInstruction
+	{
+		private InstructionList whenTrue = null, whenFalse = null;
+		private IExpression expr = null;
+		public void Build(List<Token> tokens, ref int index)
 		{
-			get { return ShowInstruction.Keyword; }
+			expr = TokenParser.BuildExpression(tokens, ref index);
+			whenTrue = new InstructionList();
+			whenTrue.AcceptELSEInPlaceOfEND = true;
+			whenTrue.Build(tokens, ref index);
+			if (Token.IsElse(tokens[index - 1]))
+			{
+				whenFalse = new InstructionList();
+				whenFalse.Build(tokens, ref index);
+			}
 		}
 
-		public IInstruction Create()
+		public void Execute(ExecutionState state)
 		{
-			return new ShowInstruction();
+			if (expr.Evaluate(state).Equals(true))
+				whenTrue.Execute(state);
+			else if (whenFalse != null)
+				whenFalse.Execute(state);
 		}
+	}
+
+	public class IfInstructionCreator : IInstructionCreator
+	{
+		public string Keyword { get { return "if"; } }
+		public IInstruction Create() { return new IfInstruction(); }
 	}
 
 	#endregion
