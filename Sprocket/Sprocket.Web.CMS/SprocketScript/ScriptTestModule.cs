@@ -5,7 +5,7 @@ using System.Web;
 
 using Sprocket.Web;
 
-namespace Sprocket.Web.CMS.SprocketScript.Parser
+namespace Sprocket.Web.CMS.Script.Parser
 {
 	class ScriptTestModule : ISprocketModule
 	{
@@ -19,7 +19,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			if (sprocketPath == "scripttest")
 			{
 				string html = Sprocket.Utility.ResourceLoader.LoadTextResource("Sprocket.Web.CMS.SprocketScript.test.htm");
-				SprocketScript script = new SprocketScript(html);
+				SprocketScript script = new SprocketScript(html, "test.htm");
 				HttpContext.Current.Response.ContentType = "text/html";
 				script.Execute(HttpContext.Current.Response.OutputStream);
 				//string test = script.Execute();

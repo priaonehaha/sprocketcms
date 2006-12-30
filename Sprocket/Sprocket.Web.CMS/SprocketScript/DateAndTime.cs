@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sprocket.Web.CMS.SprocketScript.Parser
+namespace Sprocket.Web.CMS.Script.Parser
 {
 	public class CurrentDateTime : IExpression
 	{

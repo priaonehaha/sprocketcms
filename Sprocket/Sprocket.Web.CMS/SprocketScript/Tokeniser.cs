@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Sprocket.Web.CMS.SprocketScript.Parser
+namespace Sprocket.Web.CMS.Script.Parser
 {
 	internal static class Tokeniser
 	{
@@ -17,7 +17,11 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			string sourceExpr = @"\{\?\s*(?<expr>(([^\{\}]*)|((?<=\\)[\{\}]))*)\s*\}";
 			MatchCollection matches = Regex.Matches(source, sourceExpr, RegexOptions.Multiline | RegexOptions.ExplicitCapture);
 			if (matches.Count == 0)
-				tokens.Add(new Token(source, TokenType.StringLiteral, 0));
+			{
+				Token htmlToken = new Token(source, TokenType.StringLiteral, 0);
+				htmlToken.IsNonScriptText = true;
+				tokens.Add(htmlToken);
+			}
 			else
 			{
 				int previousMatchEndPosition = 0;
@@ -26,7 +30,11 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 					Match match = matches[i];
 					int htmlLength = match.Index - previousMatchEndPosition;
 					if (htmlLength > 0)
-						tokens.Add(new Token(source.Substring(previousMatchEndPosition, htmlLength), TokenType.StringLiteral, previousMatchEndPosition));
+					{
+						Token htmlToken = new Token(source.Substring(previousMatchEndPosition, htmlLength), TokenType.StringLiteral, previousMatchEndPosition);
+						htmlToken.IsNonScriptText = true;
+						tokens.Add(htmlToken);
+					}
 					try
 					{
 						previousMatchEndPosition = match.Index + match.Length;
@@ -56,7 +64,11 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 					}
 				}
 				if (previousMatchEndPosition < source.Length)
-					tokens.Add(new Token(source.Substring(previousMatchEndPosition), TokenType.StringLiteral, previousMatchEndPosition));
+				{
+					Token htmlToken = new Token(source.Substring(previousMatchEndPosition), TokenType.StringLiteral, previousMatchEndPosition);
+					htmlToken.IsNonScriptText = true;
+					tokens.Add(htmlToken);
+				}
 			}
 
 			return tokens;
@@ -220,6 +232,13 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		TokenType tokenType;
 		string value;
 		int position;
+		bool isNonScriptText = false;
+
+		public bool IsNonScriptText
+		{
+			get { return isNonScriptText; }
+			set { isNonScriptText = value; }
+		}
 
 		public TokenType TokenType
 		{

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace Sprocket.Web.CMS.SprocketScript.Parser
+namespace Sprocket.Web.CMS.Script.Parser
 {
 	internal class TokenParserException : Exception
 	{
@@ -23,6 +23,12 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 
 	public class ExecutionState
 	{
+		private Stack<string> scriptNameStack = new Stack<string>();
+		public Stack<string> ScriptNameStack
+		{
+			get { return scriptNameStack; }
+		}
+
 		private StreamWriter output;
 		public StreamWriter Output
 		{
@@ -33,6 +39,13 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		{
 			output = new StreamWriter(stream);
 			output.AutoFlush = true;
+		}
+
+		private Dictionary<string, SprocketScript> sectionOverrides = new Dictionary<string, SprocketScript>();
+		public Dictionary<string, SprocketScript> SectionOverrides
+		{
+			get { return sectionOverrides; }
+			set { sectionOverrides = value; }
 		}
 	}
 

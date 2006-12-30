@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace Sprocket.Web.CMS.SprocketScript.Parser
+namespace Sprocket.Web.CMS.Script.Parser
 {
 	public class InstructionExecutionException : Exception
 	{
@@ -47,6 +47,12 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		public const string Keyword = "section";
 		List<IInstruction> list = new List<IInstruction>();
 		private bool acceptELSEInPlaceOfEND = false;
+		private string name = null;
+
+		public string Name
+		{
+			get { return name; }
+		}
 
 		public bool AcceptELSEInPlaceOfEND
 		{
@@ -56,6 +62,9 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 
 		public void Build(List<Token> tokens, ref int index)
 		{
+			if (index < tokens.Count - 1)
+				if (tokens[index].TokenType == TokenType.StringLiteral && !tokens[index].IsNonScriptText)
+					name = tokens[index++].Value;
 			while (index < tokens.Count)
 			{
 				Token token = tokens[index];
@@ -70,6 +79,12 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 
 		public void Execute(ExecutionState state)
 		{
+			if(name != null)
+				if (state.SectionOverrides.ContainsKey(name))
+				{
+					state.SectionOverrides[name].Execute(state);
+					return;
+				}
 			foreach (IInstruction instruction in list)
 				instruction.Execute(state);
 		}
@@ -77,15 +92,14 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 
 	internal class InstructionListCreator : IInstructionCreator
 	{
-		public string Keyword
-		{
-			get { return InstructionList.Keyword; }
-		}
+		public string Keyword { get { return InstructionList.Keyword; } }
+		public IInstruction Create() { return new InstructionList(); }
+	}
 
-		public IInstruction Create()
-		{
-			return new InstructionList();
-		}
+	internal class InstructionListCreator2 : IInstructionCreator
+	{
+		public string Keyword { get { return "@"; } }
+		public IInstruction Create() { return new InstructionList(); }
 	}
 
 	#endregion
