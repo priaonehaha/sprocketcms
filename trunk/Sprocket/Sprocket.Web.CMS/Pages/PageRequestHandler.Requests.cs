@@ -14,14 +14,8 @@ namespace Sprocket.Web.CMS.Pages
 {
 	public partial class PageRequestHandler
 	{
-		HttpRequest Request
-		{
-			get { return HttpContext.Current.Request; }
-		}
-		HttpResponse Response
-		{
-			get { return HttpContext.Current.Response; }
-		}
+		HttpRequest Request { get { return HttpContext.Current.Request; } }
+		HttpResponse Response { get { return HttpContext.Current.Response; } }
 
 		public static PageRequestHandler Instance
 		{
@@ -30,8 +24,8 @@ namespace Sprocket.Web.CMS.Pages
 
 		private Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers = new Dictionary<string, IPlaceHolderRenderer>();
 		public delegate void RegisteringPlaceHolderRenderers(Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers);
-		public delegate void BeforeRenderPage(PageEntry page, string sprocketPath, string[] pathSections);
 		public event RegisteringPlaceHolderRenderers OnRegisteringPlaceHolderRenderers;
+		public delegate void BeforeRenderPage(PageEntry page, string sprocketPath, string[] pathSections);
 		public event BeforeRenderPage OnBeforeRenderPage;
 
 		internal Dictionary<string, IPlaceHolderRenderer> PlaceHolderRenderers
