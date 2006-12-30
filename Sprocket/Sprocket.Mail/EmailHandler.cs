@@ -8,11 +8,12 @@ using System.Net;
 using System.Net.Mail;
 
 using Sprocket;
-using Sprocket.SystemBase;
 using Sprocket.Utility;
 
 namespace Sprocket.Mail
 {
+	[ModuleDescription("Handles sending of emails and notification of delivery results")]
+	[ModuleTitle("Email Handler")]
 	public class EmailHandler : ISprocketModule
 	{
 		public event InterruptableEventHandler<MailMessage> OnSendingEmail;
@@ -21,7 +22,7 @@ namespace Sprocket.Mail
 
 		public static EmailHandler Instance
 		{
-			get { return (EmailHandler)SystemCore.Instance["EmailHandler"]; }
+			get { return (EmailHandler)Core.Instance[typeof(EmailHandler)].Module; }
 		}
 
 		public static void Send(MailMessage msg)
@@ -137,7 +138,7 @@ namespace Sprocket.Mail
 				client.Host = "localhost";
 			if (port > 0) client.Port = port;
 			if (useAuthentication != null && authUsername != null && authPassword != null)
-				if (Utilities.MatchesAny(useAuthentication.ToLower(), "true", "yes", "1"))
+				if (StringUtilities.MatchesAny(useAuthentication.ToLower(), "true", "yes", "1"))
 					client.Credentials = new NetworkCredential(authUsername, authPassword);
 
 			return client;
@@ -162,32 +163,13 @@ namespace Sprocket.Mail
 		{
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "EmailHandler"; }
-		}
-
-		public string Title
-		{
-			get { return "Email Handler"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Handles sending of emails and notification of delivery results."; }
-		}
-
 		#endregion
 	}
 
 	public class MailSendResult
 	{
 		private MailMessage mailMessage;
-		private string moduleRegistrationCode;
+		private string moduleNamespace;
 		private string errorMessage;
 
 		public string ErrorMessage
@@ -201,15 +183,15 @@ namespace Sprocket.Mail
 			get { return mailMessage; }
 		}
 
-		public string ModuleRegistrationCode
+		public string ModuleNamespace
 		{
-			get { return moduleRegistrationCode; }
+			get { return moduleNamespace; }
 		}
 
 		public MailSendResult(MailMessage msg, string moduleRegCode, string errorMsg)
 		{
 			mailMessage = msg;
-			moduleRegistrationCode = moduleRegCode;
+			moduleNamespace = moduleRegCode;
 			errorMessage = errorMsg;
 		}
 	}

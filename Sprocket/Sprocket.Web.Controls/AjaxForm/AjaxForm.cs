@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Text;
 using Sprocket;
 using Sprocket.Data;
-using Sprocket.SystemBase;
 using Sprocket.Utility;
 using Sprocket.Web;
 using Sprocket.Web.Controls;
@@ -14,7 +13,9 @@ using System.Diagnostics;
 
 namespace Sprocket.Web.Controls
 {
-	[AjaxMethodHandler()]
+	[AjaxMethodHandler("AjaxFormHandler")]
+	[ModuleDescription("Provides a centralised facility for constructing, processing and validating html forms.")]
+	[ModuleTitle("Ajax Form Handler")]
 	public class AjaxFormHandler : ISprocketModule
 	{
 		public event AjaxFormFieldValidationHandler OnValidateField;
@@ -27,7 +28,7 @@ namespace Sprocket.Web.Controls
 
 		public static AjaxFormHandler Instance
 		{
-			get { return (AjaxFormHandler)SystemCore.Instance["AjaxFormHandler"]; }
+			get { return (AjaxFormHandler)Core.Instance[typeof(AjaxFormHandler)].Module; }
 		}
 
 		#region ISprocketModule members
@@ -35,28 +36,10 @@ namespace Sprocket.Web.Controls
 		{
 		}
 
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "AjaxFormHandler"; }
-		}
-
-		public string Title
-		{
-			get { return "Ajax Form Handler"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Provides a centralised facility for constructing, processing and validating html forms."; }
-		}
 		#endregion
 
 		[AjaxMethod()]
-		public AjaxFormFieldValidationResponse ValidateField(string formName, string fieldName, string fieldValue, Guid? recordID)
+		public AjaxFormFieldValidationResponse ValidateField(string formName, string fieldName, string fieldValue, long? recordID)
 		{
 			AjaxFormFieldValidationResponse resp = new AjaxFormFieldValidationResponse(formName, fieldName, fieldValue, recordID);
 			if (OnValidateField != null)
@@ -98,9 +81,9 @@ namespace Sprocket.Web.Controls
 		private string formName = "";
 		private string fieldName = "";
 		private string fieldValue = "";
-		private Guid? recordID;
+		private long? recordID;
 
-		public AjaxFormFieldValidationResponse(string formName, string fieldName, string fieldValue, Guid? recordID)
+		public AjaxFormFieldValidationResponse(string formName, string fieldName, string fieldValue, long? recordID)
 		{
 			this.formName = formName;
 			this.fieldName = fieldName;
@@ -108,7 +91,7 @@ namespace Sprocket.Web.Controls
 			this.recordID = recordID;
 		}
 
-		public Guid? RecordID
+		public long? RecordID
 		{
 			get { return recordID; }
 			set { recordID = value; }
@@ -174,8 +157,8 @@ namespace Sprocket.Web.Controls
 			set { formName = value; }
 		}
 
-		private Guid? recordID = null;
-		public Guid? RecordID
+		private object recordID = null;
+		public object RecordID
 		{
 			get { return recordID; }
 			set { recordID = value; }
@@ -326,8 +309,8 @@ namespace Sprocket.Web.Controls
 			get { return formName; }
 		}
 
-		private Guid? recordID = null;
-		public Guid? RecordID
+		private long? recordID = null;
+		public long? RecordID
 		{
 			get { return recordID; }
 			set { recordID = value; }
@@ -414,7 +397,7 @@ namespace Sprocket.Web.Controls
 			Dictionary<string, object> form = (Dictionary<string, object>)json;
 			formName = form["Name"].ToString();
 			if (form["RecordID"] != null)
-				recordID = new Guid(form["RecordID"].ToString());
+				recordID = long.Parse(form["RecordID"].ToString());
 			else
 				recordID = null;
 
@@ -447,7 +430,7 @@ namespace Sprocket.Web.Controls
 			if (Request.Form["RecordID"] == null)
 				return false;
 			formName = Request.Form["FormName"];
-			recordID = Request.Form["RecordID"] == "" ? (Guid?)null : new Guid(Request.Form["RecordID"]);
+			recordID = Request.Form["RecordID"] == "" ? (long?)null : long.Parse(Request.Form["RecordID"]);
 			foreach (string blockName in Request.Form.GetValues("_BlockName"))
 			{
 				Block block = new Block(blockName);

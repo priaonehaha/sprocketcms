@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sprocket.SystemBase
+namespace Sprocket
 {
+	[ModuleDescription("Handles and responds to basic system events such as shutdown.")]
+	[ModuleTitle("System Events Manager")]
 	public class SystemEvents : ISprocketModule
 	{
 		/// <summary>
@@ -52,32 +54,13 @@ namespace Sprocket.SystemBase
 
 		public static SystemEvents Instance
 		{
-			get { return (SystemEvents)SystemCore.Instance["SystemEvents"]; }
+			get { return (SystemEvents)Core.Instance[typeof(SystemEvents)].Module; }
 		}
 
 		#region ISprocketModule Members
 
-		public string Title
-		{
-			get { return "System Events Manager"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "Handles and responds to basic system events such as shutdown."; }
-		}
-
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-		}
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "SystemEvents"; }
 		}
 
 		#endregion

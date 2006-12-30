@@ -1,1 +1,1 @@
-if(row["[columnname]"] != DBNull.Value) [fldname] = ([fldtype])row["[columnname]"];
+if(reader["[columnname]"] != DBNull.Value) [fldname] = ([fldtype])reader["[columnname]"];

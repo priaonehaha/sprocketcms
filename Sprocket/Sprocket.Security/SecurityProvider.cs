@@ -2,115 +2,150 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
+using System.IO;
+using System.Transactions;
+using System.Web;
 
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Data;
+using Sprocket.Mail;
 using Sprocket.Utility;
+using Sprocket.Web;
 
 namespace Sprocket.Security
 {
-	[ModuleDependency("DatabaseManager")]
-	[ModuleDependency("EmailHandler")]
-	public partial class SecurityProvider : ISprocketModule, IDataHandlerModule, ISecurityProvider
+	[ModuleDependency(typeof(DatabaseManager))]
+	[ModuleDependency(typeof(EmailHandler))]
+	[ModuleTitle("Sprocket Security Provider")]
+	[ModuleDescription("The default security implementation for Sprocket. Handles users, roles and permissions.")]
+	public partial class SecurityProvider : ISprocketModule
 	{
 		public static SecurityProvider Instance
 		{
-			get { return (SecurityProvider)SystemCore.Instance["SecurityProvider"]; }
+			get { return (SecurityProvider)Core.Instance[typeof(SecurityProvider)].Module; }
 		}
-
-		public class InitialClient
-		{
-			public Guid ClientID = Guid.Empty;
-		}
-
-		public delegate void InitialClientHandler(InitialClient client);
-		public event InitialClientHandler BeforeFirstClientDataInserted;
-
-		#region IDataHandlerModule Members
-
-		public void DeleteDatabaseStructure(DatabaseEngine engine)
-		{
-		}
-
-		public bool SupportsDatabaseEngine(DatabaseEngine engine)
-		{
-			return engine == DatabaseEngine.SqlServer;
-		}
-
-		public void ExecuteDataScripts(DatabaseEngine engine)
-		{
-			SqlDatabase db = (SqlDatabase)Database.Main;
-			db.ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Security.DatabaseScripts.sqlserver_tables_001.sql"));
-			db.ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Security.DatabaseScripts.sqlserver_procedures_001.sql"));
-			InitialClient client = new InitialClient();
-			if (BeforeFirstClientDataInserted != null)
-				BeforeFirstClientDataInserted(client);
-			string sql = ResourceLoader.LoadTextResource("Sprocket.Security.DatabaseScripts.sqlserver_data_001.sql");
-			sql = sql.Replace("{ClientID}", client.ClientID.ToString());
-			sql = sql.Replace("{password-hash}", Crypto.EncryptOneWay("password").Replace("'", "''"));
-			db.ExecuteScript(sql);
-		}
-
-		#endregion
-
-		#region ISprocketModule Members
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
+			DatabaseSetup.Instance.Completed += new EmptyEventHandler(DatabaseSetup_Completed);
+			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
+			WebAuthentication.Instance.OnValidatingLogin += new WebAuthentication.LoginAuthenticationHandler(WebAuthentication_OnValidatingLogin);
 		}
 
-		public void Initialise(ModuleRegistry registry)
+		void DatabaseSetup_Completed()
 		{
+			VerifyClientSpaceID();
 		}
 
-		public string RegistrationCode
+		void WebAuthentication_OnValidatingLogin(string username, string passwordHash, Result result)
 		{
-			get { return "SecurityProvider"; }
+			if (!dataLayer.Authenticate(username, passwordHash))
+				result.SetFailed("Invalid username and/or password");
 		}
 
-		public string Title
+		public static User CurrentUser
 		{
-			get { return "Sprocket Security Provider"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "The default security implementation for Sprocket. Handles users, roles and permissions."; }
-		}
-
-		#endregion
-
-		#region ISecurityProvider Members
-
-		public bool IsValidLogin(string username, string passwordHash)
-		{
-			DatabaseManager dbm = (DatabaseManager)SystemCore.Instance["DatabaseManager"];
-			switch (dbm.DatabaseEngine)
+			get
 			{
-				case DatabaseEngine.SqlServer:
-					IDbCommand cmd = Database.Main.CreateCommand("IsValidLogin", CommandType.StoredProcedure);
-					Database.Main.AddParameter(cmd, "@Username", username);
-					Database.Main.AddParameter(cmd, "@PasswordHash", passwordHash);
-					IDataParameter prm = Database.Main.AddOutputParameter(cmd, "@IsValid", DbType.Boolean);
-					cmd.ExecuteNonQuery();
-					return (bool)prm.Value;
-
-				default:
-					throw new SprocketException("The Sprocket Security Provider does not currently support the selected database engine.");
+				if (!WebAuthentication.Instance.IsLoggedIn)
+					return null;
+				if (CurrentRequest.Value["CurrentUser"] == null)
+					CurrentRequest.Value["CurrentUser"] = User.Select(ClientSpaceID, WebAuthentication.Instance.CurrentUsername);
+				return CurrentRequest.Value["CurrentUser"] as User;
 			}
 		}
 
-		#endregion
-
-		public static class RoleCodes
+		ISecurityProviderDataLayer dataLayer = null;
+		public ISecurityProviderDataLayer DataLayer
 		{
-			public static string SuperUser { get { return "SUPERUSER"; } }
+			get { return dataLayer; }
 		}
 
-		public static class PermissionTypeCodes
+		void Instance_OnDatabaseHandlerLoaded(IDatabaseHandler source)
 		{
-			public static string UserAdministrator { get { return "USERADMINISTRATOR"; } }
-			public static string RoleAdministrator { get { return "ROLEADMINISTRATOR"; } }
+			source.OnInitialise += new InterruptableEventHandler(Database_OnInitialise);
+			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(ISecurityProviderDataLayer)))
+			{
+				ISecurityProviderDataLayer layer = (ISecurityProviderDataLayer)Activator.CreateInstance(t);
+				if (layer.DatabaseHandlerType == source.GetType())
+				{
+					dataLayer = layer;
+					break;
+				}
+			}
 		}
+
+		void Database_OnInitialise(Result result)
+		{
+			if (!result.Succeeded)
+				return;
+			if (dataLayer == null)
+				result.SetFailed("SecurityProvider has no implementation for " + DatabaseManager.DatabaseEngine.Title);
+			else
+			{
+				dataLayer.InitialiseDatabase(result);
+//				long forceClientInit = ClientSpaceID;
+			}
+		}
+
+		void Instance_OnBeforeLoadExistingFile(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		{
+			if (sprocketPath.ToLower() == "datastore/clientspace.id") // deny access
+				handled.Set();
+		}
+
+		private static long clientSpaceID = -1;
+		public static long ClientSpaceID
+		{
+			get
+			{
+				lock (WebUtility.GetSyncObject("DefaultClientSpaceID"))
+				{
+					if (clientSpaceID == -1)
+						VerifyClientSpaceID();
+					return clientSpaceID;
+				}
+			}
+		}
+
+		public static void VerifyClientSpaceID()
+		{
+			string path = WebUtility.MapPath("datastore/ClientSpace.ID");
+			if (!File.Exists(path))
+			{
+				clientSpaceID = DatabaseManager.GetUniqueID();
+				Result result = Instance.dataLayer.InitialiseClientSpace(clientSpaceID);
+				if (!result.Succeeded)
+					throw new Exception(result.Message);
+				new FileInfo(path).Directory.Create();
+				using (FileStream file = File.Create(path))
+				{
+					file.Write(BitConverter.GetBytes(clientSpaceID), 0, sizeof(long));
+					file.Close();
+				}
+			}
+			else
+			{
+				byte[] bytes = new byte[sizeof(long)];
+				using (FileStream file = File.OpenRead(path))
+				{
+					file.Read(bytes, 0, bytes.Length);
+					file.Close();
+				}
+				clientSpaceID = BitConverter.ToInt64(bytes, 0);
+			}
+		}
+
+		//public static class RoleCodes
+		//{
+		//    public static readonly string SuperUser = "SUPERUSER";
+		//}
+
+		//public static class PermissionTypeCodes
+		//{
+		//    public static readonly string UserAdministrator = "USERADMINISTRATOR";
+		//    public static readonly string RoleAdministrator = "ROLEADMINISTRATOR";
+		//}
 	}
 }

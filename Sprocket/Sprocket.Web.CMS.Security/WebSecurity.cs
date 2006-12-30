@@ -9,7 +9,7 @@ using System.Net.Mail;
 
 using Sprocket;
 using Sprocket.Data;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Security;
 using Sprocket.Utility;
 using Sprocket.Web;
@@ -20,6 +20,7 @@ namespace Sprocket.Web.CMS.Security
 	[ModuleDependency("SprocketSettings")]
 	[ModuleDependency("SecurityProvider")]
 	[ModuleDependency("WebsiteAdmin")]
+	[ModuleDescription("The CMS interface for managing users and roles provided by the SecurityProvider module.")]
 	public partial class WebSecurity : ISprocketModule
 	{
 		private static Guid clientID;
@@ -48,7 +49,7 @@ namespace Sprocket.Web.CMS.Security
 			get
 			{
 				if(CurrentRequest.Value["CurrentUser"] == null)
-					CurrentRequest.Value["CurrentUser"] = SecurityProvider.User.Load(WebsiteClientID, ((WebAuthentication)SystemCore.Instance["WebAuthentication"]).CurrentUsername);
+					CurrentRequest.Value["CurrentUser"] = SecurityProvider.User.Load(WebsiteClientID, ((WebAuthentication)Core.Instance["WebAuthentication"]).CurrentUsername);
 				return (SecurityProvider.User)CurrentRequest.Value["CurrentUser"];
 			}
 			set
@@ -59,7 +60,7 @@ namespace Sprocket.Web.CMS.Security
 
 		public static WebSecurity Instance
 		{
-			get { return (WebSecurity)SystemCore.Instance["WebSecurity"]; }
+			get { return (WebSecurity)Core.Instance["WebSecurity"]; }
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
@@ -83,7 +84,7 @@ namespace Sprocket.Web.CMS.Security
 		void OnAdminRequest(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled)
 		{
 			// build the "current user" block
-			WebAuthentication auth = (WebAuthentication)SystemCore.Instance["WebAuthentication"];
+			WebAuthentication auth = (WebAuthentication)Core.Instance["WebAuthentication"];
 			SecurityProvider.User user = SecurityProvider.User.Load(WebsiteClientID, auth.CurrentUsername);
 			string block = "<div id=\"currentuser-block\">"
 						 + "You are currently logged in as <b>{0}</b>."
@@ -118,7 +119,7 @@ namespace Sprocket.Web.CMS.Security
 				admin.AddBodyOnLoadScript(new RankedString("SecurityInterface.Run()", 0));
 				
 				admin.ContentHeading = "Users and Roles";
-				SecurityProvider security = (SecurityProvider)SystemCore.Instance["SecurityProvider"];
+				SecurityProvider security = (SecurityProvider)Core.Instance["SecurityProvider"];
 
 				string html = "<div id=\"user-admin-container\"></div>";
 
@@ -170,11 +171,6 @@ namespace Sprocket.Web.CMS.Security
 		public string Title
 		{
 			get { return "Web Security Functions"; }
-		}
-
-		public string ShortDescription
-		{
-			get { return "The CMS interface for managing users and roles provided by the SecurityProvider module."; }
 		}
 	}
 }

@@ -1,47 +1,29 @@
-IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Insert' AND type='P')
-	DROP PROCEDURE [classname]_Insert
+IF OBJECT_ID(N'dbo.[classname]_Store') IS NOT NULL
+	DROP PROCEDURE [classname]_Store
 go
-CREATE PROCEDURE dbo.[classname]_Insert
+CREATE PROCEDURE dbo.[classname]_Store
 	[insertparameters]
 AS
 BEGIN
-	INSERT INTO [tablename]
-		([fieldnames])
-	VALUES
-		([fieldvalues])
+	IF NOT EXISTS (SELECT [primarykey] FROM [tablename] WHERE [primarykey] = @[primarykey])
+	BEGIN
+		IF @[primarykey] = 0 OR @[primarykey] IS NULL
+			EXEC GetUniqueID @[primarykey] OUTPUT
+		INSERT INTO [tablename]
+			([fieldnames])
+		VALUES
+			([fieldvalues])
+	END
+	ELSE
+	BEGIN
+		UPDATE [tablename] SET
+			[updateexplicitsets]
+		WHERE [primarykey] = @[primarykey]
+	END
 END
-
 go
 
-IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Update' AND type='P')
-	DROP PROCEDURE [classname]_Update
-go
-CREATE PROCEDURE dbo.[classname]_Update
-	[updateparameters]
-AS
-BEGIN
-	UPDATE [tablename] SET
-		[updatesets]
-	WHERE [primarykey] = @[primarykey]
-END
-
-go
-
-IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_UpdateExplicit' AND type='P')
-	DROP PROCEDURE [classname]_UpdateExplicit
-go
-CREATE PROCEDURE dbo.[classname]_UpdateExplicit
-	[updateexplicitparameters]
-AS
-BEGIN
-	UPDATE [tablename] SET
-		[updateexplicitsets]
-	WHERE [primarykey] = @[primarykey]
-END
-
-go
-
-IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Select' AND type='P')
+IF OBJECT_ID(N'dbo.[classname]_Select') IS NOT NULL
 	DROP PROCEDURE [classname]_Select
 go
 CREATE PROCEDURE dbo.[classname]_Select
@@ -55,7 +37,7 @@ END
 
 go
 
-IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Delete' AND type='P')
+IF OBJECT_ID(N'dbo.[classname]_Delete') IS NOT NULL
 	DROP PROCEDURE [classname]_Delete
 go
 CREATE PROCEDURE dbo.[classname]_Delete
@@ -66,92 +48,3 @@ BEGIN
 	  FROM [tablename]
 	 WHERE [primarykey] = @[primarykey]
 END
-
-go
-
-IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Count' AND type='P')
-	DROP PROCEDURE [classname]_Count
-
-go
-
-CREATE PROCEDURE dbo.[classname]_Count
-	[filterparameters],
-	@Count int = NULL OUTPUT
-AS
-BEGIN
-	SELECT @Count = COUNT(*)
-	  FROM [tablename]
-	 WHERE [filterconditions]
-END
-
-go
-
-IF EXISTS(SELECT id FROM sysobjects WHERE name='[classname]_Filter' AND type='P')
-	DROP PROCEDURE [classname]_Filter
-
-go
-
-CREATE PROCEDURE dbo.[classname]_Filter
-	[filterparameters],
-	@OrderByFieldName nvarchar(150) = null,
-	@OrderDirection bit = 1,
-	@ResultsPerPage int = null,
-	@PageNumber int = 1,
-	@TotalResults int = 0 OUTPUT
-AS
-BEGIN
-	IF @ResultsPerPage IS NULL OR @PageNumber IS NULL
-	BEGIN
-		IF @OrderDirection = 1
-			SELECT *
-			  FROM [tablename]
-			 WHERE [filterconditions]
-		  ORDER BY CASE @OrderByFieldName
-				[filterorderbyclause]
-				ELSE NULL
-			END ASC
-		ELSE
-			SELECT *
-			  FROM [tablename]
-			 WHERE [filterconditions]
-		  ORDER BY CASE @OrderByFieldName
-				[filterorderbyclause]
-				ELSE NULL
-			END DESC
-	END
-	ELSE
-	BEGIN
-		CREATE TABLE #ids (n int unique identity, id [primarykeytype])
-		IF @OrderDirection = 1
-			INSERT INTO #ids (id)
-			SELECT [primarykey]
-			  FROM [tablename]
-			 WHERE [filterconditions]
-		  ORDER BY CASE @OrderByFieldName
-				[filterorderbyclause]
-				ELSE NULL
-			END ASC
-		ELSE
-			INSERT INTO #ids (id)
-			SELECT [primarykey]
-			  FROM [tablename]
-			 WHERE [filterconditions]
-		  ORDER BY CASE @OrderByFieldName
-				[filterorderbyclause]
-				ELSE NULL
-			END DESC
-		
-		 SELECT @TotalResults = COUNT(*) FROM #ids
-		 DECLARE @firstRecord int, @lastRecord int
-		 SET @firstRecord = (@PageNumber-1) * @ResultsPerPage + 1
-		 SET @lastRecord = @firstRecord + @ResultsPerPage - 1
-		 
-		 SELECT r.*
-		   FROM #ids i
-	  LEFT JOIN [tablename] r
-			 ON i.id = r.[primarykey]
-		  WHERE i.n BETWEEN @firstRecord AND @lastRecord
-	END
-END
-
-go
