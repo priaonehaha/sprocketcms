@@ -4,14 +4,17 @@
 		<title>script test</title>
 	</head>
 	<body>
+	{? if headsortails "heads" show }
 	<h2>2 and 3 ? {? show 2 and 3 }</h2>
 	<h2>0 and 3 ? {? show 0 and 3 }</h2>
 	<h2>2 and 0 ? {? show 2 and 0 }</h2>
 	<h2>0 and 0 ? {? show 0 and 0 }</h2>
+	{? end }
 	<h2>true and false ? {? show true and false }</h2>
 	<h2>false and true? {? show false and true }</h2>
 	<h2>false and false ? {? show false and false }</h2>
 	<h2>true and true ? {? show true and true }</h2>
+	{? end }
 	<h2>2+3 and 2+4-6 ? {? show 2+3 and 2+4-6 }</h2>
 	<h2>2+3 and 2+4 ? {? show 2+3 and 2+4 }</h2>
 	<h2>"hello" and "goodbye" ? {? show "hello" and "goodbye" }</h2>

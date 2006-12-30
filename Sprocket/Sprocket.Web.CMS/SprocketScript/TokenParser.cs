@@ -97,7 +97,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			}
 
 			// find the relevant creator/processor for the instruction
-			if (token.TokenType == TokenType.Word)
+			if (token.TokenType == TokenType.Word || token.TokenType == TokenType.Symbolic)
 			{
 				if (instructionCreators.ContainsKey(token.Value))
 				{

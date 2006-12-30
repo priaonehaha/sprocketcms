@@ -149,6 +149,11 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 				bool oValue = !(o.Equals(0m) || o.Equals(null) || o.Equals("") || o.Equals(false));
 				return value == oValue;
 			}
+
+			public override string ToString()
+			{
+				return value.ToString();
+			}
 		}
 
 		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)

@@ -81,6 +81,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 				case '^':
 				case '&':
 				case ':':
+				case '?':
 					return true;
 
 				default:
@@ -249,6 +250,11 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		public static bool IsEnd(Token token)
 		{
 			return token.Value == "end";
+		}
+
+		public static bool IsElse(Token token)
+		{
+			return token.value == "else";
 		}
 
 		public override string ToString()
