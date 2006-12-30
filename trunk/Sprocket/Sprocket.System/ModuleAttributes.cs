@@ -1,6 +1,6 @@
 using System;
 
-namespace Sprocket.SystemBase
+namespace Sprocket
 {
 	/// <summary>
 	/// Specifies that this ISprocketModule implementation contains code that relies
@@ -10,19 +10,50 @@ namespace Sprocket.SystemBase
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple=true, Inherited=false)]
 	public class ModuleDependencyAttribute : Attribute
 	{
-		private string regCode;
+		private Type moduleType;
 		/// <summary>
 		/// Constructs the attribute.
 		/// </summary>
-		/// <param name="moduleRegistrationCode">The registration code of the ISprocketModule implementation that this implementation relies upon.</param>
-		public ModuleDependencyAttribute(string moduleRegistrationCode)
+		/// <param name="moduleNamespace">The registration code of the ISprocketModule implementation that this implementation relies upon.</param>
+		public ModuleDependencyAttribute(Type moduleType)
 		{
-			regCode = moduleRegistrationCode;
+			this.moduleType = moduleType;
 		}
 
-		public string Value
+		public Type ModuleType
 		{
-			get { return regCode; }
+			get { return moduleType; }
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+	public class ModuleDescriptionAttribute : Attribute
+	{
+		private string description;
+
+		public string Description
+		{
+			get { return description; }
+		}
+
+		public ModuleDescriptionAttribute(string description)
+		{
+			this.description = description;
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+	public class ModuleTitleAttribute : Attribute
+	{
+		private string title;
+		public string Title
+		{
+			get { return title; }
+		}
+
+		public ModuleTitleAttribute(string title)
+		{
+			this.title = title;
 		}
 	}
 }

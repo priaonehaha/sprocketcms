@@ -7,13 +7,14 @@ using System.Diagnostics;
 using Sprocket.Web.CMS.Pages;
 using Sprocket;
 using Sprocket.Data;
-using Sprocket.SystemBase;
+using Sprocket;
 using Sprocket.Utility;
 
 namespace Sprocket.Web.Merchant.PayPal
 {
 	[ModuleDependency("WebEvents")]
 	[ModuleDependency("SprocketSettings")]
+	[ModuleDescription("Encapsulates PayPal features and merchant facilities")]
 	public sealed class PayPal : ISprocketModule, IDataHandlerModule
 	{
 		public event NotificationEventHandler<PayPalTransactionResponse> OnTransactionResponse;
@@ -167,28 +168,14 @@ namespace Sprocket.Web.Merchant.PayPal
 			get { return "PayPal Module"; }
 		}
 
-		public string ShortDescription
-		{
-			get { return "Encapsulates PayPal features and merchant facilities"; }
-		}
-
 		#endregion
 
 		#region IDataHandlerModule Members
 
-		public void ExecuteDataScripts(DatabaseEngine engine)
+		public void ExecuteDataScripts()
 		{
 			((SqlDatabase)Database.Main).ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Web.Merchant.PayPal.Database.tables.sql"));
 			((SqlDatabase)Database.Main).ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Web.Merchant.PayPal.Database.procs.sql"));
-		}
-
-		public void DeleteDatabaseStructure(DatabaseEngine engine)
-		{
-		}
-
-		public bool SupportsDatabaseEngine(DatabaseEngine engine)
-		{
-			return engine == DatabaseEngine.SqlServer;
 		}
 
 		#endregion
