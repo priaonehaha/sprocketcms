@@ -40,6 +40,9 @@
   <ItemGroup>
     <Compile Include="Admin\Admin.cs" />
     <Compile Include="Admin\AdminInterfaceSections.cs" />
+    <Compile Include="Content\ContentManager.cs" />
+    <Compile Include="Content\PageEntry.cs" />
+    <Compile Include="Content\Template.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\NamePlaceHolderRenderer.cs" />
     <Compile Include="Pages\GeneralRegistry.cs" />
     <Compile Include="Pages\IOutputFormatter.cs" />
