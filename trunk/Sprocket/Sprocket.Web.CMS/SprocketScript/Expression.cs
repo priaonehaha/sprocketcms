@@ -30,10 +30,103 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		IBinaryExpression Create();
 	}
 
-	public interface IFilteredExpression : IExpression
+	public interface IFilterExpression : IExpression
 	{
+		object Evaluate(IExpression expr, ExecutionState state);
 	}
 
+	public interface IFilterExpressionCreator
+	{
+		string Keyword { get; }
+		IFilterExpression Create();
+	}
+
+	#region BinaryExpression (abstract)
+	public abstract class BinaryExpression : IBinaryExpression
+	{
+		private static Stack<IExpression> stack = new Stack<IExpression>();
+		public static Stack<IExpression> Stack
+		{
+			get { return stack; }
+		}
+
+		private IExpression left = null;
+		private IExpression right = null;
+
+		public IExpression Right
+		{
+			get { return right; }
+			protected set { right = value; }
+		}
+
+		public IExpression Left
+		{
+			get { return left; }
+			set { left = value; }
+		}
+
+		public object Evaluate(ExecutionState state)
+		{
+			return Evaluate(left, right, state);
+		}
+
+		protected abstract object Evaluate(IExpression left, IExpression right, ExecutionState state);
+		public abstract int Precedence { get; }
+		protected Token token = null;
+
+		public virtual void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+			token = tokens[index - 1];
+			right = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
+		}
+
+		public static class PrecedenceValues
+		{
+			public const int Multiplication = -100;
+			public const int Division = -100;
+			public const int Addition = -50;
+			public const int Subtraction = -50;
+			public const int Using = -20;
+			public const int BooleanOperation = -25;
+			public const int EqualTo = 0;
+			public const int NotEqualTo = 0;
+		}
+
+		public override string ToString()
+		{
+			return "{BinaryExpression: [" + left + " " + token.Value + " " + right + "] }";
+		}
+	}
+	#endregion
+
+	#region UsingExpression
+
+	public class UsingExpression : BinaryExpression
+	{
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.Using; } }
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			return ((IFilterExpression)right).Evaluate(left, state);
+		}
+		public override void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+			token = tokens[index - 1];
+			Right = TokenParser.BuildFilterExpression(tokens, ref index, precedenceStack);
+			if (!(Right is IFilterExpression))
+				throw new TokenParserException("I can't do this because the right side doesn't have the ability to generate a value using the left side as input.", token);
+		}
+	}
+
+	public class UsingExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return "using"; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.Using; } }
+		public IBinaryExpression Create() { return new UsingExpression(); }
+	}
+
+	#endregion
+
+	#region number string not true/false
 	#region NumericExpression
 	public class NumericExpression : IExpression
 	{
@@ -186,63 +279,9 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		public IExpression Create() { return new BooleanExpression(); }
 	}
 	#endregion
-
-	#region BinaryExpression (abstract)
-	public abstract class BinaryExpression : IBinaryExpression
-	{
-		private static Stack<IExpression> stack = new Stack<IExpression>();
-		public static Stack<IExpression> Stack
-		{
-			get { return stack; }
-		}
-
-		private IExpression left = null;
-		private IExpression right = null;
-
-		public IExpression Right
-		{
-			get { return right; }
-			protected set { right = value; }
-		}
-
-		public IExpression Left
-		{
-			get { return left; }
-			set { left = value; }
-		}
-
-		public object Evaluate(ExecutionState state)
-		{
-			return Evaluate(left, right, state);
-		}
-
-		protected abstract object Evaluate(IExpression left, IExpression right, ExecutionState state);
-		public abstract int Precedence { get; }
-		protected Token token = null;
-
-		public virtual void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
-		{
-			token = tokens[index - 1];
-			right = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
-		}
-
-		public static class PrecedenceValues
-		{
-			public const int Multiplication = -100;
-			public const int Division = -100;
-			public const int Addition = -50;
-			public const int Subtraction = -50;
-			public const int BooleanOperation = -25;
-			public const int EqualTo = 0;
-			public const int NotEqualTo = 0;
-		}
-
-		public override string ToString()
-		{
-			return "{BinaryExpression: [" + left + " " + token.Value + " " + right + "] }";
-		}
-	}
 	#endregion
+
+	#region and or > >= < <= = !=
 
 	#region AndExpression
 	public class AndExpression : BinaryExpression
@@ -271,6 +310,36 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		public string Keyword { get { return "&&"; } }
 		public int Precedence { get { return BinaryExpression.PrecedenceValues.BooleanOperation; } }
 		public IBinaryExpression Create() { return new AndExpression(); }
+	}
+	#endregion
+
+	#region OrExpression
+	public class OrExpression : BinaryExpression
+	{
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			if (!(left is BooleanExpression))
+				left = new BooleanExpression(left);
+			if (!(right is BooleanExpression))
+				right = new BooleanExpression(right);
+			return left.Evaluate(state).Equals(true) && right.Evaluate(state).Equals(true);
+		}
+
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.BooleanOperation; } }
+	}
+
+	public class OrExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return "or"; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.BooleanOperation; } }
+		public IBinaryExpression Create() { return new OrExpression(); }
+	}
+
+	public class OrExpressionCreator2 : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return "||"; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.BooleanOperation; } }
+		public IBinaryExpression Create() { return new OrExpression(); }
 	}
 	#endregion
 
@@ -336,58 +405,93 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 	}
 	#endregion
 
-	//public class GreaterThanExpression : BinaryExpression
-	//{
-	//    protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
-	//    {
-	//        object b = right.Evaluate(state);
-	//        object a = left.Evaluate(state);
-	//        if (a is IComparable && b is IComparable)
-	//            return ((IComparable)a).CompareTo(b) > 0;
-	//        else
-	//            return null;
-	//    }
-	//}
+	#region GreaterThanExpression
+	public class GreaterThanExpression : BinaryExpression
+	{
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			object b = right.Evaluate(state);
+			object a = left.Evaluate(state);
+			if (a is IComparable && b is IComparable)
+				return ((IComparable)a).CompareTo(b) > 0;
+			throw new InstructionExecutionException("I can't check if the first thing is greater than the second thing because they're not really comparable in that way.", token);
+		}
+	}
+	public class GreaterThanExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return ">"; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		public IBinaryExpression Create() { return new GreaterThanExpression(); }
+	}
+	#endregion
 
-	//public class GreaterThanOrEqualToExpression : BinaryExpression
-	//{
-	//    protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
-	//    {
-	//        object b = right.Evaluate(state);
-	//        object a = left.Evaluate(state);
-	//        if (a is IComparable && b is IComparable)
-	//            return ((IComparable)a).CompareTo(b) >= 0;
-	//        else
-	//            return null;
-	//    }
-	//}
+	#region GreaterThanOrEqualToExpression
+	public class GreaterThanOrEqualToExpression : BinaryExpression
+	{
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			object b = right.Evaluate(state);
+			object a = left.Evaluate(state);
+			if (a is IComparable && b is IComparable)
+				return ((IComparable)a).CompareTo(b) >= 0;
+			throw new InstructionExecutionException("I can't check if the first thing is greater than the second thing because they're not really comparable in that way.", token);
+		}
+	}
+	public class GreaterThanOrEqualToExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return ">="; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		public IBinaryExpression Create() { return new GreaterThanOrEqualToExpression(); }
+	}
+	#endregion
 
-	//public class LessThanExpression : BinaryExpression
-	//{
-	//    protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
-	//    {
-	//        object b = right.Evaluate(state);
-	//        object a = left.Evaluate(state);
-	//        if (a is IComparable && b is IComparable)
-	//            return ((IComparable)a).CompareTo(b) < 0;
-	//        else
-	//            return null;
-	//    }
-	//}
+	#region LessThanExpression
+	public class LessThanExpression : BinaryExpression
+	{
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			object b = right.Evaluate(state);
+			object a = left.Evaluate(state);
+			if (a is IComparable && b is IComparable)
+				return ((IComparable)a).CompareTo(b) < 0;
+			throw new InstructionExecutionException("I can't check if the first thing is less than or equal to the second thing because they're not really comparable in that way.", token);
+		}
+	}
+	public class LessThanExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return "<"; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		public IBinaryExpression Create() { return new LessThanExpression(); }
+	}
+	#endregion
 
-	//public class LessThanOrEqualToExpression : BinaryExpression
-	//{
-	//    protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
-	//    {
-	//        object b = right.Evaluate(state);
-	//        object a = left.Evaluate(state);
-	//        if (a is IComparable && b is IComparable)
-	//            return ((IComparable)a).CompareTo(b) <= 0;
-	//        else
-	//            return null;
-	//    }
-	//}
+	#region LessThanOrEqualToExpression
+	public class LessThanOrEqualToExpression : BinaryExpression
+	{
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			object b = right.Evaluate(state);
+			object a = left.Evaluate(state);
+			if (a is IComparable && b is IComparable)
+				return ((IComparable)a).CompareTo(b) <= 0;
+			throw new InstructionExecutionException("I can't check if the first thing is less than or equal to the second thing because they're not really comparable in that way.", token);
+		}
+	}
+	public class LessThanOrEqualToExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return "<="; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		public IBinaryExpression Create() { return new LessThanOrEqualToExpression(); }
+	}
+	#endregion
 
+	#endregion
+
+	#region + - * /
 	#region AdditionExpression
 	public class AdditionExpression : BinaryExpression
 	{
@@ -579,5 +683,6 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			return new DivisionExpression();
 		}
 	}
+	#endregion
 	#endregion
 }
