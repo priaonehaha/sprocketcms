@@ -29,9 +29,10 @@ namespace Sprocket.Web.CMS.Pages
 
 		private void Init()
 		{
+			listsDocPath = WebUtility.MapPath("resources/definitions/lists.xml");
 			if (!File.Exists(listsDocPath))
 				return;
-			listsDocPath = WebUtility.MapPath("resources/definitions/lists.xml");
+
 			listsDoc = new XmlDocument();
 			listsDoc.Load(listsDocPath);
 			lists = new Dictionary<string, ListDefinition>();

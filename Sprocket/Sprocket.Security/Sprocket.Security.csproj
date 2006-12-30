@@ -98,7 +98,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
       <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
-      <Name>Sprocket</Name>
+      <Name>Sprocket %28Sprocket\Sprocket%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Sprocket.Web.CMS\Sprocket.Web.CMS.csproj">
       <Project>{8BE3F644-9B56-4D93-9FE8-797CE35061AE}</Project>

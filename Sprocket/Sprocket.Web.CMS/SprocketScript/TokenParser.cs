@@ -41,12 +41,14 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		private static Dictionary<string, IInstructionCreator> instructionCreators;
 		private static Dictionary<string, IBinaryExpressionCreator> binaryExpressionCreators;
 		private static Dictionary<string, IExpressionCreator> expressionCreators;
+		private static Dictionary<string, IFilterExpressionCreator> filterExpressionCreators;
 
 		static TokenParser()
 		{
 			instructionCreators = new Dictionary<string, IInstructionCreator>();
 			binaryExpressionCreators = new Dictionary<string, IBinaryExpressionCreator>();
 			expressionCreators = new Dictionary<string, IExpressionCreator>();
+			filterExpressionCreators = new Dictionary<string, IFilterExpressionCreator>();
 
 			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(IInstructionCreator)))
 			{
@@ -64,6 +66,12 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			{
 				IExpressionCreator xc = (IExpressionCreator)Activator.CreateInstance(t);
 				expressionCreators.Add(xc.Keyword.ToLower(), xc);
+			}
+
+			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(IFilterExpressionCreator)))
+			{
+				IFilterExpressionCreator fxc = (IFilterExpressionCreator)Activator.CreateInstance(t);
+				filterExpressionCreators.Add(fxc.Keyword.ToLower(), fxc);
 			}
 		}
 
@@ -224,6 +232,21 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			if (thanPrecedence == null) // previous check must come before this one or we'll get a default true even if the operator (e.g. "@") isn't defined as a standard binary expression
 				return true;
 			return binaryExpressionCreators[token.Value].Precedence < thanPrecedence.Value;
+		}
+
+		internal static IFilterExpression BuildFilterExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+			Token token = tokens[index++];
+			if (token.TokenType == TokenType.Word)
+			{
+				if (filterExpressionCreators.ContainsKey(token.Value))
+				{
+					IFilterExpression fx = filterExpressionCreators[token.Value].Create();
+					fx.BuildExpression(tokens, ref index, precedenceStack);
+					return fx;
+				}
+			}
+			throw new InstructionExecutionException("I was expecting something here that can take the value on the left and change the way it looks. \"" + token.Value + "\" doesn't have that capability.", token);
 		}
 	}
 }
