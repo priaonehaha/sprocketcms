@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Sprocket.Web.CMS.SprocketScript.Parser;
+using Sprocket.Web.CMS.Script.Parser;
 
-namespace Sprocket.Web.CMS.SprocketScript
+namespace Sprocket.Web.CMS.Script
 {
 	public interface IFunction
 	{
