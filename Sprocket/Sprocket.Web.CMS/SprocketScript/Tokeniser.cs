@@ -80,6 +80,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 				case '%':
 				case '^':
 				case '&':
+				case ':':
 					return true;
 
 				default:
@@ -153,7 +154,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 		{
 			int start = index;
 			index++;
-			while (char.IsLetterOrDigit(source[index]) || source[index] == '_')
+			while (char.IsLetterOrDigit(source[index]) || source[index] == '_' || source[index] == '\'')
 			{
 				index++;
 				if (index == source.Length)

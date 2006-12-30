@@ -40,10 +40,13 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 	{
 		private static Dictionary<string, IInstructionCreator> instructionCreators;
 		private static Dictionary<string, IBinaryExpressionCreator> binaryExpressionCreators;
+		private static Dictionary<string, IExpressionCreator> expressionCreators;
+
 		static TokenParser()
 		{
 			instructionCreators = new Dictionary<string, IInstructionCreator>();
 			binaryExpressionCreators = new Dictionary<string, IBinaryExpressionCreator>();
+			expressionCreators = new Dictionary<string, IExpressionCreator>();
 
 			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(IInstructionCreator)))
 			{
@@ -55,6 +58,12 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			{
 				IBinaryExpressionCreator bxc = (IBinaryExpressionCreator)Activator.CreateInstance(t);
 				binaryExpressionCreators.Add(bxc.Keyword.ToLower(), bxc);
+			}
+
+			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(IExpressionCreator)))
+			{
+				IExpressionCreator xc = (IExpressionCreator)Activator.CreateInstance(t);
+				expressionCreators.Add(xc.Keyword.ToLower(), xc);
 			}
 		}
 
@@ -99,7 +108,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 				}
 			}
 
-			throw new TokenParserException("I expected an instruction but got \"" + token.Value + "\", which I don't know what to do with.", token);
+			throw new TokenParserException("I have no idea what \"" + token.Value + "\" means or at least what I'm supposed to do with it here.", token);
 		}
 
 		public static IExpression BuildExpression(List<Token> tokens, ref int index)
@@ -123,11 +132,18 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 					expr = BuildSingularExpression(tokens, ref index);
 					break;
 
+				case TokenType.Word:
+					if (token.Value == "true" || token.Value == "false")
+					{
+						expr = new BooleanExpression();
+						expr.BuildExpression(tokens, ref index, precedenceStack);
+					}
+					else
+						expr = BuildWordExpression(tokens, ref index, precedenceStack);
+					break;
+
 				//case TokenType.GroupStart:
 				//    expr = BuildGroupedExpression(tokens, ref index);
-				//    break;
-
-				//case TokenType.Word:
 				//    break;
 
 				default:
@@ -136,10 +152,8 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 
 			int? precedence = precedenceStack.Peek();
 			while (NextHasGreaterPrecedence(precedence, tokens, index))
-			{
 				expr = BuildBinaryExpression(tokens, ref index, expr, precedenceStack);
-//				precedence = ((IBinaryExpression)expr).Precedence;
-			}
+
 			return expr;
 		}
 
@@ -168,7 +182,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 					break;
 			}
 
-			expr.Build(tokens, ref index, precedenceStack);
+			expr.BuildExpression(tokens, ref index, precedenceStack);
 			return expr;
 		}
 
@@ -177,13 +191,23 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 			return null;
 		}
 
+		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+			Token token = tokens[index++];
+			if (!expressionCreators.ContainsKey(token.Value))
+				throw new TokenParserException("I can't complete the calculations because \"" + token.Value + "\" doesn't equate to anything I can use in this situation.", token);
+			IExpression expr = expressionCreators[token.Value].Create();
+			expr.BuildExpression(tokens, ref index, precedenceStack);
+			return expr;
+		}
+
 		public static IExpression BuildBinaryExpression(List<Token> tokens, ref int index, IExpression leftExpr, Stack<int?> precedenceStack)
 		{
 			IBinaryExpressionCreator bxc = binaryExpressionCreators[tokens[index++].Value];
 			IBinaryExpression bx = bxc.Create();
 			bx.Left = leftExpr;
 			precedenceStack.Push(bx.Precedence);
-			bx.Build(tokens, ref index, precedenceStack);
+			bx.BuildExpression(tokens, ref index, precedenceStack);
 			precedenceStack.Pop();
 			return bx;
 		}
@@ -197,7 +221,7 @@ namespace Sprocket.Web.CMS.SprocketScript.Parser
 				return false;
 			if (!binaryExpressionCreators.ContainsKey(token.Value))
 				return false;
-			if (thanPrecedence == null)
+			if (thanPrecedence == null) // previous check must come before this one or we'll get a default true even if the operator (e.g. "@") isn't defined as a standard binary expression
 				return true;
 			return binaryExpressionCreators[token.Value].Precedence < thanPrecedence.Value;
 		}
