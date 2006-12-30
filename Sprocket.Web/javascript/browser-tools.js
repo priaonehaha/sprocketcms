@@ -27,13 +27,14 @@ FirefoxResizeEventHandler = {
 	Init : function() {
 		if(!Browser.IsFirefox) return;
 		this.interval = setInterval( function() { FirefoxResizeEventHandler.Fire(); }, 100 );
+		window.addEventListener('onfocus', function() { FirefoxResizeEventHandler.Fire(true); }, false);
 	},
-	Fire : function() {
+	Fire : function(force) {
 		for(var i=0; i<this.elements.length; i++) {
 			var element = this.elements[i];
 			if(!element.onresize || element.parentNode == null) continue;
 			if(typeof(element.onresize) != 'function') continue;
-			if(element.clientWidth != element.oldWidth || element.clientHeight != element.oldHeight) {
+			if(element.clientWidth != element.oldWidth || element.clientHeight != element.oldHeight || force) {
 				element.oldWidth = element.clientWidth;
 				element.oldHeight = element.clientHeight;
 				element.onresize();

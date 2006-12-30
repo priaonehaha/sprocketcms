@@ -158,7 +158,13 @@ SprocketAjax = {
 				}
 				if(response)
 					if(response.__error) {
-						SprocketAjax.DefaultCallback(response);
+						if(response.__error.toLowerCase().indexOf('authentication failed') > -1) {
+							if(SprocketAjax.authfailed)
+								return;
+							SprocketAjax.authfailed = true;
+							SprocketAjax.AuthenticationFailed(response.__error);
+						} else
+							SprocketAjax.DefaultCallback(response);
 						return;
 					}
 				var call;
@@ -191,6 +197,11 @@ SprocketAjax = {
 		
 		// send the data asyncronously to the server and return control to calling object
 		req.send(JSON.stringify(data));
+	},
+	
+	authfailed : false,
+	AuthenticationFailed : function(error) {
+		alert(error);
 	},
 	
 	// This is the default callback method used when none is specified.
