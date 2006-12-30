@@ -44,7 +44,7 @@ namespace Sprocket.Web.Merchant.PayPal
 				return null;
 			recentIDs.Enqueue(resp.Txn_id);
 			try { resp.Save(); }
-			catch { } // thrown usually on duplicate id, which we try to avoid via the queue above (less hits to database)
+			catch(Exception e) { } // thrown usually on duplicate id, which we try to avoid via the queue above (less hits to database)
 			return resp;
 		}
 
