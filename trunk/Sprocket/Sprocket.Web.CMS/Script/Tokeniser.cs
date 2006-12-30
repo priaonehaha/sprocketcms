@@ -53,14 +53,18 @@ namespace Sprocket.Web.CMS.Script.Parser
 					}
 					catch (TokeniserException ex)
 					{
-						int start = Math.Max(ex.Position - 100, 0);
-						string err = Environment.NewLine
-							+ "ERROR PARSING SPROCKETSCRIPT\r\n"
-							+ "Position " + ex.Position + ": " + ex.Message + Environment.NewLine
-							+ "Source: " + ex.ScriptSource.Substring(start, ex.Position - start) + "[ERROR CODE...]\r\n\r\n";
-						tokens.Clear();
-						tokens.Add(new Token(err, TokenType.StringLiteral, 0));
-						return tokens;
+						ex.Position += match.Groups["expr"].Index;
+						throw ex;
+						//int start = Math.Max(ex.Position - 100, 0);
+						//string err = Environment.NewLine
+						//    + "ERROR PARSING SPROCKETSCRIPT\r\n"
+						//    + "Position " + ex.Position + ": " + ex.Message + Environment.NewLine
+						//    + "Source: " + ex.ScriptSource.Substring(start, ex.Position - start) + "[ERROR CODE...]\r\n\r\n";
+						//tokens.Clear();
+						//Token token = new Token(err, TokenType.StringLiteral, 0);
+						//token.IsNonScriptText = true;
+						//tokens.Add(token);
+						//return tokens;
 					}
 				}
 				if (previousMatchEndPosition < source.Length)
@@ -93,6 +97,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 				case '^':
 				case '&':
 				case ':':
+				case ';':
 				case '?':
 					return true;
 
@@ -268,7 +273,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public static bool IsEnd(Token token)
 		{
-			return token.Value == "end";
+			return token.Value == "end" || token.value == ";";
 		}
 
 		public static bool IsElse(Token token)
@@ -306,6 +311,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public int Position
 		{
 			get { return position; }
+			internal set { position = value; }
 		}
 
 		public TokeniserException(string message, int position, string source)

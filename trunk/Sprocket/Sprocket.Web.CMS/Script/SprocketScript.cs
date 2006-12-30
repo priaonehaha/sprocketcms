@@ -11,12 +11,42 @@ namespace Sprocket.Web.CMS.Script
 	{
 		private IInstruction instruction;
 		private string source, name;
+		bool hasError = false;
+		
+		public bool HasParseError
+		{
+			get { return hasError; }
+			set { hasError = value; }
+		}
+
+		public string Source
+		{
+			get { return source; }
+		}
 
 		public SprocketScript(string source, string name)
 		{
 			this.source = source;
 			this.name = name;
-			List<Token> tokens = Tokeniser.Extract(source);
+
+			List<Token> tokens;
+			try
+			{
+				tokens = Tokeniser.Extract(source);
+			}
+			catch (TokeniserException ex)
+			{
+				Token falseToken = new Token(source.Substring(ex.Position, 1), TokenType.StringLiteral, ex.Position);
+				tokens = new List<Token>();
+				Token token = new Token(GetErrorHTML(ex.Message, falseToken, null), TokenType.StringLiteral, 0);
+				token.IsNonScriptText = true;
+				tokens.Add(token);
+				instruction = new ShowInstruction();
+				int n = 0;
+				instruction.Build(tokens, ref n);
+				hasError = true;
+			}
+
 			try
 			{
 				instruction = TokenParser.BuildInstruction(tokens);
@@ -24,16 +54,20 @@ namespace Sprocket.Web.CMS.Script
 			catch (TokenParserException ex)
 			{
 				tokens.Clear();
-				tokens.Add(new Token(GetErrorHTML(ex.Message, ex.Token, null), TokenType.StringLiteral, 0));
+				Token token = new Token(GetErrorHTML(ex.Message, ex.Token, null), TokenType.StringLiteral, 0);
+				token.IsNonScriptText = true;
+				tokens.Add(token);
 				instruction = new ShowInstruction();
 				int n = 0;
 				instruction.Build(tokens, ref n);
+				hasError = true;
 			}
 		}
 
 		string GetErrorHTML(string message, Token token, ExecutionState state)
 		{
 			int start = Math.Max(token.Position - 150, 0);
+			string source = state == null ? Source : state.ExecutingScript.Peek().Source;
 			string code = source.Substring(start, token.Position - start);
 			string prefix = "", suffix = "";
 			int start2 = start + code.Length + token.Value.Length;
@@ -51,7 +85,7 @@ namespace Sprocket.Web.CMS.Script
 				{
 					if (names.Length > 0)
 						names = " &gt; " + names;
-					names += state.ScriptNameStack.Pop();
+					names = state.ScriptNameStack.Pop() + names;
 				}
 			}
 			return "<style>body{font-family:verdana;font-size:8pt;}</style>"
@@ -82,6 +116,8 @@ namespace Sprocket.Web.CMS.Script
 			MemoryStream stream = new MemoryStream();
 			ExecutionState state = new ExecutionState(stream);
 			state.ScriptNameStack.Push(name);
+			state.ExecutingScript.Push(this);
+			state.SectionOverrides = sectionOverrides;
 			try
 			{
 				instruction.Execute(state);
@@ -98,12 +134,14 @@ namespace Sprocket.Web.CMS.Script
 		internal void Execute(ExecutionState state)
 		{
 			state.ScriptNameStack.Push(name);
+			state.ExecutingScript.Push(this);
 			Dictionary<string, SprocketScript> preservedOverrides = state.SectionOverrides;
 			state.SectionOverrides = sectionOverrides;
 
 			instruction.Execute(state);
 			
 			state.ScriptNameStack.Pop();
+			state.ExecutingScript.Pop();
 			state.SectionOverrides = preservedOverrides;
 		}
 	}

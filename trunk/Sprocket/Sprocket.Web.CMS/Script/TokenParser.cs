@@ -29,6 +29,12 @@ namespace Sprocket.Web.CMS.Script.Parser
 			get { return scriptNameStack; }
 		}
 
+		private Stack<SprocketScript> executingScript = new Stack<SprocketScript>();
+		public Stack<SprocketScript> ExecutingScript
+		{
+			get { return executingScript; }
+		}
+
 		private StreamWriter output;
 		public StreamWriter Output
 		{

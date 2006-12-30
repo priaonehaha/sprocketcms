@@ -42,6 +42,7 @@
     <Compile Include="Admin\AdminInterfaceSections.cs" />
     <Compile Include="Content\ContentManager.cs" />
     <Compile Include="Content\PageEntry.cs" />
+    <Compile Include="Content\RequestSpeedExpression.cs" />
     <Compile Include="Content\Template.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\NamePlaceHolderRenderer.cs" />
     <Compile Include="Pages\GeneralRegistry.cs" />
@@ -72,17 +73,14 @@
     <Compile Include="Pages\Template.cs" />
     <Compile Include="Pages\TemplateRegistry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SprocketScript\DateAndTime.cs" />
-    <Compile Include="SprocketScript\Expression.cs" />
-    <Compile Include="SprocketScript\Function.cs" />
-    <Compile Include="SprocketScript\Instruction.cs" />
-    <Compile Include="SprocketScript\ScriptTestModule.cs" />
-    <Compile Include="SprocketScript\SprocketScript.cs" />
-    <Compile Include="SprocketScript\Tokeniser.cs" />
-    <Compile Include="SprocketScript\TokenParser.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="SprocketScript\test.htm" />
+    <Compile Include="Script\DateAndTime.cs" />
+    <Compile Include="Script\Expression.cs" />
+    <Compile Include="Script\Function.cs" />
+    <Compile Include="Script\Instruction.cs" />
+    <Compile Include="Script\ScriptTestModule.cs" />
+    <Compile Include="Script\SprocketScript.cs" />
+    <Compile Include="Script\Tokeniser.cs" />
+    <Compile Include="Script\TokenParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
@@ -93,6 +91,9 @@
       <Project>{22980F70-9AB4-4F34-8BB9-D53C0E1818BB}</Project>
       <Name>Sprocket.Web.Controls</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Script\test.htm" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
