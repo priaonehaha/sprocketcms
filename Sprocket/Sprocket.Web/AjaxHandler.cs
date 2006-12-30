@@ -70,10 +70,15 @@ namespace Sprocket.Web
 
 		#endregion
 
-		private static Guid authKey = Guid.Empty;
 		public static Guid AuthKey
 		{
-			get { return authKey; }
+			set { CurrentRequest.Value["AuthKey"] = value; }
+			get
+			{
+				if(CurrentRequest.Value["AuthKey"] == null)
+					return Guid.Empty;
+				return (Guid)CurrentRequest.Value["AuthKey"];
+			}
 		}
 
 		/// <summary>
@@ -116,7 +121,7 @@ namespace Sprocket.Web
 
 				// extract the authentication key
 				if (data["AuthKey"].ToString() != WebAuthentication.AuthKeyPlaceholder)
-					authKey = new Guid(data["AuthKey"].ToString());
+					AjaxRequestHandler.AuthKey = new Guid(data["AuthKey"].ToString());
 
 				// extract the arguments
 				List<object> parsedArguments = (List<object>)data["MethodArgs"];

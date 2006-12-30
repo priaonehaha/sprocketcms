@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Web;
 
 using Sprocket.SystemBase;
@@ -14,9 +14,6 @@ namespace Sprocket.Web
 		public delegate void AjaxAuthKeyStoredHandler(string username, Guid authKey);
 		public event AjaxAuthKeyStoredHandler OnAjaxAuthKeyStored;
 
-		private Hashtable usersByKey = new Hashtable();
-		private Hashtable keysByUser = new Hashtable();
-
 		public static WebAuthentication Instance
 		{
 			get { return (WebAuthentication)SystemCore.Instance["WebAuthentication"]; }
@@ -26,7 +23,18 @@ namespace Sprocket.Web
 		{
 			if(registry.IsRegistered("WebClientScripts"))
 				WebClientScripts.Instance.OnBeforeRenderJavaScript += new Sprocket.Web.WebClientScripts.BeforeRenderJavaScriptHandler(OnPreRenderJavaScript);
+			AjaxRequestHandler.Instance.OnAjaxRequestAuthenticationCheck += new InterruptableEventHandler<System.Reflection.MethodInfo>(Instance_OnAjaxRequestAuthenticationCheck);
 			SprocketSettings.Instance.OnCheckingSettings += new SprocketSettings.CheckSettingsHandler(OnCheckingSprocketSettings);
+		}
+
+		void Instance_OnAjaxRequestAuthenticationCheck(System.Reflection.MethodInfo source, Result result)
+		{
+			if (!AllowSimultaneousLogins)
+				if (AjaxRequestHandler.AuthKey != GetAuthKey(CurrentUsername))
+				{
+					result.SetFailed("Authentication failed: your account details have been used to log in elsewhere. Please log in again.");
+					System.Diagnostics.Trace.WriteLine(CurrentUsername + " / AjaxRequestHandler.AuthKey: " + AjaxRequestHandler.AuthKey + "; GetAuthKey: " + GetAuthKey(CurrentUsername));
+				}
 		}
 
 		void OnCheckingSprocketSettings(SprocketSettings.SettingsErrors errors)
@@ -67,21 +75,21 @@ namespace Sprocket.Web
 
 		public bool CheckAjaxAuthKey(Guid key)
 		{
-			return usersByKey.ContainsKey(key);
+			return KeyToUser.ContainsKey(key);
 		}
 
 		public string GetUsername(Guid key)
 		{
-			if(!usersByKey.ContainsKey(key))
+			if(!KeyToUser.ContainsKey(key))
 				return "";
-			return usersByKey[key].ToString();
+			return KeyToUser[key].ToString();
 		}
 
-		public string GetAuthKey(string username)
+		public Guid? GetAuthKey(string username)
 		{
-			if(!keysByUser.ContainsKey(username))
-				return "";
-			return keysByUser[username].ToString();
+			if(!UserToKey.ContainsKey(username))
+				return null;
+			return UserToKey[username];
 		}
 
 		public bool IsValidLogin(string username, string passwordHash)
@@ -101,8 +109,17 @@ namespace Sprocket.Web
 			HttpCookie cookie = new HttpCookie("Sprocket_Persistent_Login");
 			cookie.Values.Add("a", username);
 			cookie.Values.Add("b", passwordHash);
-			cookie.Values.Add("c", Guid.NewGuid().ToString());
+			cookie.Values.Add("c", ajaxGuid.ToString());
 			cookie.Expires = DateTime.Now.AddMinutes(timeoutMinutes);
+			HttpContext.Current.Response.Cookies.Add(cookie);
+		}
+
+		public void UpdateAuthenticationCookieWithNewAuthKey()
+		{
+			HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
+			AjaxRequestHandler.AuthKey = StoreAjaxAuthKey(cookie["a"]);
+			cookie["c"] = AjaxRequestHandler.AuthKey.ToString();
+			cookie.Expires = DateTime.Now.AddYears(1);
 			HttpContext.Current.Response.Cookies.Add(cookie);
 		}
 
@@ -120,7 +137,12 @@ namespace Sprocket.Web
 				HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
 				if (cookie == null)
 					return false;
-				return IsValidLogin(cookie["a"], cookie["b"]);
+				if (IsValidLogin(cookie["a"], cookie["b"]))
+				{
+
+					return true;
+				}
+				return false;
 			}
 		}
 
@@ -149,21 +171,43 @@ namespace Sprocket.Web
 			QuickLogin(username, password, false);
 		}
 
-		public void QuickLogin(string username, string password, bool persistLogin)
+		public Guid QuickLogin(string username, string password, bool persistLogin)
 		{
-			WriteAuthenticationCookie(username, Crypto.EncryptOneWay(password), StoreAjaxAuthKey(username), persistLogin ? 525600 : 60);
+			Guid newAuthKey = StoreAjaxAuthKey(username);
+			WriteAuthenticationCookie(username, Crypto.EncryptOneWay(password), newAuthKey, persistLogin ? 525600 : 60);
+			return newAuthKey;
+		}
+
+		private Dictionary<Guid, string> KeyToUser
+		{
+			get
+			{
+				if (HttpContext.Current.Application["WebAuthentication_KeyToUser"] == null)
+					HttpContext.Current.Application["WebAuthentication_KeyToUser"] = new Dictionary<Guid, string>();
+				return (Dictionary<Guid, string>)HttpContext.Current.Application["WebAuthentication_KeyToUser"];
+			}
+		}
+
+		private Dictionary<string, Guid> UserToKey
+		{
+			get
+			{
+				if (HttpContext.Current.Application["WebAuthentication_UserToKey"] == null)
+					HttpContext.Current.Application["WebAuthentication_UserToKey"] = new Dictionary<string, Guid>();
+				return (Dictionary<string, Guid>)HttpContext.Current.Application["WebAuthentication_UserToKey"];
+			}
 		}
 
 		public Guid StoreAjaxAuthKey(string username)
 		{
 			Guid key = Guid.NewGuid(); //new unique key for the user
-			usersByKey.Add(key, username); //add the new key to the list
-			if(keysByUser.ContainsKey(username)) //if an existing login for this user exists, remove it
+			KeyToUser.Add(key, username); //add the new key to the list
+			if(UserToKey.ContainsKey(username)) //if an existing login for this user exists, remove it
 			{
-				usersByKey.Remove(keysByUser[username]); //only one login window at a time, please
-				keysByUser.Remove(username); //remove the old username-to-key mapping
+				KeyToUser.Remove(UserToKey[username]); //only one login window at a time, please
+				UserToKey.Remove(username); //remove the old username-to-key mapping
 			}
-			keysByUser.Add(username, key); //add a new username-to-key mapping
+			UserToKey.Add(username, key); //add a new username-to-key mapping
 
 			if(OnAjaxAuthKeyStored != null)
 				OnAjaxAuthKeyStored(username, key);
@@ -176,7 +220,7 @@ namespace Sprocket.Web
 			get
 			{
 				HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
-				if(cookie == null) return "";
+				if (cookie == null) return "";
 				return cookie["a"];
 			}
 		}

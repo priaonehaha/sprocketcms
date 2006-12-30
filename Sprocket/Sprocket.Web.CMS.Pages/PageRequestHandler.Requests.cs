@@ -47,6 +47,7 @@ namespace Sprocket.Web.CMS.Pages
 			placeHolderRenderers.Add("pageentry", new PageEntryPlaceHolderRenderer());
 			placeHolderRenderers.Add("path", new PathPlaceHolderRenderer());
 			placeHolderRenderers.Add("name", new NamePlaceHolderRenderer());
+			placeHolderRenderers.Add("template", new TemplatePlaceHolderRenderer());
 			if (OnRegisteringPlaceHolderRenderers != null)
 				OnRegisteringPlaceHolderRenderers(placeHolderRenderers);
 		}
@@ -117,7 +118,20 @@ namespace Sprocket.Web.CMS.Pages
 			newurl = WebUtility.BasePath + newurl.Substring(0, newurl.LastIndexOf('/') + 1) + pathSections[pathSections.Length - 1];
 			if (!File.Exists(HttpContext.Current.Server.MapPath(newurl)))
 				return;
-			HttpContext.Current.Response.TransmitFile(HttpContext.Current.Server.MapPath(newurl));
+			string file = HttpContext.Current.Server.MapPath(newurl);
+			switch (new FileInfo(file).Extension)
+			{
+				case ".jpg":
+					HttpContext.Current.Response.ContentType = "image/jpg";
+					break;
+				case ".gif":
+					HttpContext.Current.Response.ContentType = "image/gif";
+					break;
+				case ".png":
+					HttpContext.Current.Response.ContentType = "image/png";
+					break;
+			}
+			HttpContext.Current.Response.TransmitFile(file);
 			handled.Set();
 		}
 
