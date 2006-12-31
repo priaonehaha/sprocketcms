@@ -24,8 +24,56 @@ namespace Sprocket.Web.CMS.Content
 			public static DateTime LastXmlFileUpdate = DateTime.MinValue;
 			public static ContentManager.TemplateRegistry Templates = null;
 			public static ContentManager.PageRegistry Pages = null;
+			public static Stack<PageEntry> PageStack = new Stack<PageEntry>();
 		}
 
+		public static XmlDocument DefinitionsXml
+		{
+			get
+			{
+				lock (WebUtility.GetSyncObject("Sprocket.Web.CMS.Content.ContentManager.MainXml"))
+				{
+					if (Values.XmlPath == null)
+						Values.XmlPath = WebUtility.MapPath(Values.XmlSprocketPath);
+					if (!File.Exists(Values.XmlPath))
+						using (StreamWriter sw = new StreamWriter(Values.XmlPath))
+						{
+							sw.Write("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\r\n<Definitions>\r\n\t<Pages />\r\n\t<Templates />\r\n</Definitions>");
+							sw.Flush();
+							sw.Close();
+						}
+					if (new FileInfo(Values.XmlPath).LastWriteTime != Values.LastXmlFileUpdate || Values.MainXml == null)
+					{
+						Values.Templates = null;
+						Values.Pages = null;
+						Values.MainXml = new XmlDocument();
+						Values.MainXml.Load(Values.XmlPath);
+						Values.LastXmlFileUpdate = new FileInfo(Values.XmlPath).LastWriteTime;
+					}
+				}
+				return Values.MainXml;
+			}
+		}
+
+		#region Template and Page Registries
+		public static TemplateRegistry Templates
+		{
+			get
+			{
+				if (Values.Templates == null)
+					Values.Templates = new TemplateRegistry();
+				return Values.Templates;
+			}
+		}
+		public static PageRegistry Pages
+		{
+			get
+			{
+				if (Values.Pages == null)
+					Values.Pages = new PageRegistry();
+				return Values.Pages;
+			}
+		}
 		public class TemplateRegistry
 		{
 			Dictionary<string, XmlElement> templateXML = new Dictionary<string, XmlElement>();
@@ -240,54 +288,12 @@ namespace Sprocket.Web.CMS.Content
 				return FromPath(e.GetAttribute("Path"));
 			}
 		}
+		#endregion
 
-		public static XmlDocument DefinitionsXml
-		{
-			get
-			{
-				lock (WebUtility.GetSyncObject("Sprocket.Web.CMS.Content.ContentManager.MainXml"))
-				{
-					if (Values.XmlPath == null)
-						Values.XmlPath = WebUtility.MapPath(Values.XmlSprocketPath);
-					if (!File.Exists(Values.XmlPath))
-						using (StreamWriter sw = new StreamWriter(Values.XmlPath))
-						{
-							sw.Write("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\r\n<Definitions>\r\n\t<Pages />\r\n\t<Templates />\r\n</Definitions>");
-							sw.Flush();
-							sw.Close();
-						}
-					if (new FileInfo(Values.XmlPath).LastWriteTime != Values.LastXmlFileUpdate || Values.MainXml == null)
-					{
-						Values.Templates = null;
-						Values.Pages = null;
-						Values.MainXml = new XmlDocument();
-						Values.MainXml.Load(Values.XmlPath);
-						Values.LastXmlFileUpdate = new FileInfo(Values.XmlPath).LastWriteTime;
-					}
-				}
-				return Values.MainXml;
-			}
-		}
+		HttpRequest Request { get { return HttpContext.Current.Request; } }
+		HttpResponse Response { get { return HttpContext.Current.Response; } }
 
-		public static TemplateRegistry Templates
-		{
-			get
-			{
-				if (Values.Templates == null)
-					Values.Templates = new TemplateRegistry();
-				return Values.Templates;
-			}
-		}
-		public static PageRegistry Pages
-		{
-			get
-			{
-				if (Values.Pages == null)
-					Values.Pages = new PageRegistry();
-				return Values.Pages;
-			}
-		}
-
+		#region Module Event Handlers
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(WebEvents_OnBeginHttpRequest);
@@ -298,6 +304,7 @@ namespace Sprocket.Web.CMS.Content
 		void WebEvents_OnBeginHttpRequest(HttpApplication app, HandleFlag handled)
 		{
 			RequestSpeedExpression.Set();
+			Values.PageStack.Clear();
 		}
 
 		void WebEvents_OnPathNotFound(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
@@ -323,8 +330,6 @@ namespace Sprocket.Web.CMS.Content
 			#endregion
 		}
 
-		HttpRequest Request { get { return HttpContext.Current.Request; } }
-		HttpResponse Response { get { return HttpContext.Current.Response; } }
 		void WebEvents_OnLoadRequestedPath(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
 		{
 			if (handled.Handled) return;
@@ -339,5 +344,6 @@ namespace Sprocket.Web.CMS.Content
 			Response.Write(output);
 			handled.Set();
 		}
+		#endregion
 	}
 }
