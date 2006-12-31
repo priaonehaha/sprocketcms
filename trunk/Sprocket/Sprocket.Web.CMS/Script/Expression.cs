@@ -32,7 +32,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	public interface IFilterExpression : IExpression
 	{
-		object Evaluate(IExpression expr, ExecutionState state);
+		object Evaluate(IExpression inputExpr, ExecutionState state);
 	}
 
 	public interface IFilterExpressionCreator
