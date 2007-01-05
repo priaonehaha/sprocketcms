@@ -19,7 +19,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 			if (sprocketPath == "scripttest")
 			{
 				string html = Sprocket.Utility.ResourceLoader.LoadTextResource("Sprocket.Web.CMS.SprocketScript.test.htm");
-				SprocketScript script = new SprocketScript(html, "test.htm");
+				SprocketScript script = new SprocketScript(html, "test.htm", "test.htm");
 				HttpContext.Current.Response.ContentType = "text/html";
 				script.Execute(HttpContext.Current.Response.OutputStream);
 				//string test = script.Execute();

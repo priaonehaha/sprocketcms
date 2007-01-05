@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using Sprocket.Web;
+using Sprocket.Web.CMS.Script;
 
 namespace Sprocket.Web.CMS.Content
 {
@@ -64,6 +65,20 @@ namespace Sprocket.Web.CMS.Content
 
 		#endregion
 
+		public string Render(ExecutionState state)
+		{
+			string cachePath;
+			if (pageCode != null && pageCode != "")
+				cachePath = "$pagecode[" + PageCode + "]";
+			else
+				cachePath = path;
+
+			if (ContentCache.IsContentCached(cachePath))
+				return ContentCache.ReadCache(cachePath);
+			else
+				return Template.Script.ExecuteToResolveExpression(state);
+		}
+
 		public string Render()
 		{
 			string cachePath;
@@ -72,12 +87,12 @@ namespace Sprocket.Web.CMS.Content
 			else
 				cachePath = path;
 
-			string output = null;
-
+			string output;
 			if (ContentCache.IsContentCached(cachePath))
 				output = ContentCache.ReadCache(cachePath);
-
-			return Template.Script.Execute();
+			else
+				output = Template.Script.Execute();
+			return output;
 		}
 	}
 }

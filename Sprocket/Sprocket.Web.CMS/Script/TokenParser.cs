@@ -21,40 +21,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 		}
 	}
 
-	public class ExecutionState
-	{
-		private Stack<string> scriptNameStack = new Stack<string>();
-		public Stack<string> ScriptNameStack
-		{
-			get { return scriptNameStack; }
-		}
-
-		private Stack<SprocketScript> executingScript = new Stack<SprocketScript>();
-		public Stack<SprocketScript> ExecutingScript
-		{
-			get { return executingScript; }
-		}
-
-		private StreamWriter output;
-		public StreamWriter Output
-		{
-			get { return output; }
-		}
-
-		public ExecutionState(Stream stream)
-		{
-			output = new StreamWriter(stream);
-			output.AutoFlush = true;
-		}
-
-		private Dictionary<string, SprocketScript> sectionOverrides = new Dictionary<string, SprocketScript>();
-		public Dictionary<string, SprocketScript> SectionOverrides
-		{
-			get { return sectionOverrides; }
-			set { sectionOverrides = value; }
-		}
-	}
-
 	internal static class TokenParser
 	{
 		private static Dictionary<string, IInstructionCreator> instructionCreators;
@@ -140,12 +106,22 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public static IExpression BuildExpression(List<Token> tokens, ref int index)
 		{
+			return BuildExpression(tokens, ref index, false);
+		}
+
+		public static IExpression BuildExpression(List<Token> tokens, ref int index, bool returnNullIfNoExpression)
+		{
 			Stack<int?> stack = new Stack<int?>();
 			stack.Push(null);
-			return BuildExpression(tokens, ref index, stack);
+			return BuildExpression(tokens, ref index, stack, returnNullIfNoExpression);
 		}
 
 		public static IExpression BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+			return BuildExpression(tokens, ref index, precedenceStack, false);
+		}
+
+		public static IExpression BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
 		{
 			if (index >= tokens.Count)
 				throw new TokenParserException("The script seems to have ended prematurely while I was doing calculations. Shouldn't there be something here?", tokens[tokens.Count - 1]);
@@ -166,7 +142,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 						expr.BuildExpression(tokens, ref index, precedenceStack);
 					}
 					else
-						expr = BuildWordExpression(tokens, ref index, precedenceStack);
+						expr = BuildWordExpression(tokens, ref index, precedenceStack, returnNullIfNoExpression);
 					break;
 
 				//case TokenType.GroupStart:
@@ -174,6 +150,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 				//    break;
 
 				default:
+					if (returnNullIfNoExpression)
+						return null;
 					throw new TokenParserException("This part of the script should equate to a value but instead I got \"" + token.Value + "\", which doesn't really mean anything in this context.", token);
 			}
 
@@ -220,9 +198,18 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
 		{
+			return BuildWordExpression(tokens, ref index, precedenceStack, false);
+		}
+
+		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
+		{
 			Token token = tokens[index++];
 			if (!expressionCreators.ContainsKey(token.Value))
+			{
+				if (returnNullIfNoExpression)
+					return null;
 				throw new TokenParserException("I can't complete the calculations because \"" + token.Value + "\" doesn't equate to anything I can use in this situation.", token);
+			}
 			IExpression expr = expressionCreators[token.Value].Create();
 			expr.BuildExpression(tokens, ref index, precedenceStack);
 			return expr;
