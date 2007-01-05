@@ -119,11 +119,11 @@ namespace Sprocket.Web.CMS.Content
 			private SprocketScript BuildTemplateScript(string name, Stack<string> embedStack, Dictionary<string, DateTime> fileTimes)
 			{
 				if(embedStack.Contains(name))
-					return new SprocketScript("[Circular dependency detected in template heirarchy at \"" + name + "\"]", "Template " + name);
+					return new SprocketScript("[Circular dependency detected in template heirarchy at \"" + name + "\"]", "Template: " + name, "Template: " + name);
 				embedStack.Push(name);
 
 				if (!templateXML.ContainsKey(name))
-					return new SprocketScript("[There was no template found named \"" + name + "\"]", "Template " + name); ;
+					return new SprocketScript("[There was no template found named \"" + name + "\"]", "Template: " + name, "Template: " + name); ;
 				XmlElement xml = templateXML[name];
 
 				SprocketScript script;
@@ -136,39 +136,40 @@ namespace Sprocket.Web.CMS.Content
 						string sectionName = replace.GetAttribute("Section");
 						if (replace.HasAttribute("File"))
 						{
-							string path = WebUtility.MapPath(replace.GetAttribute("File"));
+							string sprocketPath = replace.GetAttribute("File");
+							string path = WebUtility.MapPath(sprocketPath);
 							if (File.Exists(path))
 							{
 								fileTimes[path] = new FileInfo(path).LastWriteTime;
 								using (StreamReader reader = new StreamReader(path))
 								{
-									script.OverrideSection(sectionName, new SprocketScript(reader.ReadToEnd(), replace.GetAttribute("File")));
+									script.OverrideSection(sectionName, new SprocketScript(reader.ReadToEnd(), sprocketPath, sprocketPath));
 									reader.Close();
 								}
 							}
 							else
-								script.OverrideSection(sectionName, new SprocketScript("[Unable to replace section \"" + sectionName + "\". The referenced file doesn't exist]", name));
+								script.OverrideSection(sectionName, new SprocketScript("[Unable to replace section \"" + sectionName + "\". The referenced file doesn't exist]", name, name));
 						}
 						else if(replace.HasAttribute("Template"))
 							script.OverrideSection(sectionName, BuildTemplateScript(replace.GetAttribute("Template"), embedStack, fileTimes));
 						else
 						{
 							if(replace.HasChildNodes)
-								script.OverrideSection(sectionName, new SprocketScript(replace.FirstChild.Value, "Template Section " + sectionName));
+								script.OverrideSection(sectionName, new SprocketScript(replace.FirstChild.Value, "Template Section " + sectionName, "Template Section " + sectionName));
 						}
 					}
 				}
 				else
 				{
 					if (!xml.HasAttribute("File"))
-						return new SprocketScript("[The template \"" + name + "\" is lacking a Master or File attribute]", "Template " + name);
+						return new SprocketScript("[The template \"" + name + "\" is lacking a Master or File attribute]", "Template: " + name, "Template: " + name);
 					string path = WebUtility.MapPath(xml.GetAttribute("File"));
 					if (!File.Exists(path))
-						return new SprocketScript("[The template \"" + name + "\" references a nonexistant file]", "Template " + name);
+						return new SprocketScript("[The template \"" + name + "\" references a nonexistant file]", "Template: " + name, "Template: " + name);
 					fileTimes[path] = new FileInfo(path).LastWriteTime;
 					using (StreamReader reader = new StreamReader(path))
 					{
-						script = new SprocketScript(reader.ReadToEnd(), "Template " + name);
+						script = new SprocketScript(reader.ReadToEnd(), "Template: " + name, "Template: " + name);
 						reader.Close();
 					}
 				}
@@ -290,6 +291,11 @@ namespace Sprocket.Web.CMS.Content
 		}
 		#endregion
 
+		public static Stack<PageEntry> PageStack
+		{
+			get { return Values.PageStack; }
+		}
+
 		HttpRequest Request { get { return HttpContext.Current.Request; } }
 		HttpResponse Response { get { return HttpContext.Current.Response; } }
 
@@ -336,12 +342,11 @@ namespace Sprocket.Web.CMS.Content
 			PageEntry page = Pages.FromPath(sprocketPath);
 			if (page == null)
 				return;
+			PageStack.Push(page);
 			if (OnBeforeRenderPage != null)
 				OnBeforeRenderPage(page, sprocketPath, pathSections);
-			string output = page.Render();
-			if (output == null)
-				return;
-			Response.Write(output);
+			string txt = page.Render();
+			Response.Write(txt);
 			handled.Set();
 		}
 		#endregion

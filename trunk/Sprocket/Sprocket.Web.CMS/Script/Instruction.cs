@@ -18,6 +18,12 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			this.token = token;
 		}
+
+		public InstructionExecutionException(string message, Exception ex, Token token)
+			: base(message, ex)
+		{
+			this.token = token;
+		}
 	}
 
 	public interface IInstruction
@@ -48,6 +54,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		List<IInstruction> list = new List<IInstruction>();
 		private bool acceptELSEInPlaceOfEND = false;
 		private string name = null;
+		private Token instructionListToken = null;
 
 		public string Name
 		{
@@ -62,6 +69,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public void Build(List<Token> tokens, ref int index)
 		{
+			instructionListToken = tokens[index - 1];
 			if (index < tokens.Count - 1)
 				if (tokens[index].TokenType == TokenType.StringLiteral && !tokens[index].IsNonScriptText)
 					name = tokens[index++].Value;
@@ -82,7 +90,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 			if(name != null)
 				if (state.SectionOverrides.ContainsKey(name))
 				{
-					state.SectionOverrides[name].Execute(state);
+					Token prevToken = state.SourceToken;
+					state.SourceToken = instructionListToken;
+					state.SectionOverrides[name].ExecuteInParentContext(state);
+					state.SourceToken = prevToken;
 					return;
 				}
 			foreach (IInstruction instruction in list)
