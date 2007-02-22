@@ -13,6 +13,12 @@ namespace Sprocket.Web.CMS.Script
 		private string source;
 		private ExecutionState.ScriptRecursionIdentifier identifier;
 		bool hasError = false;
+		TokeniserException exception = null;
+
+		internal TokeniserException Exception
+		{
+			get { return exception; }
+		}
 		
 		public bool HasParseError
 		{
@@ -46,6 +52,7 @@ namespace Sprocket.Web.CMS.Script
 				int n = 0;
 				instruction.Build(tokens, ref n);
 				hasError = true;
+				exception = ex;
 			}
 
 			try

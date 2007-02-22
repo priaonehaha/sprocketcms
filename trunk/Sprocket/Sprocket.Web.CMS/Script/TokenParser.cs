@@ -204,6 +204,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
 		{
 			Token token = tokens[index++];
+
 			if (!expressionCreators.ContainsKey(token.Value))
 			{
 				if (returnNullIfNoExpression)

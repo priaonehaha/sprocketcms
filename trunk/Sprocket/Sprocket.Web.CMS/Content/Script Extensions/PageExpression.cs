@@ -11,38 +11,45 @@ namespace Sprocket.Web.CMS.Content.Expressions
 	{
 		private delegate object RenderHandler(ExecutionState state);
 		private RenderHandler RenderValue = null;
-		private IExpression xpathExpr = null;
+		private string xpathExpr = null;
 		private IExpression pageCodeExpr = null;
 		private Token pageToken;
 		private Token xpathToken;
+
+		private static Dictionary<string, XmlDocument> xmlDocumentTempCache = new Dictionary<string, XmlDocument>();
+
 		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
 		{
 			pageToken = tokens[index - 1];
 			Token token = tokens[index];
 			if (token.TokenType == TokenType.Symbolic)
+			{
+				// if the token is a colon, then we're extracting specific information relating to the page
 				if (token.Value == ":")
 				{
 					index++;
 					token = tokens[index++];
+					// if it's a word, see what the word is
 					if (token.TokenType == TokenType.Word)
 					{
 						switch (token.Value)
 						{
-							case "path":
+							case "path": // get the sprocket path for the page
 								RenderValue = RenderPagePath;
 								break;
 
 							//default:
 							//    throw new TokenParserException("I can't get the page info requested here because \"" + token.Value + "\" isn't an attribute of the specified page.", token);
 						}
-					}
-					if (RenderValue == null)
+					} // otherwise if it's a string, it's an xpath expression
+					else if(token.TokenType == TokenType.StringLiteral && !token.IsNonScriptText)
 					{
-						xpathExpr = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
+						xpathExpr = token.Value; //TokenParser.BuildExpression(tokens, ref index, precedenceStack);
 						xpathToken = token;
 						RenderValue = RenderPageXML;
 					}
 				}
+			}
 
 			token = tokens[index];
 			if((token.TokenType == TokenType.StringLiteral && !token.IsNonScriptText) || token.TokenType == TokenType.GroupStart)
@@ -76,6 +83,22 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			return page;
 		}
 
+		private XmlDocument GetXmlDocument(string path)
+		{
+			if (xmlDocumentTempCache.ContainsKey(path))
+				return xmlDocumentTempCache[path];
+			XmlDocument doc = new XmlDocument();
+			try
+			{
+				doc.Load(WebUtility.MapPath(path));
+			}
+			catch
+			{
+				return null;
+			}
+			return doc;
+		}
+
 		private object RenderPage(ExecutionState state)
 		{
 			Token prevToken = state.SourceToken;
@@ -95,37 +118,55 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		}
 		private object RenderPageXML(ExecutionState state)
 		{
-			object xpath = xpathExpr.Evaluate(state).ToString();
 			string path = GetPage(state).ContentFile;
 			if (path == "")
-				throw new InstructionExecutionException("I can't get the XML content for the page because the Page element in the definitions.xml file doesn't have a ContentFile attribute.", pageToken);
+				throw new InstructionExecutionException("I can't get the XML content for the page because the Page element in the definitions.xml file doesn't have a ContentFile attribute.", xpathToken);
 
 			string text = "";
+			XmlDocument doc = new XmlDocument();
+			try
+			{
+				doc.Load(WebUtility.MapPath(path));
+			}
+			catch (Exception ex)
+			{
+				throw new InstructionExecutionException("I can't get the XML content for the page because the specified XML content file (" + path + ") doesn't seem to exist.", ex, xpathToken);
+			}
 			XmlNodeList nodes;
 			try
 			{
-				nodes = content.SelectNodes(xpath);
+				nodes = doc.SelectNodes(xpathExpr);
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
-				throw new InstructionExecutionException("I can't get the XML content for the page because the XPath expression has an error.", ex, pageToken);
+				throw new InstructionExecutionException("I can't get the XML content for the page because the XPath expression has an error.", ex, xpathToken);
 			}
 			foreach (XmlNode node in nodes)
 			{
 				SprocketScript script = null;
 				if (node.NodeType == XmlNodeType.CDATA || node.NodeType == XmlNodeType.Text)
-					script = new SprocketScript(node.Value, path, path + ":{" + xpath + "}");
-				else if(node.HasChildNodes)
-					script = new SprocketScript(node.FirstChild.Value, path, path + ":{" + xpath + "}");
-				if(script != null)
-					
-				//string str = node.FirstChild.Value;
-				//foreach (PlaceHolder ph in PlaceHolder.Extract(str))
-				//{
-				//    str = str.Replace(ph.RawText, ph.Render(pageEntry, content, placeHolderStack, out cache));
-				//    cacheable = cacheable && cache;
-				//}
-				text += str;
+					script = new SprocketScript(node.Value, path, path + ":{" + xpathExpr + "}");
+				else if (node.HasChildNodes)
+					script = new SprocketScript(node.FirstChild.Value, path, path + ":{" + xpathExpr + "}");
+				if (script != null)
+				{
+					//string str = node.FirstChild.Value;
+					//foreach (PlaceHolder ph in PlaceHolder.Extract(str))
+					//{
+					//    str = str.Replace(ph.RawText, ph.Render(pageEntry, content, placeHolderStack, out cache));
+					//    cacheable = cacheable && cache;
+					//}
+					//try
+					//{
+						text += script.ExecuteToResolveExpression(state);
+					//    if(script.HasParseError)
+					//        throw new InstructionExecutionException(script.Exception.Message, script.Exception, xpathToken);
+					//}
+					//catch (TokeniserException ex)
+					//{
+						
+					//}
+				}
 			}
 			return text;
 		}
