@@ -9,6 +9,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		public static List<Token> Extract(string source)
 		{
+
 			List<Token> tokens = new List<Token>();
 
 			if (source == null)
