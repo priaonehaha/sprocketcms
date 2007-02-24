@@ -42,7 +42,7 @@ namespace Sprocket.Web.CMS.Content
 							sw.Flush();
 							sw.Close();
 						}
-					if (new FileInfo(Values.XmlPath).LastWriteTime != Values.LastXmlFileUpdate || Values.MainXml == null)
+					if (IsDefinitionsXmlOutOfDate || Values.MainXml == null)
 					{
 						Values.Templates = null;
 						Values.Pages = null;
@@ -52,6 +52,16 @@ namespace Sprocket.Web.CMS.Content
 					}
 				}
 				return Values.MainXml;
+			}
+		}
+
+		public static bool IsDefinitionsXmlOutOfDate
+		{
+			get
+			{
+				if (Values.XmlPath == null)
+					return true;
+				return new FileInfo(Values.XmlPath).LastWriteTime != Values.LastXmlFileUpdate;
 			}
 		}
 
@@ -80,6 +90,11 @@ namespace Sprocket.Web.CMS.Content
 			Dictionary<string, Template> templates = new Dictionary<string, Template>();
 
 			public TemplateRegistry()
+			{
+				Init();
+			}
+
+			public void Init()
 			{
 				foreach (XmlElement xml in ContentManager.DefinitionsXml.SelectNodes("/Definitions/Templates/Template"))
 				{
@@ -311,6 +326,11 @@ namespace Sprocket.Web.CMS.Content
 		{
 			RequestSpeedExpression.Set();
 			Values.PageStack.Clear();
+			if (IsDefinitionsXmlOutOfDate)
+			{
+				Values.Templates = null;
+				Values.Pages = null;
+			}
 		}
 
 		void WebEvents_OnPathNotFound(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
