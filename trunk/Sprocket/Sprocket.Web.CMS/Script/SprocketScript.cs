@@ -78,7 +78,10 @@ namespace Sprocket.Web.CMS.Script
 			string source = state == null ? Source : state.ExecutingScript.Peek().Source;
 			string code = source.Substring(start, token.Position - start);
 			string prefix = "", suffix = "";
-			int start2 = start + code.Length + token.Value.Length;
+			string tokenValue = token.Value;
+			if (!token.IsNonScriptText && token.TokenType == TokenType.StringLiteral)
+				tokenValue = "\"" + tokenValue + "\"";
+			int start2 = start + code.Length + tokenValue.Length;
 			string code2 = source.Substring(start2, Math.Min(150, source.Length - start2));
 
 			if (start > 0) prefix = "...";
@@ -103,7 +106,7 @@ namespace Sprocket.Web.CMS.Script
 					+ "The error occurred at position " + token.Position + " in the script, at a section that looks like this:<br/><br/>"
 					+ "<div style=\"padding:10px;background-color:#ffd;border:1px dotted #cca;\">"
 					+ "<pre style=\"margin:0\">" + prefix + HttpUtility.HtmlEncode(code)
-					+ "<span style=\"color:red\">" + HttpUtility.HtmlEncode(token.Value) + "</span>"
+					+ "<span style=\"color:red\">" + HttpUtility.HtmlEncode(tokenValue) + "</span>"
 					+ HttpUtility.HtmlEncode(code2) + suffix + "</pre></div></body>";
 		}
 

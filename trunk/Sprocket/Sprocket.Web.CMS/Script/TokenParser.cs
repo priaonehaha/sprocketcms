@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Sprocket.Web.CMS.Script.Parser
 {
-	internal class TokenParserException : Exception
+	public class TokenParserException : Exception
 	{
 		private Token token;
 
@@ -21,7 +21,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		}
 	}
 
-	internal static class TokenParser
+	public static class TokenParser
 	{
 		private static Dictionary<string, IInstructionCreator> instructionCreators;
 		private static Dictionary<string, IBinaryExpressionCreator> binaryExpressionCreators;
@@ -89,6 +89,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 				return si;
 			}
 
+			//if(token.TokenType == TokenType.GroupEnd)
+				
+
 			// find the relevant creator/processor for the instruction
 			if (token.TokenType == TokenType.Word || token.TokenType == TokenType.Symbolic)
 			{
@@ -100,6 +103,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 					return instruction;
 				}
 			}
+
+			if(token.TokenType == TokenType.GroupStart || token.TokenType == TokenType.GroupEnd)
+				throw new TokenParserException("Not sure why there is a bracket here.", token);
 
 			throw new TokenParserException("I have no idea what \"" + token.Value + "\" means or at least what I'm supposed to do with it here.", token);
 		}
@@ -128,6 +134,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 			Token token = tokens[index];
 			IExpression expr = null;
+			bool endGroupedExpression = false;
 			switch (token.TokenType)
 			{
 				case TokenType.Number:
@@ -145,9 +152,13 @@ namespace Sprocket.Web.CMS.Script.Parser
 						expr = BuildWordExpression(tokens, ref index, precedenceStack, returnNullIfNoExpression);
 					break;
 
-				//case TokenType.GroupStart:
-				//    expr = BuildGroupedExpression(tokens, ref index);
-				//    break;
+				case TokenType.GroupStart:
+					expr = BuildGroupedExpression(tokens, ref index);
+				    break;
+
+				case TokenType.GroupEnd:
+					endGroupedExpression = true;
+					break;
 
 				default:
 					if (returnNullIfNoExpression)
@@ -155,10 +166,15 @@ namespace Sprocket.Web.CMS.Script.Parser
 					throw new TokenParserException("This part of the script should equate to a value but instead I got \"" + token.Value + "\", which doesn't really mean anything in this context.", token);
 			}
 
-			int? precedence = precedenceStack.Peek();
-			while (NextHasGreaterPrecedence(precedence, tokens, index))
-				expr = BuildBinaryExpression(tokens, ref index, expr, precedenceStack);
-
+			if (!endGroupedExpression)
+			{
+				int? precedence = precedenceStack.Peek();
+				while (NextHasGreaterPrecedence(precedence, tokens, index))
+					expr = BuildBinaryExpression(tokens, ref index, expr, precedenceStack);
+				//if (index < tokens.Count - 1)
+				//    if (tokens[index].TokenType == TokenType.GroupEnd)
+				//        index++;
+			}
 			return expr;
 		}
 
@@ -193,7 +209,17 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public static IExpression BuildGroupedExpression(List<Token> tokens, ref int index)
 		{
-			return null;
+			index++;
+			IExpression expr = BuildExpression(tokens, ref index);
+			if (tokens[index].TokenType != TokenType.GroupEnd)
+			{
+				string tokenval = tokens[index].Value.Trim();
+				if (tokenval == "")
+					tokenval = "#";
+				throw new TokenParserException("I think a closing bracket should be here. Did you forget to put it in?", new Token(tokenval, TokenType.Word, tokens[index].Position));
+			}
+			index++;
+			return expr;
 		}
 
 		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
