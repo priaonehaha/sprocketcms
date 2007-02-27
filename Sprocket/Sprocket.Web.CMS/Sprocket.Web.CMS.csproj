@@ -41,10 +41,12 @@
     <Compile Include="Admin\Admin.cs" />
     <Compile Include="Admin\AdminInterfaceSections.cs" />
     <Compile Include="Content\ContentManager.cs" />
+    <Compile Include="Content\Script Extensions\AjaxScriptsExpression.cs" />
     <Compile Include="Content\Script Extensions\PageExpression.cs" />
     <Compile Include="Content\Script Extensions\PathExpression.cs" />
     <Compile Include="Content\PageEntry.cs" />
     <Compile Include="Content\Script Extensions\RequestSpeedExpression.cs" />
+    <Compile Include="Content\Script Extensions\TemplateExpression.cs" />
     <Compile Include="Content\Template.cs" />
     <Compile Include="Pages\PlaceHolderRenderers\NamePlaceHolderRenderer.cs" />
     <Compile Include="Pages\GeneralRegistry.cs" />

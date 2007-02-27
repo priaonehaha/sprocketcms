@@ -15,6 +15,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		private IExpression pageCodeExpr = null;
 		private Token pageToken;
 		private Token xpathToken;
+		private Token pageCodeToken;
 
 		private static Dictionary<string, XmlDocument> xmlDocumentTempCache = new Dictionary<string, XmlDocument>();
 
@@ -52,8 +53,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 
 			token = tokens[index];
-			if((token.TokenType == TokenType.StringLiteral && !token.IsNonScriptText) || token.TokenType == TokenType.GroupStart)
+			if ((token.TokenType == TokenType.StringLiteral && !token.IsNonScriptText) || token.TokenType == TokenType.GroupStart)
+			{
 				pageCodeExpr = TokenParser.BuildExpression(tokens, ref index, precedenceStack, true);
+				pageCodeToken = token;
+			}
 			
 			if(RenderValue == null)
 				RenderValue = RenderPage;
@@ -79,7 +83,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			PageEntry page = ContentManager.Pages.FromPageCode(pageCodeExpr.Evaluate(state).ToString());
 			ContentManager.PageStack.Push(page);
 			if (page == null)
-				throw new InstructionExecutionException("I can't get information about the page because the one specified doesn't seem to exist.", pageToken);
+				throw new InstructionExecutionException("I can't get information about the page because the one specified doesn't seem to exist.", pageCodeToken);
 			return page;
 		}
 

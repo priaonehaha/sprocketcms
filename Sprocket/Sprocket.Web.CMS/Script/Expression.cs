@@ -87,9 +87,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 			public const int Addition = -50;
 			public const int Subtraction = -50;
 			public const int Using = -20;
-			public const int BooleanOperation = -25;
 			public const int EqualTo = 0;
 			public const int NotEqualTo = 0;
+			public const int BooleanOperation = 25;
 		}
 
 		public override string ToString()
@@ -281,7 +281,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 	#endregion
 	#endregion
 
-	#region and or > >= < <= = !=
+	#region and or > >= < <= = != startswith
 
 	#region AndExpression
 	public class AndExpression : BinaryExpression
@@ -322,7 +322,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 				left = new BooleanExpression(left);
 			if (!(right is BooleanExpression))
 				right = new BooleanExpression(right);
-			return left.Evaluate(state).Equals(true) && right.Evaluate(state).Equals(true);
+			return left.Evaluate(state).Equals(true) || right.Evaluate(state).Equals(true);
 		}
 
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.BooleanOperation; } }
@@ -488,6 +488,32 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public IBinaryExpression Create() { return new LessThanOrEqualToExpression(); }
 	}
 	#endregion
+
+	#region StartsWith
+
+	public class StartsWithExpression : BinaryExpression
+	{
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			try
+			{
+				string a = left.Evaluate(state).ToString();
+				string b = right.Evaluate(state).ToString();
+				return a.StartsWith(b);
+			}
+			catch
+			{
+				return false;
+			}
+		}
+	}
+	public class StartsWithExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return "startswith"; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		public IBinaryExpression Create() { return new StartsWithExpression(); }
+	}
 
 	#endregion
 
@@ -684,5 +710,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		}
 	}
 	#endregion
+	#endregion
+
 	#endregion
 }
