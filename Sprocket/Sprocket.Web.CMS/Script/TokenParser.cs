@@ -143,13 +143,19 @@ namespace Sprocket.Web.CMS.Script.Parser
 					break;
 
 				case TokenType.Word:
-					if (token.Value == "true" || token.Value == "false")
+					if (token.Value == "true" || token.Value == "false" || token.Value == "empty" || token.Value == "nothing")
 					{
 						expr = new BooleanExpression();
 						expr.BuildExpression(tokens, ref index, precedenceStack);
 					}
 					else
+					{
+						string x = token.Value;
+						if (x == "querystring")
+						{
+						}
 						expr = BuildWordExpression(tokens, ref index, precedenceStack, returnNullIfNoExpression);
+					}
 					break;
 
 				case TokenType.GroupStart:
@@ -229,7 +235,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
 		{
-			Token token = tokens[index++];
+			Token token = tokens[index];
 
 			if (!expressionCreators.ContainsKey(token.Value))
 			{
@@ -237,6 +243,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 					return null;
 				throw new TokenParserException("I can't complete the calculations because \"" + token.Value + "\" doesn't equate to anything I can use in this situation.", token);
 			}
+			index++;
 			IExpression expr = expressionCreators[token.Value].Create();
 			expr.BuildExpression(tokens, ref index, precedenceStack);
 			return expr;

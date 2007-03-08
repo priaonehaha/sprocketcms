@@ -126,7 +126,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	#endregion
 
-	#region number string not true/false
+	#region number string not true/false/nothing/empty
 	#region NumericExpression
 	public class NumericExpression : IExpression
 	{
@@ -276,6 +276,18 @@ namespace Sprocket.Web.CMS.Script.Parser
 	public class BooleanExpressionCreator2 : IExpressionCreator
 	{
 		public string Keyword { get { return "false"; } }
+		public IExpression Create() { return new BooleanExpression(); }
+	}
+
+	public class BooleanExpressionCreator3 : IExpressionCreator
+	{
+		public string Keyword { get { return "empty"; } }
+		public IExpression Create() { return new BooleanExpression(); }
+	}
+
+	public class BooleanExpressionCreator4 : IExpressionCreator
+	{
+		public string Keyword { get { return "nothing"; } }
 		public IExpression Create() { return new BooleanExpression(); }
 	}
 	#endregion

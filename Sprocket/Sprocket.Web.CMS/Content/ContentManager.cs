@@ -13,6 +13,11 @@ namespace Sprocket.Web.CMS.Content
 	[ModuleDependency(typeof(WebEvents))]
 	public sealed class ContentManager : ISprocketModule
 	{
+		public static ContentManager Instance
+		{
+			get { return (ContentManager)Core.Instance[typeof(ContentManager)].Module; }
+		}
+
 		public delegate void BeforeRenderPage(PageEntry page, string sprocketPath, string[] pathSections);
 		public event BeforeRenderPage OnBeforeRenderPage;
 
@@ -366,6 +371,7 @@ namespace Sprocket.Web.CMS.Content
 			if (OnBeforeRenderPage != null)
 				OnBeforeRenderPage(page, sprocketPath, pathSections);
 			string txt = page.Render();
+			PageStack.Clear();
 			Response.Write(txt);
 			handled.Set();
 		}

@@ -42,6 +42,7 @@
     <Compile Include="Admin\AdminInterfaceSections.cs" />
     <Compile Include="Content\ContentManager.cs" />
     <Compile Include="Content\Script Extensions\AjaxScriptsExpression.cs" />
+    <Compile Include="Content\Script Extensions\QueryStringExpression.cs" />
     <Compile Include="Content\Script Extensions\PageExpression.cs" />
     <Compile Include="Content\Script Extensions\PathExpression.cs" />
     <Compile Include="Content\PageEntry.cs" />
