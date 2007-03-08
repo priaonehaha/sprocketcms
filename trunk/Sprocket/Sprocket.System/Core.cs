@@ -28,6 +28,11 @@ namespace Sprocket
 		{
 		}
 
+		~Core()
+		{
+			Reset();
+		}
+
 		private void Initialise()
 		{
 			if (moduleHandler != null)
@@ -52,6 +57,8 @@ namespace Sprocket
 		private ModuleHandler moduleHandler;
 		private static Core instance = null;
 		private static object syncInstance = new object();
+		private static Dictionary<int, Core> coreInstances = new Dictionary<int, Core>();
+		private int instanceKey = -1;
 
 		/// <summary>
 		/// A reference to the single solitary instance of Core that should exist.
@@ -62,24 +69,33 @@ namespace Sprocket
 			{
 				lock (syncInstance)
 				{
-					if (instance == null)
-					{
-						instance = new Core();
-						instance.Initialise();
-					}
+					int key = HttpContext.Current.ApplicationInstance.GetHashCode();
+					if (coreInstances.ContainsKey(key))
+						return coreInstances[key];
+
+					Core core = new Core();
+					if (core.instanceKey == -1)
+						core.instanceKey = key;
+					coreInstances.Add(key, core);
+					core.Initialise();
+
+					return core;
 				}
-				return instance;
 			}
 		}
 
 		/// <summary>
 		/// Resets the Core instance to null, forcing it to reinitialise on the next access.
 		/// </summary>
-		public static void Reset()
+		public void Reset()
 		{
 			lock (syncInstance)
 			{
-				instance = null;
+				if (coreInstances != null)
+				{
+					if (coreInstances.ContainsKey(instanceKey))
+						coreInstances.Remove(instanceKey);
+				}
 			}
 		}
 

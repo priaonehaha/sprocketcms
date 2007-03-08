@@ -136,8 +136,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public void Execute(ExecutionState state)
 		{
-			string text = expression.Evaluate(state).ToString();
-			state.Output.Write(text);
+			object text = expression.Evaluate(state);
+			state.Output.Write(text.ToString());
 		}
 	}
 
@@ -176,7 +176,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public void Execute(ExecutionState state)
 		{
-			if (expr.Evaluate(state).Equals(true))
+			object val = expr.Evaluate(state);
+			if (val.Equals(true))
 				whenTrue.Execute(state);
 			else if (whenFalse != null)
 				whenFalse.Execute(state);

@@ -132,7 +132,7 @@ namespace Sprocket.Web
 			// and anything else relevant.
 			SystemEvents.Instance.NotifySessionEnding();
 			if(SprocketSettings.Instance.HasErrors)
-				Core.Reset();
+				Core.Instance.Reset();
 		}
 
 		private string sprocketPath = null;
@@ -281,7 +281,7 @@ namespace Sprocket.Web
 				if(OnApplicationError != null)
 					OnApplicationError(app, app.Server.GetLastError());
 				if (SprocketSettings.Instance.HasErrors)
-					Core.Reset();
+					Core.Instance.Reset();
 			}
 		}
 

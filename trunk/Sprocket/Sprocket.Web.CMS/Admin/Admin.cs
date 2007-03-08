@@ -7,6 +7,7 @@ using System.IO;
 using Sprocket;
 using Sprocket.Web;
 using Sprocket.Utility;
+using Sprocket.Data;
 
 namespace Sprocket.Web.CMS.Admin
 {
@@ -113,7 +114,7 @@ namespace Sprocket.Web.CMS.Admin
 				if (handled.Handled)
 				{
 					WebClientScripts scripts = WebClientScripts.Instance;
-					admin.AddMainMenuLink(new AdminMenuLink("Current Overview", WebUtility.MakeFullPath("admin"), -100));
+					admin.AddMainMenuLink(new AdminMenuLink("Administrative Tasks", WebUtility.MakeFullPath("admin"), -100));
 					admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), 100));
 					admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + DateTime.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", 100));
 					string powered = SprocketSettings.GetValue("ShowPoweredBySprocket");
@@ -128,9 +129,35 @@ namespace Sprocket.Web.CMS.Admin
 
 		void WebsiteAdmin_OnAdminRequest(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled)
 		{
-			if (sprocketPath != "admin") return;
+			if (pathSections[0] != "admin") return;
+			
+			switch (sprocketPath)
+			{
+				case "admin/dbsetup":
+					Result result = DatabaseManager.DatabaseEngine.Initialise();
+					if (result.Succeeded)
+						admin.AddContentSection(new RankedString("<p style=\"color:green\" class=\"standalone-message\">Database setup completed.</p>", 1));
+					else
+						admin.AddContentSection(new RankedString("<strong style=\"color:red\" class=\"standalone-message\">Unable to Initialise Database</strong><p>" + result.Message + "</p>", 1));
+					break;
+
+				case "admin/clearcache":
+					ContentCache.ClearCache();
+					admin.AddContentSection(new RankedString("<p style=\"color:green\" class=\"standalone-message\">The cache has been cleared.</p>", 1));
+					break;
+
+				case "admin":
+					break;
+
+				default:
+					return;
+			}
+
 			admin.ContentHeading = "Current Overview";
-			admin.AddContentSection(new RankedString("<div class=\"standalone-message\">Overview information under construction.</div>", 0));
+			admin.AddContentSection(new RankedString("<div class=\"standalone-message\">" +
+				"<a href=\"" + WebUtility.BasePath + "admin/dbsetup\">Run database setup</a> | " +
+				"<a href=\"" + WebUtility.BasePath + "admin/clearcache\">Clear page cache</a>" +
+				"</div>", 0));
 			handled.Set();
 		}
 
