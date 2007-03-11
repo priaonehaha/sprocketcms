@@ -134,8 +134,11 @@ SprocketAjax = {
 		var cnum = this.callNumber++; // keep track of how many ajax calls have been made since the page was loaded
 		this.WriteConsole('-&gt;[' + cnum + ']: ' + moduleName); // optionally log the call to a console area on the page
 		var req = this.CreateRequest();
+		req.expired = false;
 		req.onreadystatechange = function() { // define the callback function
 			if(req.readyState == 4) {
+				if(req.expired) return;
+				req.expired = true;
 				if(!SprocketAjax) return;
 				var contextArgs = context ? context : [];
 				var callnum = cnum;
