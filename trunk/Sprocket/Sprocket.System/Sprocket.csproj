@@ -112,6 +112,7 @@
     <Compile Include="Web\JavaScriptCondenser.cs" />
     <Compile Include="Web\JSONParser.cs" />
     <Compile Include="Web\RankedObject.cs" />
+    <Compile Include="Web\SprocketPath.cs" />
     <Compile Include="Web\SysInfo.cs" />
     <Compile Include="Web\TestModule.cs" />
     <Compile Include="Web\WebAuthentication.cs" />

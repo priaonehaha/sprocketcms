@@ -70,6 +70,7 @@ SprocketAjax = {
 	RequestPool : [],
 	AuthKey : '$AUTHKEY$',
 	ApplicationRoot : '$APPLICATIONROOT$',
+	LoadTimeStamp : '$LOADTIMESTAMP$',
 	
 	CreateRequest : function() {
 		for(var i=0; i<this.RequestPool.length; i++) {
@@ -134,11 +135,14 @@ SprocketAjax = {
 		var cnum = this.callNumber++; // keep track of how many ajax calls have been made since the page was loaded
 		this.WriteConsole('-&gt;[' + cnum + ']: ' + moduleName); // optionally log the call to a console area on the page
 		var req = this.CreateRequest();
-		req.expired = false;
+		try { req.expired = false; } catch(e) { }
 		req.onreadystatechange = function() { // define the callback function
 			if(req.readyState == 4) {
-				if(req.expired) return;
-				req.expired = true;
+				try {
+					if(req.expired) return;
+					req.expired = true;
+				} catch(e) {
+				}
 				if(!SprocketAjax) return;
 				var contextArgs = context ? context : [];
 				var callnum = cnum;
@@ -151,26 +155,33 @@ SprocketAjax = {
 						return;
 					alert('There was an error parsing the JSON response. The error was:\n\n' + ex.message + '\n\nThe response text was:\n\n' + req.responseText);
 				}
-				if(response)
+				if(response) {
 					if(response.__error) {
 						if(response.__error.toLowerCase().indexOf('authentication failed') > -1) {
 							if(SprocketAjax.authfailed)
 								return;
 							SprocketAjax.authfailed = true;
 							SprocketAjax.AuthenticationFailed(response.__error);
+						} else if(response.__exceptionType.indexOf('AjaxSessionExpiredException') > -1) {
+							SprocketAjax.DefaultCallback(response);
+							location.reload(true);
+							return;
 						} else
 							SprocketAjax.DefaultCallback(response);
 						return;
 					}
-				var call;
-				if(callbackObject)
-					call = 'callback.call(callbackObject, response, callnum';
-				else
-					call = 'callback(response, callnum';
-				for(var i=0; i<contextArgs.length; i++)
-					call += ', contextArgs[' + i + ']';
-				call += ');';
-				eval(call);
+//					SprocketAjax.LoadTimeStamp = response.__timeStamp;
+//					alert('setting new timestamp to ' + response.__timeStamp);
+					var call;
+					if(callbackObject)
+						call = 'callback.call(callbackObject, response.Data, callnum';
+					else
+						call = 'callback(response.Data, callnum';
+					for(var i=0; i<contextArgs.length; i++)
+						call += ', contextArgs[' + i + ']';
+					call += ');';
+					eval(call);
+				}
 			}
 		}
 		
@@ -187,7 +198,8 @@ SprocketAjax = {
 		var data = {
 			ModuleName : moduleName,
 			AuthKey : this.AuthKey,
-			MethodArgs : preparedArgs
+			MethodArgs : preparedArgs,
+			LoadTimeStamp : SprocketAjax.LoadTimeStamp
 		}
 		
 		// send the data asyncronously to the server and return control to calling object

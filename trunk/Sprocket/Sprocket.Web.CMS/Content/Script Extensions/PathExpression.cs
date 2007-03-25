@@ -19,4 +19,18 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public string Keyword { get { return "basepath"; } }
 		public IExpression Create() { return new BasePathExpression(); }
 	}
+
+	public class SprocketPathExpression : IExpression
+	{
+		public object Evaluate(ExecutionState state) { return SprocketPath.Value; }
+		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+		}
+	}
+
+	public class SprocketPathExpressionCreator : IExpressionCreator
+	{
+		public string Keyword { get { return "path"; } }
+		public IExpression Create() { return new SprocketPathExpression(); }
+	}
 }

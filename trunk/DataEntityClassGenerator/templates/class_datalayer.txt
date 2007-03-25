@@ -75,20 +75,23 @@
 
 		public [classname] Select[classname]([classidfieldtype] id)
 		{
-			using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				conn.Open();
-				SqlCommand cmd = new SqlCommand("[classname]_Select", conn);
-				cmd.CommandType = CommandType.StoredProcedure;
-				cmd.Parameters.Add(new SqlParameter("@[primarykey]", id));
-				SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-				[classname] entity;
-				if (!reader.Read())
-					entity = null;
-				else
-					entity = new [classname](reader);
-				reader.Close();
-				return entity;
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("[classname]_Select", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@[primarykey]", id));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					[classname] entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new [classname](reader);
+					reader.Close();
+					return entity;
+				}
 			}
 		}
 

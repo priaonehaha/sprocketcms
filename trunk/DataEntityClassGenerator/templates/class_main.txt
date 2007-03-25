@@ -28,5 +28,14 @@
 		}
 
 		#endregion
+		
+		#region Clone
+		public [classname] Clone()
+		{
+			[classname] copy = new [classname]();
+[fieldcopies]
+			return copy;
+		}
+		#endregion
 [jsonmethods]
 		#endregion

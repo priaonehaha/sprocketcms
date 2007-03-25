@@ -147,7 +147,7 @@ namespace ClassGenerator
 			string sqlInsertFieldsListByCommas = "", sqlInsertValuesListByCommas = "", prms = "", filterCommandParams = "", cases = "";
 			string filterProcSelectConditions = "", filterProcParams = "", filterMethodParams = "", filterMethodParamsValsOnly = "";
 			string updateExplicitProcParams = "", fieldNameCaseStatements = "", enumFieldNames = "", filterOrderByClause = "";
-			string jsonWrites = "";
+			string jsonWrites = "", jsonReads = "", fieldCopies = ""; ;
 			int n = 0;
 			foreach (DataColumn c in ds.Tables[0].Columns)
 			{
@@ -193,9 +193,17 @@ namespace ClassGenerator
 					jsonWrites += Environment.NewLine + "\t\t\twriter.Write(\",\");" + Environment.NewLine + "\t\t\t";
 				jsonWrites += "JSON.EncodeNameValuePair(writer, \"" + prName + "\"," + fldName + ");";
 
+				if (jsonReads.Length > 0)
+					jsonReads += Environment.NewLine + "\t\t\t";
+				jsonReads += fldName + " = (" + fldtype + ")values[\"" + prName + "\"];";
+
 				if (enumFieldNames.Length > 0)
 					enumFieldNames += "," + Environment.NewLine + "\t\t\t";
 				enumFieldNames += prName + " = " + n;
+
+				if (fieldCopies.Length > 0)
+					fieldCopies += Environment.NewLine;
+				fieldCopies += "\t\t\tcopy." + fldName + " = " + fldName + ";";
 
 				if (fieldNameCaseStatements.Length > 0)
 					fieldNameCaseStatements += Environment.NewLine + "\t\t\t\t\t";
@@ -363,8 +371,10 @@ namespace ClassGenerator
 			string jsonMethods = "", ijsonencoder = "";
 			if (JsonEncodable.Checked)
 			{
-				jsonMethods = sJSON.Replace("[json-writes]", jsonWrites);
-				ijsonencoder = " : IJSONEncoder";
+				jsonMethods = sJSON
+					.Replace("[json-writes]", jsonWrites)
+					.Replace("[json-reads]", jsonReads);
+				ijsonencoder = " : IJSONEncoder, IJSONReader";
 			}
 
 			cs = sClass
@@ -388,6 +398,7 @@ namespace ClassGenerator
 				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
 				.Replace("[fieldnamecases]", fieldNameCaseStatements)
 				.Replace("[enumfieldnames]", enumFieldNames)
+				.Replace("[fieldcopies]", fieldCopies)
 				;
 
 			sql = sProcs
@@ -428,6 +439,7 @@ namespace ClassGenerator
 				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
 				.Replace("[fieldnamecases]", fieldNameCaseStatements)
 				.Replace("[enumfieldnames]", enumFieldNames)
+				.Replace("[fieldcopies]", fieldCopies)
 				;
 
 			csdatalayer = sClassDataLayer
@@ -497,6 +509,7 @@ namespace ClassGenerator
 				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
 				.Replace("[fieldnamecases]", fieldNameCaseStatements)
 				.Replace("[enumfieldnames]", enumFieldNames)
+				.Replace("[fieldcopies]", fieldCopies)
 				;
 		}
 

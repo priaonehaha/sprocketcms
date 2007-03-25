@@ -128,11 +128,16 @@ namespace Sprocket.Data
 			return conn;
 		}
 
+		private Stack<bool> persistenceStack = new Stack<bool>();
 		public void PersistConnection()
 		{
-			SqlConnection conn = new SqlConnection(ConnectionString);
-			conn.Open();
-			Conn = conn;
+			if (persistenceStack.Count == 0)
+			{
+				SqlConnection conn = new SqlConnection(ConnectionString);
+				conn.Open();
+				Conn = conn;
+			}
+			persistenceStack.Push(true);
 		}
 
 		public void ReleaseConnection(IDbConnection conn)
@@ -144,14 +149,19 @@ namespace Sprocket.Data
 
 		public void ReleaseConnection()
 		{
-			SqlConnection conn = Conn as SqlConnection;
-			if (conn != null)
+			if (persistenceStack.Count > 0)
+				persistenceStack.Pop();
+			if (persistenceStack.Count == 0)
 			{
-				if (conn.State != ConnectionState.Closed)
-					conn.Close();
-				conn.Dispose();
+				SqlConnection conn = Conn as SqlConnection;
+				if (conn != null)
+				{
+					if (conn.State != ConnectionState.Closed)
+						conn.Close();
+					conn.Dispose();
+				}
+				Conn = null;
 			}
-			Conn = null;
 		}
 
 		private SqlConnection Conn

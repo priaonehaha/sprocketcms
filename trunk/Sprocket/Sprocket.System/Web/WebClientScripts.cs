@@ -177,6 +177,7 @@ namespace Sprocket.Web
 			Dictionary<string, string> scripts = new Dictionary<string, string>();
 			JavaScriptCollection jsc = new JavaScriptCollection();
 			jsc.SetKey("$APPLICATIONROOT$", WebUtility.BasePath);
+			jsc.SetKey("$LOADTIMESTAMP$", AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString());
 			jsc.Add("standard", StandardScripts);
 
 			if (OnBeforeRenderJavaScript != null) OnBeforeRenderJavaScript(jsc);

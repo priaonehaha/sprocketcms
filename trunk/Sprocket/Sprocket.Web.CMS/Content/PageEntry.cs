@@ -81,6 +81,8 @@ namespace Sprocket.Web.CMS.Content
 
 		public string Render()
 		{
+			if (ContentManager.PageStack.Count == 0)
+				ContentManager.PageStack.Push(this);
 			string cachePath;
 			if (pageCode != null && pageCode != "")
 				cachePath = "$pagecode[" + PageCode + "]";

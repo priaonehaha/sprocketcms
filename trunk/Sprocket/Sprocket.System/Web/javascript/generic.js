@@ -45,7 +45,7 @@ function $nullIfBlank(str) {
 
 function htmlEncode(str) {
 	if(str == null) return '';
-	return str.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/&/g,'&amp;');
+	return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function trim(str) {
