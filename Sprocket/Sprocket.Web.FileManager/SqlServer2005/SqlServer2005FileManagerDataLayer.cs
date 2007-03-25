@@ -51,8 +51,6 @@ namespace Sprocket.Web.FileManager
 			return prm;
 		}
 
-		#region Members for SprocketFile
-
 		public Result Store(SprocketFile sprocketFile)
 		{
 			SqlConnection conn = null;
@@ -148,7 +146,5 @@ namespace Sprocket.Web.FileManager
 				}
 			}
 		}
-
-		#endregion
 	}
 }

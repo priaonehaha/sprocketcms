@@ -36,11 +36,13 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			else
 				types = new Type[0];
 
+			System.Diagnostics.Debug.WriteLine("Rendering AJAX scripts with timestamp of " + AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString());
 			string scr =
 				ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.ajax.js")
 					.Replace("$APPLICATIONROOT$", WebUtility.BasePath)
+					.Replace("$LOADTIMESTAMP$", AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString())
 				+ WebClientScripts.Instance.GetAjaxMethodsScript(types);
 			if (WebClientScripts.CompressJavaScript)
 				return JavaScriptCondenser.Condense(scr);

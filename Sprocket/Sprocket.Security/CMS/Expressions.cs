@@ -31,4 +31,59 @@ namespace Sprocket.Security.CMS
 			return new LoggedInExpression();
 		}
 	}
+
+	class UsernameExpression : IExpression
+	{
+		public object Evaluate(ExecutionState state)
+		{
+			if (!WebAuthentication.Instance.IsLoggedIn)
+				return "[not logged in]";
+			return SecurityProvider.CurrentUser.Username;
+		}
+
+		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+		}
+	}
+
+	class UsernameExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "username"; }
+		}
+
+		public IExpression Create()
+		{
+			return new UsernameExpression();
+		}
+	}
+
+
+	class UserIDExpression : IExpression
+	{
+		public object Evaluate(ExecutionState state)
+		{
+			if (!WebAuthentication.Instance.IsLoggedIn)
+				return "[not logged in]";
+			return SecurityProvider.CurrentUser.UserID;
+		}
+
+		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		{
+		}
+	}
+
+	class UserIDExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "userid"; }
+		}
+
+		public IExpression Create()
+		{
+			return new UserIDExpression();
+		}
+	}
 }

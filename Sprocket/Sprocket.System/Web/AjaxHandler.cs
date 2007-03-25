@@ -36,6 +36,7 @@ namespace Sprocket.Web
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(OnBeginHttpRequest);
+			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(OnEndHttpRequest);
 		}
 
 		void OnBeginHttpRequest(HttpApplication app, HandleFlag handled)
@@ -43,19 +44,44 @@ namespace Sprocket.Web
 			if (handled.Handled)
 				return;
 
-			if (app.Context.Request.Path.EndsWith(".ajax"))
+			if (IsAjaxRequest)
 			{
 				handled.Set();
 				ProcessRequest(HttpContext.Current);
 			}
 		}
 
+		void OnEndHttpRequest(HttpApplication app)
+		{
+		}
+
 		#endregion
+
+		public static bool IsAjaxRequest
+		{
+			get { return HttpContext.Current.Request.Path.EndsWith(".ajax"); }
+		}
 
 		private static Guid authKey = Guid.Empty;
 		public static Guid AuthKey
 		{
 			get { return authKey; }
+		}
+
+		private DateTime pageTimeStamp = DateTime.MinValue;
+		/// <summary>
+		/// This should be used to set a base date for the page in order to control when an ajax request
+		/// is no longer valid. The value should be set at the start of a page request so that any ajax
+		/// scripts are written out with the appropriate time stamp. Each ajax request supplies the
+		/// timestamp that was written to the page at load time. If data pertaining to the page is
+		/// changed externally, i.e. from a later page request in a different browser, the new timestamp
+		/// can be recorded in a database. Ajax requests can have their timestamp compared to the stored
+		/// timestamp to ensure that requests on old data are not executed.
+		/// </summary>
+		public DateTime PageTimeStamp
+		{
+			get { return pageTimeStamp; }
+			set { pageTimeStamp = value; }
 		}
 
 		/// <summary>
@@ -65,6 +91,12 @@ namespace Sprocket.Web
 		/// such as for role and permission requirement checking.
 		/// </summary>
 		public event InterruptableEventHandler<MethodInfo> OnAjaxRequestAuthenticationCheck;
+
+		/// <summary>
+		/// This is fired for each Ajax request to ensure that the page data has not expired and would
+		/// thus undermine the data integrity related to the ajax request.
+		/// </summary>
+		public event InterruptableEventHandler<DateTime> OnAjaxRequestTimeStampCheck;
 
 		/// <summary>
 		/// This method is called in response to any request where the URL ends with a .ajax
@@ -80,6 +112,8 @@ namespace Sprocket.Web
 		/// <param name="context">The current HttpContext object.</param>
 		internal void ProcessRequest(HttpContext context)
 		{
+			System.Diagnostics.Debug.WriteLine("Start of AJAX page request...");
+			Dictionary<string, object> responseData = new Dictionary<string, object>();
 			try
 			{
 				// load the post data from the http stream
@@ -87,8 +121,20 @@ namespace Sprocket.Web
 				context.Request.InputStream.Read(posted, 0, posted.Length);
 
 				// interpret the stream as a JSON string and parse it into a dictionary
-				IDictionary<string, object> data = (IDictionary<string, object>)JSON.Parse(System.Text.Encoding.ASCII.GetString(posted));
+				string strData = System.Text.Encoding.ASCII.GetString(posted);
+				IDictionary<string, object> data = (IDictionary<string, object>)JSON.Parse(strData);
 				
+				// extract the base page time stamp
+				pageTimeStamp = new DateTime(long.Parse(data["LoadTimeStamp"].ToString()));
+				System.Diagnostics.Debug.WriteLine("Extracted page time stamp of " + pageTimeStamp.Ticks.ToString());
+				if (OnAjaxRequestTimeStampCheck != null)
+				{
+					Result result = new Result();
+					OnAjaxRequestTimeStampCheck(pageTimeStamp, result);
+					if (!result.Succeeded)
+						throw new AjaxSessionExpiredException(result.Message);
+				}
+
 				// extract the module and method name
 				string fullname = data["ModuleName"].ToString();
 				int n = fullname.LastIndexOf(".");
@@ -188,24 +234,26 @@ namespace Sprocket.Web
 				}
 				
 				// invoke the method
-
 				if(info.ReturnType == typeof(void))
 				{
 					info.Invoke(module, prmValuesForMethod);
-					context.Response.Write("{}");
 				}
 				else
 				{
 					object returnVal = info.Invoke(module, prmValuesForMethod);
-					context.Response.Write(JSON.Encode(returnVal));
+					responseData["Data"] = returnVal;
 				}
+				//context.Response.Write(JSON.Encode(responseData));
 			}
 			catch(Exception e)
 			{
-				StringWriter writer = new StringWriter();
-				JSON.EncodeCustomObject(writer, new KeyValuePair<string, object>("__error", e));
-				context.Response.Write(writer.ToString());
+				responseData["__error"] = e;
+				responseData["__exceptionType"] = e.GetType().FullName;
 			}
+			if (!responseData.ContainsKey("Data"))
+				responseData["Data"] = null;
+			//responseData["__timeStamp"] = pageTimeStamp.Ticks;
+			context.Response.Write(JSON.Encode(responseData));
 		}
 	}
 }

@@ -27,6 +27,27 @@ namespace Sprocket.Web
 		{
 			return Message;
 		}
+	}
 
+	public class AjaxSessionExpiredException : SprocketException
+	{
+		public AjaxSessionExpiredException()
+		{
+		}
+
+		public AjaxSessionExpiredException(string message) : base(message)
+		{
+			
+		}
+
+		public AjaxSessionExpiredException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		public override string ToString()
+		{
+			return Message;
+		}
 	}
 }

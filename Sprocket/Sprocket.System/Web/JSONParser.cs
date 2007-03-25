@@ -387,7 +387,7 @@ namespace Sprocket.Web
 				}
 			}
 
-			private double ReadNumber()
+			private object ReadNumber()
 			{
 				int pos1 = pos;
 				while (pos < str.Length) // must start with at least one digit
@@ -423,11 +423,28 @@ namespace Sprocket.Web
 								else break;
 						}
 					}
-				double val = 0;
-				try { val = double.Parse(str.Substring(pos1, pos - pos1)); }
-				catch { ThrowException("Unable to parse number. Too many characters?"); }
-				SkipNextWhiteSpace();
-				return val;
+				string strNum = str.Substring(pos1, pos - pos1);
+				try
+				{
+					int intVal = 0;
+					if (int.TryParse(strNum, out intVal))
+						return intVal;
+					long longVal = 0;
+					if (long.TryParse(strNum, out longVal))
+						return longVal;
+					double dblVal = 0;
+					if (double.TryParse(strNum, out dblVal))
+						return dblVal;
+					decimal decVal = 0;
+					if (decimal.TryParse(strNum, out decVal))
+						return decVal;
+					ThrowException("Unable to parse number. Too many characters?");
+				}
+				finally
+				{
+					SkipNextWhiteSpace();
+				}
+				return null;
 			}
 
 			private void AssertNotEndOfString()

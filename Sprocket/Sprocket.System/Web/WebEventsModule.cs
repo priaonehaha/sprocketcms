@@ -94,6 +94,32 @@ namespace Sprocket.Web
 		/// <param name="e"></param>
 		internal void FireBeginRequest(object sender, EventArgs e)
 		{
+			// The SprocketPath refers to the bit after the application base path and before the
+			// querystring, minus any leading and trailing forward-slashes. (/) For example if the
+			// full URL is "http://www.sprocketcms.com/myapp/admin/users/?edit" and the subdirectory
+			// "myapp" is a virtual directory (IIS application) then the SprocketPath would be
+			// "admin/users".
+			string sprocketPath = null;
+			string appPath = HttpContext.Current.Request.Path.ToLower();
+
+			// check to see if there's a trailing slash and if there isn't, redirect to stick a trailing
+			// slash onto the path. This is to keep pathing consistent because otherwise relative paths
+			// (such as to images and css files) aren't pathed as expected. We DON'T do this if a form
+			// has been posted however, because otherwise we lose the contents of the posted form. It is
+			// assumed that if you forget to post to a path with a trailing slash, that once you finish
+			// processing the form that you'll redirect off to a secondary page anyway, which means
+			// sticking a slash on the end of this URL is unnecessary anyway.
+			if (!appPath.EndsWith("/") && !appPath.Contains(".") && HttpContext.Current.Request.Form.Count == 0)
+			{
+				HttpContext.Current.Response.Redirect(appPath + "/");
+				HttpContext.Current.Response.End();
+				return;
+			}
+
+			// changes (e.g.) "http://www.sprocketcms.com/myapp/admin/users/?edit" into "admin/users"
+			sprocketPath = appPath.Remove(0, HttpContext.Current.Request.ApplicationPath.Length).Trim('/');
+			SprocketPath.Value = sprocketPath;
+
 			HandleFlag handled = new HandleFlag();
 
 			if(OnBeginHttpRequest != null)
@@ -136,10 +162,6 @@ namespace Sprocket.Web
 		}
 
 		private string sprocketPath = null;
-		public static string SprocketPath
-		{
-			get { return Instance.sprocketPath; }
-		}
 
 		private string[] sprocketPathSections = null;
 		public static string[] SprocketPathSections
@@ -157,42 +179,15 @@ namespace Sprocket.Web
 			if (OnRequestStateLoaded != null) // as always, let the other modules know where we are...
 				OnRequestStateLoaded((HttpApplication)sender);
 
-			HttpContext pg = HttpContext.Current;
-
-			// The SprocketPath refers to the bit after the application base path and before the
-			// querystring, minus any leading and trailing forward-slashes. (/) For example if the
-			// full URL is "http://www.sprocketcms.com/myapp/admin/users/?edit" and the subdirectory
-			// "myapp" is a virtual directory (IIS application) then the SprocketPath would be
-			// "admin/users".
-			string sprocketPath = null;
-			string appPath = pg.Request.Path.ToLower();
-
-			// check to see if there's a trailing slash and if there isn't, redirect to stick a trailing
-			// slash onto the path. This is to keep pathing consistent because otherwise relative paths
-			// (such as to images and css files) aren't pathed as expected. We DON'T do this if a form
-			// has been posted however, because otherwise we lose the contents of the posted form. It is
-			// assumed that if you forget to post to a path with a trailing slash, that once you finish
-			// processing the form that you'll redirect off to a secondary page anyway, which means
-			// sticking a slash on the end of this URL is unnecessary anyway.
-			if (!appPath.EndsWith("/") && !appPath.Contains(".") && HttpContext.Current.Request.Form.Count == 0)
-			{
-				pg.Response.Redirect(appPath + "/");
-				pg.Response.End();
-				return;
-			}
-
-			// changes (e.g.) "http://www.sprocketcms.com/myapp/admin/users/?edit" into "admin/users"
-			sprocketPath = appPath.Remove(0, pg.Request.ApplicationPath.Length).Trim('/');
-
 			// split up the path sections to make things even easier for request event handlers
-			string[] pathSections = sprocketPath.Split('/');
+			string[] pathSections = SprocketPath.Value.Split('/');
 
 			// this is our flag so that request event handlers can let us know if they handled this request.
 			HandleFlag flag = new HandleFlag();
 
 			if (OnLoadRequestedPath != null)
 			{
-				OnLoadRequestedPath((HttpApplication)sender, sprocketPath, pathSections, flag);
+				OnLoadRequestedPath((HttpApplication)sender, SprocketPath.Value, pathSections, flag);
 				if (flag.Handled)
 				{
 					// stop the browser from caching the page
@@ -200,7 +195,7 @@ namespace Sprocket.Web
 
 					// if one of the modules handled the request event, then we can stop
 					// doing stuff now. The OnEndRequest event will still be called though.
-					pg.Response.End();
+					HttpContext.Current.Response.End();
 					return;
 				}
 			}
@@ -210,20 +205,20 @@ namespace Sprocket.Web
 			// and if so, serve up that file! This is handy if we insist on using the Standard
 			// ASP.Net Page framework (yuck) or want to serve up other things like plain html
 			// files.
-			if (!flag.Handled && File.Exists(pg.Request.PhysicalPath))
+			if (!flag.Handled && File.Exists(HttpContext.Current.Request.PhysicalPath))
 			{
 				// here we provide a last chance opportunity to alter the response before the
 				// file is served.
 				if (OnBeforeLoadExistingFile != null)
 				{
-					OnBeforeLoadExistingFile((HttpApplication)sender, sprocketPath, pathSections, flag);
+					OnBeforeLoadExistingFile((HttpApplication)sender, SprocketPath.Value, pathSections, flag);
 					if (flag.Handled)
 					{
-						pg.Response.End();
+						HttpContext.Current.Response.End();
 						return;
 					}
 				}
-				HttpContext.Current.RewritePath(pg.Request.Path);
+				HttpContext.Current.RewritePath(HttpContext.Current.Request.Path);
 				return;
 			}
 
@@ -232,7 +227,7 @@ namespace Sprocket.Web
 			// any default pages inside the folder that should execute. This requires the a key
 			// to be configured for appSettings in the Web.config file:
 			// <add key="DefaultPageFilenames" value="default.aspx,default.asp,default.htm,index.htm" />
-			if (Directory.Exists(pg.Request.PhysicalPath))
+			if (Directory.Exists(HttpContext.Current.Request.PhysicalPath))
 			{
 				string dpgstr = SprocketSettings.GetValue("DefaultPageFilenames");
 				if (dpgstr != null)
@@ -240,8 +235,8 @@ namespace Sprocket.Web
 					string[] pgarr = dpgstr.Split(',');
 					foreach (string pgname in pgarr)
 					{
-						string pgpath = "/" + pg.Request.Path.Trim('/') + "/" + pgname;
-						string physpath = pg.Request.PhysicalPath + "\\" + pgname;
+						string pgpath = "/" + HttpContext.Current.Request.Path.Trim('/') + "/" + pgname;
+						string physpath = HttpContext.Current.Request.PhysicalPath + "\\" + pgname;
 						if (File.Exists(physpath))
 						{
 							HttpContext.Current.Response.Redirect(pgpath);
@@ -258,7 +253,7 @@ namespace Sprocket.Web
 				OnPathNotFound((HttpApplication)sender, sprocketPath, pathSections, flag);
 				if (flag.Handled)
 				{
-					pg.Response.End();
+					HttpContext.Current.Response.End();
 					return;
 				}
 			}
