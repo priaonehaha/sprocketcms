@@ -146,7 +146,7 @@ namespace Sprocket.Web.CMS.Content
 					return new SprocketScript("[There was no template found named \"" + name + "\"]", "Template: " + name, "Template: " + name); ;
 				XmlElement xml = templateXML[name];
 
-				SprocketScript script;
+				SprocketScript script = null;
 				if (xml.HasAttribute("Master"))
 				{
 					script = BuildTemplateScript(xml.GetAttribute("Master"), embedStack, fileTimes);
@@ -179,10 +179,9 @@ namespace Sprocket.Web.CMS.Content
 						}
 					}
 				}
-				else
+				else if (xml.HasAttribute("File"))
 				{
-					if (!xml.HasAttribute("File"))
-						return new SprocketScript("[The template \"" + name + "\" is lacking a Master or File attribute]", "Template: " + name, "Template: " + name);
+					//	return new SprocketScript("[The template \"" + name + "\" is lacking a Master or File attribute]", "Template: " + name, "Template: " + name);
 					string path = WebUtility.MapPath(xml.GetAttribute("File"));
 					if (!File.Exists(path))
 						return new SprocketScript("[The template \"" + name + "\" references a nonexistant file]", "Template: " + name, "Template: " + name);
@@ -192,6 +191,14 @@ namespace Sprocket.Web.CMS.Content
 						script = new SprocketScript(reader.ReadToEnd(), "Template: " + name, "Template: " + name);
 						reader.Close();
 					}
+				}
+				else
+				{
+					if(xml.ChildNodes.Count > 0)
+						if(xml.FirstChild.NodeType == XmlNodeType.CDATA || xml.FirstChild.NodeType == XmlNodeType.Text)
+							script = new SprocketScript(xml.FirstChild.Value, "Template: " + name, "Template: " + name);
+					if(script == null)
+						script = new SprocketScript(xml.InnerText, "Template: " + name, "Template: " + name);
 				}
 
 				embedStack.Pop();
