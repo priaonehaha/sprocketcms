@@ -13,17 +13,9 @@ namespace Sprocket.Web
 	{
 		public static string MakeFullPath(string sprocketPath)
 		{
-			sprocketPath = sprocketPath.Trim('/');
-			string[] sections = sprocketPath.Split('/');
-
-			string start = "/";
-			string next = HttpContext.Current.Request.ApplicationPath.Trim('/');
-			if (next.Length > 0) next += "/";
-			if (sections.Length > 0 && sprocketPath.Length > 0)
-				if (!sections[sections.Length - 1].Contains("."))
-					sprocketPath += "/";
-
-			return start + next + sprocketPath;
+			int p = sprocketPath.LastIndexOf(".");
+			int s = sprocketPath.LastIndexOf("/");
+			return BasePath + sprocketPath + (sprocketPath.Length == 0 || p > s ? "" : "/");
 		}
 
 		public static string MapPath(string sprocketPath)
@@ -31,9 +23,21 @@ namespace Sprocket.Web
 			return HttpContext.Current.Server.MapPath(MakeFullPath(sprocketPath));
 		}
 
+		private static string basePath = null;
 		public static string BasePath
 		{
-			get { return MakeFullPath(""); }
+			get
+			{
+				if (basePath == null)
+				{
+					basePath = HttpContext.Current.Request.ApplicationPath.Trim('/');
+					if (basePath.Length > 0)
+						basePath = "/" + basePath + "/";
+					else
+						basePath = "/";
+				}
+				return basePath;
+			}
 		}
 
 		/// <summary>

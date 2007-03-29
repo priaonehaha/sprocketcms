@@ -131,7 +131,7 @@ namespace Sprocket.Web.CMS.Admin
 			bodyOnLoadScripts.Add(script);
 		}
 
-		public string Render(string sprocketPath)
+		public string Render()
 		{
 			interfaceScripts.Sort(RankedObject.SortByRank);
 			JavaScriptCollection jsc = new JavaScriptCollection();

@@ -111,11 +111,11 @@ namespace Sprocket.Web
 		}
 
 		public event InterruptableEventHandler OnCacheClearanceRequested;
-		void ContentCache_OnLoadRequestedPath(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void ContentCache_OnLoadRequestedPath(HandleFlag handled)
 		{
 			if (handled.Handled)
 				return;
-			else if (sprocketPath == "$clear-cache")
+			else if (SprocketPath.Value == "$clear-cache")
 			{
 				if (OnCacheClearanceRequested != null)
 				{
@@ -132,7 +132,7 @@ namespace Sprocket.Web
 				HttpContext.Current.Response.Write("The cache has been cleared.");
 				handled.Set();
 			}
-			else if (sprocketPath == "datastore\\content-cache" || sprocketPath.StartsWith("datastore\\content-cache\\"))
+			else if (SprocketPath.Value == "datastore\\content-cache" || SprocketPath.Value.StartsWith("datastore\\content-cache\\"))
 			{
 				handled.Set();
 				HttpContext.Current.Response.Write("Access denied.");

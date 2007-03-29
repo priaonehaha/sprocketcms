@@ -24,10 +24,10 @@ namespace Sprocket.Web
 	[ModuleTitle("HttpApplication Event Manager")]
 	public class WebEvents : ISprocketModule
 	{
-		public delegate void HttpApplicationEventHandler(HttpApplication app);
-		public delegate void HttpApplicationCancellableEventHandler(HttpApplication app, HandleFlag handled);
-		public delegate void ApplicationErrorEventHandler(HttpApplication app, Exception e);
-		public delegate void RequestedPathEventHandler(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled);
+		public delegate void HttpApplicationEventHandler();
+		public delegate void HttpApplicationCancellableEventHandler(HandleFlag handled);
+		public delegate void ApplicationErrorEventHandler(Exception e);
+		public delegate void RequestedPathEventHandler(HandleFlag handled);
 
 		/// <summary>
 		/// Pretty much the first event exposed by Sprocket during a request. This should generally
@@ -119,11 +119,12 @@ namespace Sprocket.Web
 			// changes (e.g.) "http://www.sprocketcms.com/myapp/admin/users/?edit" into "admin/users"
 			sprocketPath = appPath.Remove(0, HttpContext.Current.Request.ApplicationPath.Length).Trim('/');
 			SprocketPath.Value = sprocketPath;
+			SprocketPath.Sections = SprocketPath.Value.Split('/');
 
 			HandleFlag handled = new HandleFlag();
 
 			if(OnBeginHttpRequest != null)
-				OnBeginHttpRequest((HttpApplication)sender, handled);
+				OnBeginHttpRequest(handled);
 
 			if (handled.Handled)
 			{
@@ -151,7 +152,7 @@ namespace Sprocket.Web
 		internal void FireEndRequest(object sender, EventArgs e)
 		{
 			if(OnEndHttpRequest != null)
-				OnEndHttpRequest((HttpApplication)sender);
+				OnEndHttpRequest();
 
 			// seeing as this is the end of the line for a Sprocket request, let the system events
 			// module know so that other modules can clean up if necessary, close database connections
@@ -161,7 +162,7 @@ namespace Sprocket.Web
 				Core.Instance.Reset();
 		}
 
-		private string sprocketPath = null;
+		//private string sprocketPath = null;
 
 		private string[] sprocketPathSections = null;
 		public static string[] SprocketPathSections
@@ -177,17 +178,14 @@ namespace Sprocket.Web
 		internal void FireAcquireRequestState(object sender, EventArgs e)
 		{
 			if (OnRequestStateLoaded != null) // as always, let the other modules know where we are...
-				OnRequestStateLoaded((HttpApplication)sender);
-
-			// split up the path sections to make things even easier for request event handlers
-			string[] pathSections = SprocketPath.Value.Split('/');
+				OnRequestStateLoaded();
 
 			// this is our flag so that request event handlers can let us know if they handled this request.
 			HandleFlag flag = new HandleFlag();
 
 			if (OnLoadRequestedPath != null)
 			{
-				OnLoadRequestedPath((HttpApplication)sender, SprocketPath.Value, pathSections, flag);
+				OnLoadRequestedPath(flag);
 				if (flag.Handled)
 				{
 					// stop the browser from caching the page
@@ -211,7 +209,7 @@ namespace Sprocket.Web
 				// file is served.
 				if (OnBeforeLoadExistingFile != null)
 				{
-					OnBeforeLoadExistingFile((HttpApplication)sender, SprocketPath.Value, pathSections, flag);
+					OnBeforeLoadExistingFile(flag);
 					if (flag.Handled)
 					{
 						HttpContext.Current.Response.End();
@@ -250,7 +248,7 @@ namespace Sprocket.Web
 			// the current request, we offer up a final chance to respond to this fact...
 			if(OnPathNotFound != null)
 			{
-				OnPathNotFound((HttpApplication)sender, sprocketPath, pathSections, flag);
+				OnPathNotFound(flag);
 				if (flag.Handled)
 				{
 					HttpContext.Current.Response.End();
@@ -274,7 +272,7 @@ namespace Sprocket.Web
 				HttpApplication app = (HttpApplication)sender;
 				SystemEvents.Instance.NotifyExceptionThrown(app.Server.GetLastError());
 				if(OnApplicationError != null)
-					OnApplicationError(app, app.Server.GetLastError());
+					OnApplicationError(app.Server.GetLastError());
 				if (SprocketSettings.Instance.HasErrors)
 					Core.Instance.Reset();
 			}

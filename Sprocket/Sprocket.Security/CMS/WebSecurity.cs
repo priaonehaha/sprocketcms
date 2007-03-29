@@ -63,7 +63,7 @@ namespace Sprocket.Web.CMS.Security
 				result.SetFailed("You don't have access to this area.");
 		}
 
-		void OnAdminRequest(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void OnAdminRequest(AdminInterface admin, HandleFlag handled)
 		{
 			// build the "current user" block
 			User user = User.Select(SecurityProvider.ClientSpaceID, WebAuthentication.Instance.CurrentUsername);
@@ -81,7 +81,7 @@ namespace Sprocket.Web.CMS.Security
 			admin.AddMainMenuLink(new AdminMenuLink("Users and Roles", WebUtility.MakeFullPath("admin/security"), 0));
 			
 			// build the security interface if it has been requested
-			if (sprocketPath.StartsWith("admin/security"))
+			if (SprocketPath.Value.StartsWith("admin/security"))
 			{
 				handled.Set();
 

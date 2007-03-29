@@ -25,7 +25,7 @@ namespace Sprocket.Web.CMS.Pages
 		private Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers = new Dictionary<string, IPlaceHolderRenderer>();
 		public delegate void RegisteringPlaceHolderRenderers(Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers);
 		public event RegisteringPlaceHolderRenderers OnRegisteringPlaceHolderRenderers;
-		public delegate void BeforeRenderPage(PageEntry page, string sprocketPath, string[] pathSections);
+		public delegate void BeforeRenderPage(PageEntry page);
 		public event BeforeRenderPage OnBeforeRenderPage;
 
 		internal Dictionary<string, IPlaceHolderRenderer> PlaceHolderRenderers
@@ -64,11 +64,11 @@ namespace Sprocket.Web.CMS.Pages
 				OnRegisteringOutputFormatters(outputFormatters);
 		}
 
-		void OnLoadRequestedPath(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void OnLoadRequestedPath(HandleFlag handled)
 		{
 			if (handled.Handled) return;
 
-			switch (sprocketPath)
+			switch (SprocketPath.Value)
 			{
 				case "$reset":
 					PageRegistry.UpdateValues();
@@ -83,11 +83,11 @@ namespace Sprocket.Web.CMS.Pages
 				default:
 					PageRegistry.CheckDate();
 
-					PageEntry page = PageRegistry.Pages.FromPath(sprocketPath);
+					PageEntry page = PageRegistry.Pages.FromPath(SprocketPath.Value);
 					if(page == null)
 						return;
 					if (OnBeforeRenderPage != null)
-						OnBeforeRenderPage(page, sprocketPath, pathSections);
+						OnBeforeRenderPage(page);
 					string output = page.Render();
 					if (output == null)
 						return;
@@ -98,7 +98,7 @@ namespace Sprocket.Web.CMS.Pages
 			handled.Set();
 		}
 
-		void OnPathNotFound(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void OnPathNotFound(string sprocketPath, string[] pathSections, HandleFlag handled)
 		{
 			if (!sprocketPath.Contains(".")) return;
 			string urlpath;

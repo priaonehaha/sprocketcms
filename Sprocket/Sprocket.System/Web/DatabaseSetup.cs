@@ -15,10 +15,10 @@ namespace Sprocket.Web
 	public class DatabaseSetup : ISprocketModule
 	{
 		public event EmptyEventHandler Completed;
-		void Instance_OnLoadRequestedPath(HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void Instance_OnLoadRequestedPath(HandleFlag handled)
 		{
 			if (handled.Handled) return;
-			if (sprocketPath == "$dbsetup")
+			if (SprocketPath.Value == "$dbsetup")
 			{
 				Result result = DatabaseManager.DatabaseEngine.Initialise();
 				if (result.Succeeded)

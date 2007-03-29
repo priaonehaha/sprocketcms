@@ -25,7 +25,7 @@ namespace Sprocket.Web
 	//        WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);
 	//    }
 
-	//    void OnLoadRequestedPath(HttpApplication app, string path, string[] pathSections, HandleFlag handled)
+	//    void OnLoadRequestedPath(HandleFlag handled)
 	//    {
 	//        switch (path)
 	//        {

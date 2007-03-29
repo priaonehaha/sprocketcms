@@ -18,7 +18,7 @@ namespace Sprocket.Web.CMS.Content
 			get { return (ContentManager)Core.Instance[typeof(ContentManager)].Module; }
 		}
 
-		public delegate void BeforeRenderPage(PageEntry page, string sprocketPath, string[] pathSections);
+		public delegate void BeforeRenderPage(PageEntry page);
 		public event BeforeRenderPage OnBeforeRenderPage;
 
 		private static class Values
@@ -334,7 +334,7 @@ namespace Sprocket.Web.CMS.Content
 			WebEvents.Instance.OnPathNotFound += new WebEvents.RequestedPathEventHandler(WebEvents_OnPathNotFound);
 		}
 
-		void WebEvents_OnBeginHttpRequest(HttpApplication app, HandleFlag handled)
+		void WebEvents_OnBeginHttpRequest(HandleFlag handled)
 		{
 			RequestSpeedExpression.Set();
 			Values.PageStack.Clear();
@@ -345,21 +345,21 @@ namespace Sprocket.Web.CMS.Content
 			}
 		}
 
-		void WebEvents_OnPathNotFound(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void WebEvents_OnPathNotFound(HandleFlag handled)
 		{
 			#region Map missing referenced files (e.g. images and css) to the same location as the content file
 
-			if (!sprocketPath.Contains(".")) return;
+			if (!SprocketPath.Value.Contains(".")) return;
 			string urlpath;
-			if (pathSections.Length == 1)
+			if (SprocketPath.Sections.Length == 1)
 				urlpath = "";
 			else
-				urlpath = sprocketPath.Substring(0, sprocketPath.Length - pathSections[pathSections.Length - 1].Length - 1);
+				urlpath = SprocketPath.Value.Substring(0, SprocketPath.Value.Length - SprocketPath.Sections[SprocketPath.Sections.Length - 1].Length - 1);
 
 			PageEntry page = Pages.FromPath(urlpath);
 			if (page == null) return;
 			string newurl = page.ContentFile;
-			newurl = WebUtility.BasePath + newurl.Substring(0, newurl.LastIndexOf('/') + 1) + pathSections[pathSections.Length - 1];
+			newurl = WebUtility.BasePath + newurl.Substring(0, newurl.LastIndexOf('/') + 1) + SprocketPath.Sections[SprocketPath.Sections.Length - 1];
 			if (!File.Exists(HttpContext.Current.Server.MapPath(newurl)))
 				return;
 			HttpContext.Current.Response.TransmitFile(HttpContext.Current.Server.MapPath(newurl));
@@ -368,15 +368,15 @@ namespace Sprocket.Web.CMS.Content
 			#endregion
 		}
 
-		void WebEvents_OnLoadRequestedPath(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
 		{
 			if (handled.Handled) return;
-			PageEntry page = Pages.FromPath(sprocketPath);
+			PageEntry page = Pages.FromPath(SprocketPath.Value);
 			if (page == null)
 				return;
 			PageStack.Push(page);
 			if (OnBeforeRenderPage != null)
-				OnBeforeRenderPage(page, sprocketPath, pathSections);
+				OnBeforeRenderPage(page);
 			string txt = page.Render();
 			PageStack.Clear();
 			Response.Write(txt);

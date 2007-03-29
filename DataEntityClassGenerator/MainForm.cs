@@ -625,7 +625,7 @@ namespace ClassGenerator
 					if (c.MaxLength == -1)
 						return "ntext";
 					else
-						return "nvarchar(" + c.MaxLength + ")";
+						return "nvarchar(" + (c.MaxLength > 8000 ? "max" : c.MaxLength.ToString()) + ")";
 				case "Boolean":
 					return "bit";
 				case "Int16":

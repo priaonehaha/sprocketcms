@@ -89,9 +89,9 @@ namespace Sprocket.Security
 			}
 		}
 
-		void Instance_OnBeforeLoadExistingFile(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void Instance_OnBeforeLoadExistingFile(HandleFlag handled)
 		{
-			if (sprocketPath.ToLower() == "datastore/clientspace.id") // deny access
+			if (SprocketPath.Value.ToLower() == "datastore/clientspace.id") // deny access
 				handled.Set();
 		}
 

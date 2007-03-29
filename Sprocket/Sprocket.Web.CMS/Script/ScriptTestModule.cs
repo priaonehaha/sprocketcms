@@ -14,9 +14,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(Instance_OnLoadRequestedPath);
 		}
 
-		void Instance_OnLoadRequestedPath(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void Instance_OnLoadRequestedPath(HandleFlag handled)
 		{
-			if (sprocketPath == "scripttest")
+			if (SprocketPath.Value == "scripttest")
 			{
 				string html = Sprocket.Utility.ResourceLoader.LoadTextResource("Sprocket.Web.CMS.SprocketScript.test.htm");
 				SprocketScript script = new SprocketScript(html, "test.htm", "test.htm");

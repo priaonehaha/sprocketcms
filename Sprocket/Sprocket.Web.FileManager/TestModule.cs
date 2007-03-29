@@ -32,9 +32,9 @@ namespace Sprocket.Web.FileManager
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);
 		}
 
-		void OnLoadRequestedPath(HttpApplication app, string path, string[] pathSections, HandleFlag handled)
+		void OnLoadRequestedPath(HandleFlag handled)
 		{
-			switch (path)
+			switch (SprocketPath.Value)
 			{
 				case "test":
 					Response.Write("<form method=\"post\" action=\""
@@ -109,9 +109,9 @@ namespace Sprocket.Web.FileManager
 					break;
 
 				default:
-					if (path.EndsWith(".jpg") && path.StartsWith("test/image/"))
+					if (SprocketPath.Value.EndsWith(".jpg") && SprocketPath.Value.StartsWith("test/image/"))
 					{
-						FileManager.Instance.TransmitImage(pathSections[pathSections.Length - 1]);
+						FileManager.Instance.TransmitImage(SprocketPath.Sections[SprocketPath.Sections.Length - 1]);
 						break;
 					}
 					return;
