@@ -90,7 +90,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
       <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
-      <Name>Sprocket %28Sprocket\Sprocket%29</Name>
+      <Name>Sprocket</Name>
     </ProjectReference>
     <ProjectReference Include="..\Sprocket.Web.Controls\Sprocket.Web.Controls.csproj">
       <Project>{22980F70-9AB4-4F34-8BB9-D53C0E1818BB}</Project>

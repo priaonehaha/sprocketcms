@@ -293,7 +293,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 	#endregion
 	#endregion
 
-	#region and or > >= < <= = != startswith
+	#region and or > >= < <= = != startswith endswith
 
 	#region AndExpression
 	public class AndExpression : BinaryExpression
@@ -525,6 +525,34 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public string Keyword { get { return "startswith"; } }
 		public int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		public IBinaryExpression Create() { return new StartsWithExpression(); }
+	}
+
+	#endregion
+
+	#region EndsWith
+
+	public class EndsWithExpression : BinaryExpression
+	{
+		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
+		{
+			try
+			{
+				string a = left.Evaluate(state).ToString();
+				string b = right.Evaluate(state).ToString();
+				return a.EndsWith(b);
+			}
+			catch
+			{
+				return false;
+			}
+		}
+	}
+	public class EndsWithExpressionCreator : IBinaryExpressionCreator
+	{
+		public string Keyword { get { return "endswith"; } }
+		public int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
+		public IBinaryExpression Create() { return new EndsWithExpression(); }
 	}
 
 	#endregion

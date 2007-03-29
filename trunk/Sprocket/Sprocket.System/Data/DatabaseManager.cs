@@ -38,10 +38,10 @@ namespace Sprocket.Data
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Instance_OnInitialise);
+			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Core_OnInitialise);
 		}
 
-		void Instance_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
+		void Core_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
 		{
 			// need to check web.config to see which database registration name to use
 			// instantiate that Type, if found, or throw an error

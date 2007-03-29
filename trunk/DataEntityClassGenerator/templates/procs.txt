@@ -48,3 +48,4 @@ BEGIN
 	  FROM [tablename]
 	 WHERE [primarykey] = @[primarykey]
 END
+go

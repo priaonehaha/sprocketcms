@@ -43,12 +43,12 @@ namespace Sprocket.Web
 				};
 		Dictionary<string, Color> dllColors = new Dictionary<string, Color>();
 
-		void OnBeginHttpRequest(HttpApplication app, HandleFlag handled)
+		void OnBeginHttpRequest(HandleFlag handled)
 		{
 			if (handled.Handled)
 				return;
 
-			if (app.Context.Request.Path.EndsWith("module-hierarchy-diagram.gif"))
+			if (HttpContext.Current.Request.Path.EndsWith("module-hierarchy-diagram.gif"))
 			{
 				handled.Set();
 
@@ -166,8 +166,8 @@ namespace Sprocket.Web
 				EncoderParameters prms = new EncoderParameters(1);
 				prms.Param[0] = new EncoderParameter(Encoder.Quality, 200L);
 
-				bmp.Save(app.Context.Response.OutputStream, encoder, prms);
-				app.Context.Response.ContentType = "image/jpg";
+				bmp.Save(HttpContext.Current.Response.OutputStream, encoder, prms);
+				HttpContext.Current.Response.ContentType = "image/jpg";
 			}
 		}
 
@@ -181,9 +181,9 @@ namespace Sprocket.Web
 			return rect;
 		}
 
-		void OnLoadRequestedPath(HttpApplication app, string path, string[] pathSections, HandleFlag handled)
+		void OnLoadRequestedPath(HandleFlag handled)
 		{
-			if (path != "sysinfo")
+			if (SprocketPath.Value != "sysinfo")
 				return;
 			handled.Set();
 			string html = ResourceLoader.LoadTextResource("Sprocket.Web.html.sysinfo.htm");

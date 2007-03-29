@@ -6,11 +6,16 @@ namespace Sprocket.Web
 {
 	public static class SprocketPath
 	{
-		private static string sprocketPath;
 		public static string Value
 		{
-			get { return sprocketPath; }
-			internal set { sprocketPath = value; }
+			get { return (string)CurrentRequest.Value["Sprocket.Web.SprocketPath.Value"]; }
+			internal set { CurrentRequest.Value["Sprocket.Web.SprocketPath.Value"] = value; }
+		}
+
+		public static string[] Sections
+		{
+			get { return (string[])CurrentRequest.Value["Sprocket.Web.SprocketPath.PathSections"]; }
+			internal set { CurrentRequest.Value["Sprocket.Web.SprocketPath.PathSections"] = value; }
 		}
 	}
 }

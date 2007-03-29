@@ -19,7 +19,7 @@ namespace Sprocket.Web.CMS.Admin
 	[ModuleTitle("Website Administration Module")]
 	public partial class WebsiteAdmin : ISprocketModule
 	{
-		public delegate void AdminRequestHandler(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled);
+		public delegate void AdminRequestHandler(AdminInterface admin, HandleFlag handled);
 
 		public event AdminRequestHandler OnAdminRequest;
 		public event InterruptableEventHandler<string> OnCMSAdminAuthenticationSuccess;
@@ -41,12 +41,12 @@ namespace Sprocket.Web.CMS.Admin
 			HttpContext.Current.Response.Write(val);
 		}
 
-		void OnLoadRequestedPath(HttpApplication app, string path, string[] pathSections, HandleFlag handled)
+		void OnLoadRequestedPath(HandleFlag handled)
 		{
-			if (pathSections.Length == 0) return;
-			if (pathSections[0] != "admin") return;
+			if (SprocketPath.Sections.Length == 0) return;
+			if (SprocketPath.Sections[0] != "admin") return;
 			bool processed = false;
-			string lastchunk = pathSections[pathSections.Length - 1];
+			string lastchunk = SprocketPath.Sections[SprocketPath.Sections.Length - 1];
 
 			switch(lastchunk)
 			{
@@ -60,7 +60,7 @@ namespace Sprocket.Web.CMS.Admin
 					WebAuthentication auth = WebAuthentication.Instance;
 					HttpResponse Response = HttpContext.Current.Response;
 					HttpServerUtility Server = HttpContext.Current.Server;
-					switch (path)
+					switch (SprocketPath.Value)
 					{
 						case "admin/login":
 							ShowLoginScreen();
@@ -110,7 +110,7 @@ namespace Sprocket.Web.CMS.Admin
 			if (OnAdminRequest != null)
 			{
 				AdminInterface admin = new AdminInterface();
-				OnAdminRequest(admin, path, pathSections, handled);
+				OnAdminRequest(admin, handled);
 				if (handled.Handled)
 				{
 					WebClientScripts scripts = WebClientScripts.Instance;
@@ -122,16 +122,16 @@ namespace Sprocket.Web.CMS.Admin
 						if(StringUtilities.MatchesAny(powered.ToLower(), "true", "yes"))
 							admin.AddFooterLink(new AdminMenuLink("Powered by Sprocket", "http://www.sprocketcms.com", 1000));
 					admin.AddHeadSection(new RankedString(scripts.BuildStandardScriptsBlock(), 1));
-					HttpContext.Current.Response.Write(admin.Render(path));
+					HttpContext.Current.Response.Write(admin.Render());
 				}
 			}
 		}
 
-		void WebsiteAdmin_OnAdminRequest(AdminInterface admin, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void WebsiteAdmin_OnAdminRequest(AdminInterface admin, HandleFlag handled)
 		{
-			if (pathSections[0] != "admin") return;
-			
-			switch (sprocketPath)
+			if (SprocketPath.Sections[0] != "admin") return;
+
+			switch (SprocketPath.Value)
 			{
 				case "admin/dbsetup":
 					Result result = DatabaseManager.DatabaseEngine.Initialise();

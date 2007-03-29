@@ -39,7 +39,7 @@ namespace Sprocket.Web
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(OnEndHttpRequest);
 		}
 
-		void OnBeginHttpRequest(HttpApplication app, HandleFlag handled)
+		void OnBeginHttpRequest(HandleFlag handled)
 		{
 			if (handled.Handled)
 				return;
@@ -51,7 +51,7 @@ namespace Sprocket.Web
 			}
 		}
 
-		void OnEndHttpRequest(HttpApplication app)
+		void OnEndHttpRequest()
 		{
 		}
 
