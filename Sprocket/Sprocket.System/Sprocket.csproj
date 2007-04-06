@@ -108,6 +108,10 @@
     <Compile Include="Web\AjaxHandler.cs" />
     <Compile Include="Web\AjaxJavaScript.cs" />
     <Compile Include="Web\ContentCache.cs" />
+    <Compile Include="Web\Controls\AjaxForm\AjaxForm.cs" />
+    <Compile Include="Web\Controls\AjaxForm\AjaxFormField.cs" />
+    <Compile Include="Web\Controls\MultiPageNav.cs" />
+    <Compile Include="Web\Controls\WebControls.cs" />
     <Compile Include="Web\DatabaseSetup.cs" />
     <Compile Include="Web\JavaScriptCondenser.cs" />
     <Compile Include="Web\JSONParser.cs" />
@@ -143,6 +147,14 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\SqlServer2005\scripts.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Controls\AjaxForm\AjaxForm.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Controls\opacity.js" />
+    <EmbeddedResource Include="Web\Controls\splitter.js" />
+    <EmbeddedResource Include="Web\Controls\tabstrip.js" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

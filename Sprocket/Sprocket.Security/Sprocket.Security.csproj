@@ -105,10 +105,6 @@
       <Project>{8BE3F644-9B56-4D93-9FE8-797CE35061AE}</Project>
       <Name>Sprocket.Web.CMS</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sprocket.Web.Controls\Sprocket.Web.Controls.csproj">
-      <Project>{22980F70-9AB4-4F34-8BB9-D53C0E1818BB}</Project>
-      <Name>Sprocket.Web.Controls</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

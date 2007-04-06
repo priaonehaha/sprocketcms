@@ -11,10 +11,16 @@ namespace Sprocket.Web.CMS.Content
 	{
 		#region Fields and Properties
 
-		private string path = "", contentFile = "", template = "", pageCode = "";
+		private string path = "", contentFile = "", template = "", pageCode = "", contentType = "text/html";
 		private Guid internalID = Guid.NewGuid();
 		private PageEntry parent = null;
 		private List<PageEntry> pages = new List<PageEntry>();
+
+		public string ContentType
+		{
+			get { return contentType; }
+			set { contentType = value; }
+		}
 
 		public List<PageEntry> Pages
 		{

@@ -666,9 +666,12 @@ BEGIN
 		
 		IF EXISTS (SELECT Value
 					 FROM [Permissions]
-					WHERE PermissionTypeID = (SELECT PermissionTypeID
+					WHERE (PermissionTypeID = (SELECT PermissionTypeID
 												FROM PermissionTypes
 											   WHERE PermissionTypeCode = @PermissionTypeCode)
+					   OR PermissionTypeID = (SELECT PermissionTypeID
+												FROM PermissionTypes
+											   WHERE PermissionTypeCode = 'SUPERUSER'))
 					  AND (UserID = @UserID
 					   OR RoleID IN (SELECT RoleID FROM #r)))
 			SET @HasPermission = 1

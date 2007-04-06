@@ -64,15 +64,8 @@ CREATE TABLE dbo.ForumTopicMessage
 )
 	
 go
-IF OBJECT_ID(N'dbo.ForumTopic.IX_ForumTopic') IS NOT NULL
-	DROP INDEX ForumTopic.IX_ForumTopic
-go
-IF OBJECT_ID(N'IX_ForumTopicMessage') IS NOT NULL
-	DROP INDEX ForumTopicMessage.IX_ForumTopicMessage
-go
-CREATE INDEX IX_ForumTopic ON ForumTopic(DateCreated)
-go
-CREATE INDEX IX_ForumTopicMessage ON ForumTopicMessage(DateCreated)
+CREATE INDEX IX_ForumTopic ON ForumTopic(DateCreated) WITH DROP_EXISTING
+CREATE INDEX IX_ForumTopicMessage ON ForumTopicMessage(DateCreated) WITH DROP_EXISTING
 go
 
 IF OBJECT_ID(N'dbo.OnDeleteForumTopicAuthor') IS NOT NULL

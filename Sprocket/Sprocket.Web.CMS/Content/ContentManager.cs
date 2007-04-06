@@ -5,12 +5,14 @@ using System.Xml;
 using System.IO;
 using System.Web;
 using Sprocket.Web.CMS.Script;
+using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content
 {
 	[ModuleTitle("Content Manager")]
 	[ModuleDescription("The content management engine that handles content, pages and the templates they use")]
 	[ModuleDependency(typeof(WebEvents))]
+	[AjaxMethodHandler("ContentManager")]
 	public sealed class ContentManager : ISprocketModule
 	{
 		public static ContentManager Instance
@@ -235,6 +237,9 @@ namespace Sprocket.Web.CMS.Content
 				pageEntry.Parent = parent;
 				pageEntry.TemplateName = xml.GetAttribute("Template");
 				pageEntry.ContentFile = xml.GetAttribute("ContentFile");
+				if (xml.HasAttribute("ContentType"))
+					pageEntry.ContentType = xml.GetAttribute("ContentType");
+
 				if (xml.HasAttribute("Path"))
 				{
 					pageEntry.Path = xml.GetAttribute("Path").ToLower();
@@ -349,7 +354,12 @@ namespace Sprocket.Web.CMS.Content
 		{
 			#region Map missing referenced files (e.g. images and css) to the same location as the content file
 
-			if (!SprocketPath.Value.Contains(".")) return;
+			if (!SprocketPath.Value.Contains("."))
+			{
+				HttpContext.Current.Response.Write(ResourceLoader.LoadTextResource("Sprocket.Web.CMS.Content.404.htm"));
+				handled.Set();
+				return;
+			}
 			string urlpath;
 			if (SprocketPath.Sections.Length == 1)
 				urlpath = "";
@@ -379,9 +389,20 @@ namespace Sprocket.Web.CMS.Content
 				OnBeforeRenderPage(page);
 			string txt = page.Render();
 			PageStack.Clear();
+			Response.ContentType = page.ContentType;
 			Response.Write(txt);
 			handled.Set();
 		}
+		#endregion
+
+		#region Ajax Methods
+
+		[AjaxMethod(RequiresAuthentication = true)]
+		public string ShowAdminInterface()
+		{
+			return "interface";
+		}
+
 		#endregion
 	}
 }

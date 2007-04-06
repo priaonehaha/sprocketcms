@@ -45,11 +45,20 @@ namespace Sprocket.Web.CMS.Security
 			SprocketSettings.Instance.OnCheckingSettings += new SprocketSettings.CheckSettingsHandler(OnCheckingSettings);
 			WebsiteAdmin.Instance.OnAdminRequest += new WebsiteAdmin.AdminRequestHandler(OnAdminRequest);
 			WebsiteAdmin.Instance.OnCMSAdminAuthenticationSuccess += new InterruptableEventHandler<string>(OnCMSAdminAuthenticationSuccess);
+			AdminWindow.Instance.OnBeforeDisplayAdminWindowOverlay += new InterruptableEventHandler(AdminWindow_OnBeforeDisplayAdminWindowOverlay);
 			AjaxFormHandler.Instance.OnValidateField += new AjaxFormFieldValidationHandler(OnValidateField);
 			AjaxFormHandler.Instance.OnValidateForm += new AjaxFormSubmissionHandler(OnValidateForm);
 			AjaxFormHandler.Instance.OnSaveForm += new AjaxFormSubmissionHandler(OnSaveForm);
 			AjaxRequestHandler.Instance.OnAjaxRequestAuthenticationCheck += new InterruptableEventHandler<System.Reflection.MethodInfo>(OnAjaxRequestAuthenticationCheck);
 			Pages.PageRequestHandler.Instance.OnRegisteringPlaceHolderRenderers += new Sprocket.Web.CMS.Pages.PageRequestHandler.RegisteringPlaceHolderRenderers(Instance_OnRegisteringPlaceHolderRenderers);
+		}
+
+		void AdminWindow_OnBeforeDisplayAdminWindowOverlay(Result result)
+		{
+			if(WebAuthentication.Instance.IsLoggedIn)
+				if(SecurityProvider.CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
+					return;
+			result.SetFailed("access denied");
 		}
 
 		void Instance_OnRegisteringPlaceHolderRenderers(Dictionary<string, Sprocket.Web.CMS.Pages.IPlaceHolderRenderer> placeHolderRenderers)
