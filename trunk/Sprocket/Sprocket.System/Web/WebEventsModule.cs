@@ -85,6 +85,11 @@ namespace Sprocket.Web
 		public event RequestedPathEventHandler OnPathNotFound;
 
 		/// <summary>
+		/// This is called once the request path has been successfully processed.
+		/// </summary>
+		public event HttpApplicationEventHandler OnRequestedPathProcessed;
+
+		/// <summary>
 		/// This is the very first point where Sprocket interrupts the ASP.Net HTTP pipeline
 		/// and allows itself to start handling requests. Note that this is way before the 
 		/// standard ASP.Net page framework would kick in. At this point state information like
@@ -191,6 +196,9 @@ namespace Sprocket.Web
 					// stop the browser from caching the page
 					// HttpContext.Current.Response.Cache.SetCacheability(HttpCacheability.NoCache);
 
+					if (OnRequestedPathProcessed != null)
+						OnRequestedPathProcessed();
+
 					// if one of the modules handled the request event, then we can stop
 					// doing stuff now. The OnEndRequest event will still be called though.
 					HttpContext.Current.Response.End();
@@ -251,6 +259,8 @@ namespace Sprocket.Web
 				OnPathNotFound(flag);
 				if (flag.Handled)
 				{
+					if (OnRequestedPathProcessed != null)
+						OnRequestedPathProcessed();
 					HttpContext.Current.Response.End();
 					return;
 				}

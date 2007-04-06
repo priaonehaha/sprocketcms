@@ -43,6 +43,7 @@ namespace Sprocket.Web.CMS.Admin
 
 		void OnLoadRequestedPath(HandleFlag handled)
 		{
+			return;
 			if (SprocketPath.Sections.Length == 0) return;
 			if (SprocketPath.Sections[0] != "admin") return;
 			bool processed = false;
