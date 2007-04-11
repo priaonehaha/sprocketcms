@@ -195,5 +195,10 @@ namespace Sprocket.Web
 			app.UnLock();
 			return sync;
 		}
+
+		public static string UrlEncode(string s)
+		{
+			return HttpUtility.UrlEncode(s).Replace("+", "%20");
+		}
 	}
 }

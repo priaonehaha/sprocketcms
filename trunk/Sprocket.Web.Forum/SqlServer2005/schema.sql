@@ -52,20 +52,20 @@ CREATE TABLE dbo.ForumTopic
 )
 
 IF OBJECT_ID(N'dbo.ForumTopicMessage') IS NULL
-CREATE TABLE dbo.ForumTopicMessage
-(
-	ForumTopicMessageID bigint PRIMARY KEY,
-	ForumTopicID bigint NOT NULL FOREIGN KEY REFERENCES ForumTopic(ForumTopicID) ON DELETE CASCADE,
-	AuthorUserID bigint NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE NO ACTION,
-	
-	DateCreated datetime NOT NULL,
-	Body nvarchar(max) NOT NULL,
-	MarkupType smallint NOT NULL -- 0: none, 1: bbcode, 2: limited HTML, 3: full HTML
-)
-	
-go
-CREATE INDEX IX_ForumTopic ON ForumTopic(DateCreated) WITH DROP_EXISTING
-CREATE INDEX IX_ForumTopicMessage ON ForumTopicMessage(DateCreated) WITH DROP_EXISTING
+BEGIN
+	CREATE TABLE dbo.ForumTopicMessage
+	(
+		ForumTopicMessageID bigint PRIMARY KEY,
+		ForumTopicID bigint NOT NULL FOREIGN KEY REFERENCES ForumTopic(ForumTopicID) ON DELETE CASCADE,
+		AuthorUserID bigint NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE NO ACTION,
+		
+		DateCreated datetime NOT NULL,
+		Body nvarchar(max) NOT NULL,
+		MarkupType smallint NOT NULL -- 0: none, 1: bbcode, 2: limited HTML, 3: full HTML
+	)
+	CREATE INDEX IX_ForumTopic ON ForumTopic(DateCreated)
+	CREATE INDEX IX_ForumTopicMessage ON ForumTopicMessage(DateCreated)
+END
 go
 
 IF OBJECT_ID(N'dbo.OnDeleteForumTopicAuthor') IS NOT NULL
