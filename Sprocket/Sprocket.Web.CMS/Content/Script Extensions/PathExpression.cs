@@ -9,7 +9,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 	public class BasePathExpression : IExpression
 	{
 		public object Evaluate(ExecutionState state) { return WebUtility.BasePath; }
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 		}
 	}
@@ -23,7 +23,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 	public class SprocketPathExpression : IExpression
 	{
 		public object Evaluate(ExecutionState state) { return SprocketPath.Value; }
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 		}
 	}

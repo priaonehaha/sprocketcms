@@ -8,7 +8,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 	public interface IExpression
 	{
 		object Evaluate(ExecutionState state);
-		void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack);
+		void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack);
 	}
 
 	public interface IExpressionCreator
@@ -39,6 +39,38 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		string Keyword { get; }
 		IFilterExpression Create();
+	}
+
+	public interface IFunctionExpression : IExpression
+	{
+		void SetArguments(List<FunctionArgument> arguments, Token functionCallToken);
+	}
+
+	public class FunctionArgument
+	{
+		private IExpression expression;
+		private Token token;
+
+		public Token Token
+		{
+			get { return token; }
+		}
+
+		public IExpression Expression
+		{
+			get { return expression; }
+		}
+
+		public FunctionArgument(IExpression expr, Token token)
+		{
+			this.token = token;
+			expression = expr;
+		}
+	}
+
+	public interface IObjectExpression : IFunctionExpression
+	{
+		bool PrepareProperty(Token propertyToken, List<Token> tokens, ref int nextIndex);
 	}
 
 	#region BinaryExpression (abstract)
@@ -74,10 +106,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public abstract int Precedence { get; }
 		protected Token token = null;
 
-		public virtual void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public virtual void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			token = tokens[index - 1];
-			right = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
+			token = tokens[nextIndex - 1];
+			right = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack);
 		}
 
 		public static class PrecedenceValues
@@ -108,10 +140,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			return ((IFilterExpression)right).Evaluate(left, state);
 		}
-		public override void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public override void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			token = tokens[index - 1];
-			Right = TokenParser.BuildFilterExpression(tokens, ref index, precedenceStack);
+			token = tokens[nextIndex - 1];
+			Right = TokenParser.BuildFilterExpression(tokens, ref nextIndex, precedenceStack);
 			if (!(Right is IFilterExpression))
 				throw new TokenParserException("I can't do this because the right side doesn't have the ability to generate a value using the left side as input.", token);
 		}
@@ -137,10 +169,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return value;
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 			decimal n;
-			if (decimal.TryParse(tokens[index++].Value, out n))
+			if (decimal.TryParse(tokens[nextIndex++].Value, out n))
 				value = n;
 			else
 				value = null;
@@ -160,9 +192,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		string text;
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			text = tokens[index++].Value;
+			text = tokens[nextIndex++].Value;
 		}
 
 		public object Evaluate(ExecutionState state)
@@ -187,9 +219,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return new NotValue(expression.Evaluate(state));
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			expression = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
+			expression = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack);
 		}
 
 		public class NotValue
@@ -249,15 +281,13 @@ namespace Sprocket.Web.CMS.Script.Parser
 			}
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			Token token = tokens[index];
+			Token token = expressionToken;
 			if(token.Value == "true")
 				o = true;
 			else
 				o = false;
-			index++;
-			//expr = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
 		}
 
 		public BooleanExpression() { }

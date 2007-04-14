@@ -31,7 +31,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 			//if(!tokens[index].IsNonScriptText)
 			//    expr = TokenParser.BuildExpression(tokens, ref index, precedenceStack, true);

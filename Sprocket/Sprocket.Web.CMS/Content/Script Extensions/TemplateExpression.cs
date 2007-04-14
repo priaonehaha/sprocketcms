@@ -6,7 +6,7 @@ using Sprocket.Web.CMS.Script.Parser;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class TemplateExpression : IExpression
+	class TemplateExpression : IFunctionExpression
 	{
 		IExpression expr = null;
 		Token token = null;
@@ -22,12 +22,12 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			return t.Script.ExecuteToResolveExpression(state);
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			token = tokens[index];
+			token = tokens[nextIndex];
 			try
 			{
-				expr = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
+				expr = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack);
 			}
 			catch (TokenParserException)
 			{

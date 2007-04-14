@@ -7,36 +7,29 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class AjaxScriptsExpression : IExpression
+	class AjaxScriptsExpression : IFunctionExpression
 	{
-		IExpression expr = null;
+		List<FunctionArgument> arguments = null;
 		Token token = null;
 
 		public object Evaluate(ExecutionState state)
 		{
-			Type[] types;
-			if (expr != null)
+			Type[] types = new Type[arguments.Count];
+			int c = 0;
+			foreach (IExpression expr in arguments)
 			{
-				string[] typeNames = expr.Evaluate(state).ToString().Split(',');
-				types = new Type[typeNames.Length];
-				for (int i = 0; i < typeNames.Length; i++)
+				object o = expr.Evaluate(state);
+				if (o == null) o = String.Empty;
+				string typeName = o.ToString();
+				RegisteredModule mod = Core.Instance[typeName];
+				if (mod == null)
 				{
-					string typeName = typeNames[i].Trim();
-					if (typeName == "")
-						continue;
-
-					RegisteredModule mod = Core.Instance[typeName];
-					if (mod == null)
-					{
-						return "alert('[Type " + typeName + " not found]');";
-					}
-					types[i] = mod.Module.GetType();
+					return "alert('[Type " + typeName + " not found]');";
 				}
+				types[c++] = mod.Module.GetType();
 			}
-			else
-				types = new Type[0];
 
-			System.Diagnostics.Debug.WriteLine("Rendering AJAX scripts with timestamp of " + AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString());
+			//System.Diagnostics.Debug.WriteLine("Rendering AJAX scripts with timestamp of " + AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString());
 			string scr =
 				ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
@@ -50,11 +43,14 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				return scr;
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			token = tokens[index];
-			if (token.IsNonScriptText) return;
-			expr = TokenParser.BuildExpression(tokens, ref index, precedenceStack, true);
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			this.arguments = arguments;
+			token = functionCallToken;
 		}
 	}
 

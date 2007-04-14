@@ -14,7 +14,7 @@ namespace Sprocket.Security.CMS
 			return WebAuthentication.Instance.IsLoggedIn;
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 		}
 	}
@@ -41,8 +41,9 @@ namespace Sprocket.Security.CMS
 			return SecurityProvider.CurrentUser.Username;
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
+			throw new Exception("The method or operation is not implemented.");
 		}
 	}
 
@@ -69,8 +70,9 @@ namespace Sprocket.Security.CMS
 			return SecurityProvider.CurrentUser.UserID;
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
+			throw new Exception("The method or operation is not implemented.");
 		}
 	}
 
