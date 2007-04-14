@@ -5,45 +5,44 @@ using Sprocket.Web.CMS.Script.Parser;
 
 namespace Sprocket.Web.CMS.Script
 {
-	public interface IFunction
+	public class BoldLineExpression : IFunctionExpression
 	{
-		
-	}
-
-	public interface IFunctionCreator
-	{
-		string Keyword { get; }
-		IFunction Create();
-	}
-
-	public class HeadsOrTailsExpression : IExpression
-	{
-		private string hot = "heads";
 		public object Evaluate(ExecutionState state)
 		{
-			Random r = new Random();
-			int n = r.Next(0, 2);
-			return new BooleanExpression.SoftBoolean(n == (hot == "heads" ? 0 : 1));
+			string str = "";
+			foreach (FunctionArgument arg in args)
+			{
+				object o = arg.Expression.Evaluate(state);
+				string s;
+				if (o == null)
+					s = "null";
+				else
+					s = o.ToString();
+				str += "<div style=\"font-weight:bold;\">" + s + "</div>";
+			}
+			return str;
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			Token token = tokens[index];
-			if (token.TokenType == TokenType.StringLiteral && (token.Value.ToLower() == "heads" || token.Value.ToLower() == "tails"))
-			{
-				hot = token.Value.ToLower();
-				index++;
-			}
+		}
+
+		List<FunctionArgument> args = null;
+		Token token = null;
+		public void SetArguments(List<FunctionArgument> arguments, Token functionToken)
+		{
+			args = arguments;
+			token = functionToken;
 		}
 	}
 
-	public class HeadsOrTailsExpressionCreator : IExpressionCreator
+	public class BoldLineExpressionCreator : IExpressionCreator
 	{
-		public string Keyword { get { return "headsortails"; } }
+		public string Keyword { get { return "boldline"; } }
 
 		public IExpression Create()
 		{
-			return new HeadsOrTailsExpression();
+			return new BoldLineExpression();
 		}
 	}
 }

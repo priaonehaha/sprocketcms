@@ -238,6 +238,11 @@ namespace Sprocket.Web.CMS.Script
 			{
 				return obj.ToString() == identificationString;
 			}
+
+			public override string ToString()
+			{
+				return identificationString;
+			}
 		}
 
 		private Stack<SprocketScript> executingScript = new Stack<SprocketScript>();

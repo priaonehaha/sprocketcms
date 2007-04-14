@@ -11,7 +11,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return DateTime.Now;
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 		}
 	}
@@ -56,10 +56,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		IExpression fmtExpr;
 		Token token;
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			int n = index;
-			fmtExpr = TokenParser.BuildExpression(tokens, ref index, precedenceStack);
+			int n = nextIndex;
+			fmtExpr = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack);
 			token = tokens[n];
 		}
 	}

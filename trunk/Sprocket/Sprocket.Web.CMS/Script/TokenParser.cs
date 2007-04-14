@@ -66,26 +66,28 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return BuildInstruction(tokens, ref n);
 		}
 
-		public static IInstruction BuildInstruction(List<Token> tokens, ref int index)
+		public static IInstruction BuildInstruction(List<Token> tokens, ref int nextIndex)
 		{
 			// if we're just starting, encase the root-level instructions with a section statement
-			if (index == 0)
+			if (nextIndex == 0)
 			{
 				tokens.Insert(0, new Token(InstructionList.Keyword, TokenType.Word, 0));
 				tokens.Add(new Token("end", TokenType.Word, 0));
-				index++;
+				nextIndex++;
 				InstructionList il = new InstructionList();
-				il.Build(tokens, ref index);
+				il.Build(tokens, ref nextIndex);
 				return il;
 			}
 
-			Token token = tokens[index];
+			Token token = tokens[nextIndex];
 
 			// special case: if a standalone literal is found, create a "show" instruction to process it
 			if (token.TokenType == TokenType.StringLiteral)
 			{
+				if (!token.IsNonScriptText)
+					throw new TokenParserException("What's this quote here for?", token);
 				ShowInstruction si = new ShowInstruction();
-				si.Build(tokens, ref index, true);
+				si.Build(tokens, ref nextIndex, true);
 				return si;
 			}
 
@@ -98,8 +100,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 				if (instructionCreators.ContainsKey(token.Value))
 				{
 					IInstruction instruction = instructionCreators[token.Value].Create();
-					index++;
-					instruction.Build(tokens, ref index);
+					nextIndex++;
+					instruction.Build(tokens, ref nextIndex);
 					return instruction;
 				}
 			}
@@ -110,56 +112,52 @@ namespace Sprocket.Web.CMS.Script.Parser
 			throw new TokenParserException("I have no idea what \"" + token.Value + "\" means or at least what I'm supposed to do with it here.", token);
 		}
 
-		public static IExpression BuildExpression(List<Token> tokens, ref int index)
-		{
-			return BuildExpression(tokens, ref index, false);
-		}
-
-		public static IExpression BuildExpression(List<Token> tokens, ref int index, bool returnNullIfNoExpression)
+		public static IExpression BuildExpression(List<Token> tokens, ref int nextIndex)
 		{
 			Stack<int?> stack = new Stack<int?>();
 			stack.Push(null);
-			return BuildExpression(tokens, ref index, stack, returnNullIfNoExpression);
+			return BuildExpression(tokens, ref nextIndex, stack);
 		}
 
-		public static IExpression BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public static IExpression BuildExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			return BuildExpression(tokens, ref index, precedenceStack, false);
-		}
-
-		public static IExpression BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
-		{
-			if (index >= tokens.Count)
+			if (nextIndex >= tokens.Count)
 				throw new TokenParserException("The script seems to have ended prematurely while I was doing calculations. Shouldn't there be something here?", tokens[tokens.Count - 1]);
 
-			Token token = tokens[index];
+			Token token = tokens[nextIndex];
 			IExpression expr = null;
 			bool endGroupedExpression = false;
 			switch (token.TokenType)
 			{
 				case TokenType.Number:
 				case TokenType.StringLiteral:
-					expr = BuildSingularExpression(tokens, ref index);
+					expr = BuildSingularExpression(tokens, ref nextIndex);
 					break;
 
 				case TokenType.Word:
-					if (token.Value == "true" || token.Value == "false" || token.Value == "empty" || token.Value == "nothing")
+					if (!expressionCreators.ContainsKey(token.Value))
+						throw new TokenParserException("I don't know what \"" + token.Value + "\" means.", token);
+					expr = expressionCreators[token.Value].Create();
+					nextIndex++;
+					if (expr is IObjectExpression)
 					{
-						expr = new BooleanExpression();
-						expr.BuildExpression(tokens, ref index, precedenceStack);
-					}
-					else
-					{
-						string x = token.Value;
-						if (x == "querystring")
+						if (tokens[nextIndex].TokenType == TokenType.Symbolic && tokens[nextIndex].Value == ":")
 						{
+							Token propertyToken = tokens[++nextIndex];
+							if (propertyToken.TokenType != TokenType.Word)
+								throw new TokenParserException("This point in the script should be a word indicating a property of the preceding object.", propertyToken);
+							nextIndex++;
+							if (!((IObjectExpression)expr).PrepareProperty(propertyToken, tokens, ref nextIndex))
+								throw new TokenParserException("\"" + propertyToken.Value + "\" is not a valid property for this object.", propertyToken);
 						}
-						expr = BuildWordExpression(tokens, ref index, precedenceStack, returnNullIfNoExpression);
 					}
+					if (expr is IFunctionExpression)
+						((IFunctionExpression)expr).SetArguments(BuildFunctionArgumentList(tokens, ref nextIndex), token);
+					expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
 					break;
 
 				case TokenType.GroupStart:
-					expr = BuildGroupedExpression(tokens, ref index);
+					expr = BuildGroupedExpression(tokens, ref nextIndex);
 				    break;
 
 				case TokenType.GroupEnd:
@@ -167,16 +165,14 @@ namespace Sprocket.Web.CMS.Script.Parser
 					break;
 
 				default:
-					if (returnNullIfNoExpression)
-						return null;
 					throw new TokenParserException("This part of the script should equate to a value but instead I got \"" + token.Value + "\", which doesn't really mean anything in this context.", token);
 			}
 
 			if (!endGroupedExpression)
 			{
 				int? precedence = precedenceStack.Peek();
-				while (NextHasGreaterPrecedence(precedence, tokens, index))
-					expr = BuildBinaryExpression(tokens, ref index, expr, precedenceStack);
+				while (NextHasGreaterPrecedence(precedence, tokens, nextIndex))
+					expr = BuildBinaryExpression(tokens, ref nextIndex, expr, precedenceStack);
 				//if (index < tokens.Count - 1)
 				//    if (tokens[index].TokenType == TokenType.GroupEnd)
 				//        index++;
@@ -184,15 +180,15 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return expr;
 		}
 
-		public static IExpression BuildSingularExpression(List<Token> tokens, ref int index)
+		public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex)
 		{
 			Stack<int?> stack = new Stack<int?>();
-			return BuildSingularExpression(tokens, ref index, stack);
+			return BuildSingularExpression(tokens, ref nextIndex, stack);
 		}
 
-		public static IExpression BuildSingularExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			Token token = tokens[index];
+			Token token = tokens[nextIndex];
 			IExpression expr;
 			switch (token.TokenType)
 			{
@@ -205,66 +201,90 @@ namespace Sprocket.Web.CMS.Script.Parser
 					break;
 
 				default:
-					expr = BuildExpression(tokens, ref index, precedenceStack);
+					expr = BuildExpression(tokens, ref nextIndex, precedenceStack);
 					break;
 			}
 
-			expr.BuildExpression(tokens, ref index, precedenceStack);
+			expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
 			return expr;
 		}
 
-		public static IExpression BuildGroupedExpression(List<Token> tokens, ref int index)
+		public static IExpression BuildGroupedExpression(List<Token> tokens, ref int nextIndex)
 		{
-			index++;
-			IExpression expr = BuildExpression(tokens, ref index);
-			if (tokens[index].TokenType != TokenType.GroupEnd)
+			nextIndex++;
+			IExpression expr = BuildExpression(tokens, ref nextIndex);
+			if (tokens[nextIndex].TokenType != TokenType.GroupEnd)
 			{
-				string tokenval = tokens[index].Value.Trim();
+				string tokenval = tokens[nextIndex].Value.Trim();
 				if (tokenval == "")
 					tokenval = "#";
-				throw new TokenParserException("I think a closing bracket should be here. Did you forget to put it in?", new Token(tokenval, TokenType.Word, tokens[index].Position));
+				throw new TokenParserException("I think a closing bracket should be here. Did you forget to put it in?", new Token(tokenval, TokenType.Word, tokens[nextIndex].Position));
 			}
-			index++;
+			nextIndex++;
 			return expr;
 		}
 
-		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public static List<FunctionArgument> BuildFunctionArgumentList(List<Token> tokens, ref int nextIndex)
 		{
-			return BuildWordExpression(tokens, ref index, precedenceStack, false);
-		}
-
-		public static IExpression BuildWordExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
-		{
-			Token token = tokens[index];
-
-			if (!expressionCreators.ContainsKey(token.Value))
+			List<FunctionArgument> args = new List<FunctionArgument>();
+			if (tokens[nextIndex].TokenType != TokenType.GroupStart)
+				return args;
+			nextIndex++;
+			while (tokens[nextIndex].TokenType != TokenType.GroupEnd)
 			{
-				if (returnNullIfNoExpression)
-					return null;
-				throw new TokenParserException("I can't complete the calculations because \"" + token.Value + "\" doesn't equate to anything I can use in this situation.", token);
+				Token token = tokens[nextIndex];
+				IExpression expr = BuildExpression(tokens, ref nextIndex);
+				if (nextIndex >= tokens.Count)
+					throw new TokenParserException("Oops, looks like someone didn't finish writing the script. It ended while I was putting together a list of arguments for a function call.", tokens[tokens.Count-1]);
+				args.Add(new FunctionArgument(expr, token));
+				token = tokens[nextIndex];
+				if (token.TokenType == TokenType.GroupEnd)
+					continue;
+				if (token.TokenType == TokenType.Symbolic && token.Value == ",")
+					nextIndex++;
+				else
+					throw new TokenParserException("The list of function arguments needs to either end with a closing bracket, or have a comma to indicate that another argument is next.", token);
 			}
-			index++;
-			IExpression expr = expressionCreators[token.Value].Create();
-			expr.BuildExpression(tokens, ref index, precedenceStack);
-			return expr;
+			nextIndex++;
+			return args;
 		}
+		//public static IExpression BuildWordExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		//{
+		//    return BuildWordExpression(tokens, ref index, precedenceStack, false);
+		//}
 
-		public static IExpression BuildBinaryExpression(List<Token> tokens, ref int index, IExpression leftExpr, Stack<int?> precedenceStack)
+		//public static IExpression BuildWordExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
+		//{
+		//    Token token = tokens[index];
+
+		//    if (!expressionCreators.ContainsKey(token.Value))
+		//    {
+		//        if (returnNullIfNoExpression)
+		//            return null;
+		//        throw new TokenParserException("I can't complete the calculations because \"" + token.Value + "\" doesn't equate to anything I can use in this situation.", token);
+		//    }
+		//    index++;
+		//    IExpression expr = expressionCreators[token.Value].Create();
+		//    expr.BuildExpression(tokens, ref index, precedenceStack);
+		//    return expr;
+		//}
+
+		public static IExpression BuildBinaryExpression(List<Token> tokens, ref int nextIndex, IExpression leftExpr, Stack<int?> precedenceStack)
 		{
-			IBinaryExpressionCreator bxc = binaryExpressionCreators[tokens[index++].Value];
+			IBinaryExpressionCreator bxc = binaryExpressionCreators[tokens[nextIndex++].Value];
 			IBinaryExpression bx = bxc.Create();
 			bx.Left = leftExpr;
 			precedenceStack.Push(bx.Precedence);
-			bx.BuildExpression(tokens, ref index, precedenceStack);
+			bx.PrepareExpression(tokens[nextIndex], tokens, ref nextIndex, precedenceStack);
 			precedenceStack.Pop();
 			return bx;
 		}
 
-		public static bool NextHasGreaterPrecedence(int? thanPrecedence, List<Token> tokens, int index)
+		public static bool NextHasGreaterPrecedence(int? thanPrecedence, List<Token> tokens, int nextIndex)
 		{
-			if (index >= tokens.Count)
+			if (nextIndex >= tokens.Count)
 				return false;
-			Token token = tokens[index];
+			Token token = tokens[nextIndex];
 			if (token.TokenType != TokenType.Symbolic && token.TokenType != TokenType.Word)
 				return false;
 			if (!binaryExpressionCreators.ContainsKey(token.Value))
@@ -274,15 +294,15 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return binaryExpressionCreators[token.Value].Precedence < thanPrecedence.Value;
 		}
 
-		internal static IFilterExpression BuildFilterExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		internal static IFilterExpression BuildFilterExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			Token token = tokens[index++];
+			Token token = tokens[nextIndex++];
 			if (token.TokenType == TokenType.Word)
 			{
 				if (filterExpressionCreators.ContainsKey(token.Value))
 				{
 					IFilterExpression fx = filterExpressionCreators[token.Value].Create();
-					fx.BuildExpression(tokens, ref index, precedenceStack);
+					fx.PrepareExpression(tokens[nextIndex], tokens, ref nextIndex, precedenceStack);
 					return fx;
 				}
 			}

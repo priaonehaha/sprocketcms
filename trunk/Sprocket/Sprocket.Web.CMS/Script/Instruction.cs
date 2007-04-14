@@ -36,7 +36,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		/// For example, if this is a "show" instruction which exists at token list index 10, then index should be 11.
 		/// After processing, index should be left at the first position not processed by either directly or indirectly
 		/// (recursively) by this instruction</param>
-		void Build(List<Token> tokens, ref int index);
+		void Build(List<Token> tokens, ref int nextIndex);
 		void Execute(ExecutionState state);
 	}
 
@@ -67,21 +67,21 @@ namespace Sprocket.Web.CMS.Script.Parser
 			set { acceptELSEInPlaceOfEND = value; }
 		}
 
-		public void Build(List<Token> tokens, ref int index)
+		public void Build(List<Token> tokens, ref int nextIndex)
 		{
-			instructionListToken = tokens[index - 1];
-			if (index < tokens.Count - 1)
-				if (tokens[index].TokenType == TokenType.StringLiteral && !tokens[index].IsNonScriptText)
-					name = tokens[index++].Value;
-			while (index < tokens.Count)
+			instructionListToken = tokens[nextIndex - 1];
+			if (nextIndex < tokens.Count - 1)
+				if (tokens[nextIndex].TokenType == TokenType.StringLiteral && !tokens[nextIndex].IsNonScriptText)
+					name = tokens[nextIndex++].Value;
+			while (nextIndex < tokens.Count)
 			{
-				Token token = tokens[index];
+				Token token = tokens[nextIndex];
 				if (Token.IsEnd(token) || (acceptELSEInPlaceOfEND && Token.IsElse(token)))
 				{
-					index++;
+					nextIndex++;
 					return;
 				}
-				list.Add(TokenParser.BuildInstruction(tokens, ref index));
+				list.Add(TokenParser.BuildInstruction(tokens, ref nextIndex));
 			}
 		}
 
@@ -121,17 +121,17 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		private IExpression expression = null;
 
-		public void Build(List<Token> tokens, ref int index)
+		public void Build(List<Token> tokens, ref int nextIndex)
 		{
-			Build(tokens, ref index, false);
+			Build(tokens, ref nextIndex, false);
 		}
 
-		public void Build(List<Token> tokens, ref int index, bool useSingularExpression)
+		public void Build(List<Token> tokens, ref int nextIndex, bool useSingularExpression)
 		{
 			if (useSingularExpression)
-				expression = TokenParser.BuildSingularExpression(tokens, ref index);
+				expression = TokenParser.BuildSingularExpression(tokens, ref nextIndex);
 			else
-				expression = TokenParser.BuildExpression(tokens, ref index);
+				expression = TokenParser.BuildExpression(tokens, ref nextIndex);
 		}
 
 		public void Execute(ExecutionState state)
@@ -161,16 +161,16 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		private InstructionList whenTrue = null, whenFalse = null;
 		private IExpression expr = null;
-		public void Build(List<Token> tokens, ref int index)
+		public void Build(List<Token> tokens, ref int nextIndex)
 		{
-			expr = TokenParser.BuildExpression(tokens, ref index);
+			expr = TokenParser.BuildExpression(tokens, ref nextIndex);
 			whenTrue = new InstructionList();
 			whenTrue.AcceptELSEInPlaceOfEND = true;
-			whenTrue.Build(tokens, ref index);
-			if (Token.IsElse(tokens[index - 1]))
+			whenTrue.Build(tokens, ref nextIndex);
+			if (Token.IsElse(tokens[nextIndex - 1]))
 			{
 				whenFalse = new InstructionList();
-				whenFalse.Build(tokens, ref index);
+				whenFalse.Build(tokens, ref nextIndex);
 			}
 		}
 

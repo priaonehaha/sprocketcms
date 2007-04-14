@@ -18,7 +18,7 @@ namespace Sprocket.Web.CMS.Content
 			return ts.TotalSeconds.ToString("0.0##") + "s";
 		}
 
-		public void BuildExpression(List<Token> tokens, ref int index, Stack<int?> precedenceStack)
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 		}
 	}

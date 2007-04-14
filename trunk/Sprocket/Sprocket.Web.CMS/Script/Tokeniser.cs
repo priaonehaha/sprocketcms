@@ -100,6 +100,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 				case ':':
 				case ';':
 				case '?':
+				case ',':
 					return true;
 
 				default:

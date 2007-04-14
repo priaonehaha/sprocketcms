@@ -109,6 +109,8 @@ namespace Sprocket.Web.CMS.Admin
 
 		void WebEvents_OnRequestedPathProcessed()
 		{
+			if (SprocketPath.Value == "$dbsetup")
+				return;
 			if (!HttpContext.Current.Response.ContentType.Contains("html"))
 				return;
 			if (OnBeforeDisplayAdminWindowOverlay != null)
