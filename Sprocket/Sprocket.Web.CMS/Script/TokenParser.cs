@@ -145,7 +145,12 @@ namespace Sprocket.Web.CMS.Script.Parser
 							Token propertyNameToken = tokens[nextIndex++];
 							if (token.TokenType != TokenType.Word)
 								throw new TokenParserException("The \":\" symbol indicates that you want the value of a property of the preceding variable. In this case, you seem to have forgotten to put in the property name. e.g. \"variablename:property_name\"", propertyNameToken);
-							expr = new IteratorVariableExpression(token.Value, propertyNameToken.Value, token, propertyNameToken);
+							expr = new VariableExpression(token.Value, propertyNameToken.Value, token, propertyNameToken);
+							if (tokens[nextIndex].TokenType == TokenType.GroupStart)
+							{
+								Token indexToken = tokens[nextIndex];
+								((VariableExpression)expr).SetListIndex(BuildGroupedExpression(tokens, ref nextIndex), indexToken);
+							}
 						}
 						else
 						{
@@ -153,7 +158,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 							nextIndex++;
 						}
 						break;
-						//throw new TokenParserException("I don't know what \"" + token.Value + "\" means.", token);
 					}
 					else
 					{
@@ -269,26 +273,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 			nextIndex++;
 			return args;
 		}
-		//public static IExpression BuildWordExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		//{
-		//    return BuildWordExpression(tokens, ref index, precedenceStack, false);
-		//}
-
-		//public static IExpression BuildWordExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack, bool returnNullIfNoExpression)
-		//{
-		//    Token token = tokens[index];
-
-		//    if (!expressionCreators.ContainsKey(token.Value))
-		//    {
-		//        if (returnNullIfNoExpression)
-		//            return null;
-		//        throw new TokenParserException("I can't complete the calculations because \"" + token.Value + "\" doesn't equate to anything I can use in this situation.", token);
-		//    }
-		//    index++;
-		//    IExpression expr = expressionCreators[token.Value].Create();
-		//    expr.BuildExpression(tokens, ref index, precedenceStack);
-		//    return expr;
-		//}
 
 		public static IExpression BuildBinaryExpression(List<Token> tokens, ref int nextIndex, IExpression leftExpr, Stack<int?> precedenceStack)
 		{
@@ -334,6 +318,15 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			if (list.Count <= nextIndex)
 				throw new TokenParserException("I seem to have come to the end of the script prematurely. Should something be here?", list[list.Count - 1]);
+		}
+
+		public static object VerifyUnderlyingType(object o)
+		{
+			if (o == null)
+				return new BooleanExpression.SoftBoolean(false);
+			if (o is int || o is short || o is long || o is float || o is double || o is ushort || o is ulong || o is uint)
+				return Convert.ToDecimal(o);
+			return o;
 		}
 	}
 }
