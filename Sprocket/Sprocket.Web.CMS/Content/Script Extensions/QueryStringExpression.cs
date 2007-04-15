@@ -8,7 +8,7 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class QueryStringExpression : IFunctionExpression
+	class QueryStringExpression : IFunctionExpression, IObjectListExpression
 	{
 		IExpression expr = null;
 		Token argToken = null;
@@ -43,6 +43,43 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			{
 				expr = arguments[0].Expression;
 				argToken = arguments[0].Token;
+			}
+		}
+
+		public List<IIteratorObject> GetList(ExecutionState state)
+		{
+			List<IIteratorObject> list = new List<IIteratorObject>();
+			foreach (string s in HttpContext.Current.Request.QueryString)
+				list.Add(new QSComponent(s, HttpContext.Current.Request.QueryString[s]));
+			return list;
+		}
+
+		private class QSComponent : IIteratorObject
+		{
+			public object EvaluateProperty(string propertyName, Token propertyToken, ExecutionState state)
+			{
+				switch (propertyName)
+				{
+					case "length": return value.Length;
+					case "name": return name;
+					default: throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of this object", propertyToken);
+				}
+			}
+
+			public object Evaluate(ExecutionState state)
+			{
+				return value;
+			}
+
+			public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+			{
+			}
+
+			string value, name;
+			public QSComponent(string name, string value)
+			{
+				this.name = name;
+				this.value = value;
 			}
 		}
 	}

@@ -301,5 +301,11 @@ namespace Sprocket.Web.CMS.Script
 		{
 			get { return variables; }
 		}
+
+		private Dictionary<string, IIteratorObject> iterators = new Dictionary<string, IIteratorObject>();
+		public Dictionary<string, IIteratorObject> Iterators
+		{
+			get { return iterators; }
+		}
 	}
 }
