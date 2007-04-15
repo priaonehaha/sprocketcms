@@ -8,10 +8,10 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class QueryStringExpression : IExpression
+	class QueryStringExpression : IFunctionExpression
 	{
 		IExpression expr = null;
-		Token token = null;
+		Token argToken = null;
 
 		public object Evaluate(ExecutionState state)
 		{
@@ -22,7 +22,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			else
 			{
 				object obj = expr.Evaluate(state);
-				if (obj is int || obj is long || obj is short)
+				if (obj is int || obj is long || obj is short || obj is decimal || obj is double || obj is float)
 					return HttpContext.Current.Request.QueryString[Convert.ToInt32(obj)];
 				else if (obj == null)
 					return WebUtility.RawQueryString;
@@ -33,8 +33,17 @@ namespace Sprocket.Web.CMS.Content.Expressions
 
 		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			//if(!tokens[index].IsNonScriptText)
-			//    expr = TokenParser.BuildExpression(tokens, ref index, precedenceStack, true);
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			if (arguments.Count > 1)
+				throw new TokenParserException("the querystring expression must contain no more than one argument, and it should be a number specifying which querystring element you want, or a string (word) specifying the name of the querystring parameter you want.", functionCallToken);
+			if (arguments.Count == 1)
+			{
+				expr = arguments[0].Expression;
+				argToken = arguments[0].Token;
+			}
 		}
 	}
 

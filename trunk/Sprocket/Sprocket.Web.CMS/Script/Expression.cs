@@ -128,6 +128,13 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			return "{BinaryExpression: [" + left + " " + token.Value + " " + right + "] }";
 		}
+
+		public static object VerifyIfNumber(object o)
+		{
+			if (o is int || o is short || o is long || o is float || o is double || o is ushort || o is ulong || o is uint)
+				return Convert.ToDecimal(o);
+			return o;
+		}
 	}
 	#endregion
 
@@ -391,8 +398,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			return a.Equals(b) || b.Equals(a); // we check both sides in case one side has overridden the Equals method
 		}
 	}
@@ -416,8 +423,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.NotEqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			return !(a.Equals(b) || b.Equals(a)); // we check both sides in case one side has overridden the Equals method
 		}
 	}
@@ -453,8 +460,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) > 0;
 			throw new InstructionExecutionException("I can't check if the first thing is greater than the second thing because they're not really comparable in that way.", token);
@@ -474,8 +481,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) >= 0;
 			throw new InstructionExecutionException("I can't check if the first thing is greater than the second thing because they're not really comparable in that way.", token);
@@ -495,8 +502,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) < 0;
 			throw new InstructionExecutionException("I can't check if the first thing is less than or equal to the second thing because they're not really comparable in that way.", token);
@@ -516,8 +523,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) <= 0;
 			throw new InstructionExecutionException("I can't check if the first thing is less than or equal to the second thing because they're not really comparable in that way.", token);
@@ -595,13 +602,15 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			decimal x, y;
+			//typeof(decimal).IsAssignableFrom(typeof(a))
 			if (a is decimal)
 				x = (decimal)a;
 			else
 			{
+				//if(a is int || a is long || a is double || a is float || a is short
 				TypeConverter tc = TypeDescriptor.GetConverter(a);
 				if (!tc.CanConvertTo(typeof(decimal)))
 					return string.Concat(a, b);
@@ -639,8 +648,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			decimal x, y;
 			if (a is decimal)
 				x = (decimal)a;
@@ -688,8 +697,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			decimal x, y;
 			if (a is decimal)
 				x = (decimal)a;
@@ -737,8 +746,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = right.Evaluate(state);
-			object a = left.Evaluate(state);
+			object b = VerifyIfNumber(right.Evaluate(state));
+			object a = VerifyIfNumber(left.Evaluate(state));
 			decimal x, y;
 			if (a is decimal)
 				x = (decimal)a;

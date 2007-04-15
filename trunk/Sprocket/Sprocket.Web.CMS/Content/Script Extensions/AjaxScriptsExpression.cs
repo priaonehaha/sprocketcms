@@ -16,8 +16,9 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 			Type[] types = new Type[arguments.Count];
 			int c = 0;
-			foreach (IExpression expr in arguments)
+			foreach (FunctionArgument arg in arguments)
 			{
+				IExpression expr = arg.Expression;
 				object o = expr.Evaluate(state);
 				if (o == null) o = String.Empty;
 				string typeName = o.ToString();

@@ -295,5 +295,11 @@ namespace Sprocket.Web.CMS.Script
 			get { return sourceToken; }
 			set { sourceToken = value; }
 		}
+
+		private Dictionary<string, object> variables = new Dictionary<string, object>();
+		public Dictionary<string, object> Variables
+		{
+			get { return variables; }
+		}
 	}
 }
