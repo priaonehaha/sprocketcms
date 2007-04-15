@@ -136,24 +136,32 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 				case TokenType.Word:
 					if (!expressionCreators.ContainsKey(token.Value))
-						throw new TokenParserException("I don't know what \"" + token.Value + "\" means.", token);
-					expr = expressionCreators[token.Value].Create();
-					nextIndex++;
-					if (expr is IObjectExpression)
 					{
-						if (tokens[nextIndex].TokenType == TokenType.Symbolic && tokens[nextIndex].Value == ":")
-						{
-							Token propertyToken = tokens[++nextIndex];
-							if (propertyToken.TokenType != TokenType.Word)
-								throw new TokenParserException("This point in the script should be a word indicating a property of the preceding object.", propertyToken);
-							nextIndex++;
-							if (!((IObjectExpression)expr).PrepareProperty(propertyToken, tokens, ref nextIndex))
-								throw new TokenParserException("\"" + propertyToken.Value + "\" is not a valid property for this object.", propertyToken);
-						}
+						expr = new VariableExpression(token.Value, token);
+						nextIndex++;
+						break;
+						//throw new TokenParserException("I don't know what \"" + token.Value + "\" means.", token);
 					}
-					if (expr is IFunctionExpression)
-						((IFunctionExpression)expr).SetArguments(BuildFunctionArgumentList(tokens, ref nextIndex), token);
-					expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
+					else
+					{
+						expr = expressionCreators[token.Value].Create();
+						nextIndex++;
+						if (expr is IObjectExpression)
+						{
+							if (tokens[nextIndex].TokenType == TokenType.Symbolic && tokens[nextIndex].Value == ":")
+							{
+								Token propertyToken = tokens[++nextIndex];
+								if (propertyToken.TokenType != TokenType.Word)
+									throw new TokenParserException("This point in the script should be a word indicating a property of the preceding object.", propertyToken);
+								nextIndex++;
+								if (!((IObjectExpression)expr).PrepareProperty(propertyToken, tokens, ref nextIndex))
+									throw new TokenParserException("\"" + propertyToken.Value + "\" is not a valid property for this object.", propertyToken);
+							}
+						}
+						if (expr is IFunctionExpression)
+							((IFunctionExpression)expr).SetArguments(BuildFunctionArgumentList(tokens, ref nextIndex), token);
+						expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
+					}
 					break;
 
 				case TokenType.GroupStart:

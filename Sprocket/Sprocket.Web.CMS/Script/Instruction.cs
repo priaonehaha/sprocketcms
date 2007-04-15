@@ -191,4 +191,111 @@ namespace Sprocket.Web.CMS.Script.Parser
 	}
 
 	#endregion
+
+	#region SetInstruction
+	public class VariableExpression : IExpression
+	{
+		private string name = null;
+		private Token token = null;
+
+		public string Name
+		{
+			get { return name; }
+		}
+
+		public Token Token
+		{
+			get { return token; }
+		}
+
+		public VariableExpression(string name, Token token)
+		{
+			this.name = name;
+			this.token = token;
+		}
+
+		public object Evaluate(ExecutionState state)
+		{
+			if (state.Variables.ContainsKey(name))
+				return state.Variables[name];
+			throw new InstructionExecutionException("I can't evaluate the word \"" + name + "\". Either it doesn't mean anything or you forgot to assign it a value.", token);
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+	}
+
+	public class SetInstruction : IInstruction
+	{
+		private IExpression expr = null;
+		Token varNameToken = null;
+		public void Build(List<Token> tokens, ref int nextIndex)
+		{
+			varNameToken = tokens[nextIndex++];
+			Token toToken = tokens[nextIndex++];
+			if (varNameToken.TokenType != TokenType.Word)
+				throw new TokenParserException("the \"set\" instruction must be followed by a word of your choice that will be subsequently used to hold some value.", tokens[nextIndex - 1]);
+			if (toToken.TokenType != TokenType.Word || toToken.Value != "to")
+				throw new TokenParserException("the \"set\" instruction must be formatted like this: \"set something to some_expression\"", toToken);
+			expr = TokenParser.BuildExpression(tokens, ref nextIndex);
+		}
+
+		public void Execute(ExecutionState state)
+		{
+			state.Variables[varNameToken.Value] = expr.Evaluate(state);
+		}
+	}
+
+	public class SetInstructionCreator : IInstructionCreator
+	{
+		public string Keyword { get { return "set"; } }
+		public IInstruction Create() { return new SetInstruction(); }
+	}
+	#endregion
+
+	#region WhileInstruction
+
+	public class WhileInstruction : IInstruction
+	{
+		private InstructionList list = null;
+		private IExpression expr = null;
+		private Token token = null;
+
+		public void Build(List<Token> tokens, ref int nextIndex)
+		{
+			token = tokens[nextIndex - 1];
+			expr = TokenParser.BuildExpression(tokens, ref nextIndex);
+			list = new InstructionList();
+			list.AcceptELSEInPlaceOfEND = false;
+			list.Build(tokens, ref nextIndex);
+		}
+
+		public void Execute(ExecutionState state)
+		{
+			DateTime start = DateTime.Now;
+			DateTime stop = start.AddSeconds(15);
+			BooleanExpression.SoftBoolean _true = new BooleanExpression.SoftBoolean(true);
+			while (true)
+			{
+				if (DateTime.Now > stop)
+					throw new InstructionExecutionException("I have stopped the \"while\" loop because more than 15 seconds has passed, which means something has likely gone wrong.", token);
+				object val = expr.Evaluate(state);
+				if (val == null)
+					break;
+				if (_true.Equals(val))
+					list.Execute(state);
+				else
+					break;
+			}
+		}
+	}
+
+	public class WhileInstructionCreator : IInstructionCreator
+	{
+		public string Keyword { get { return "while"; } }
+		public IInstruction Create() { return new WhileInstruction(); }
+	}
+
+	#endregion
 }

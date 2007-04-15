@@ -24,15 +24,14 @@ namespace Sprocket.Web.CMS.Content.Expressions
 
 		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			token = tokens[nextIndex];
-			try
-			{
-				expr = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack);
-			}
-			catch (TokenParserException)
-			{
-				throw new TokenParserException("After the word \"template\", you need to specify which template to load!", token);
-			}
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			token = functionCallToken;
+			if(arguments.Count != 1)
+				throw new TokenParserException("The \"template\" expression requires one argument specifying which template to load", token);
+			expr = arguments[0].Expression;
 		}
 	}
 
