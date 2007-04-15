@@ -73,6 +73,16 @@ namespace Sprocket.Web.CMS.Script.Parser
 		bool PrepareProperty(Token propertyToken, List<Token> tokens, ref int nextIndex);
 	}
 
+	public interface IObjectListExpression : IFunctionExpression
+	{
+		List<IIteratorObject> GetList(ExecutionState state);
+	}
+
+	public interface IIteratorObject : IExpression
+	{
+		object EvaluateProperty(string propertyName, Token propertyToken, ExecutionState state);
+	}
+
 	#region BinaryExpression (abstract)
 	public abstract class BinaryExpression : IBinaryExpression
 	{

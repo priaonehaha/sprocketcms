@@ -137,8 +137,21 @@ namespace Sprocket.Web.CMS.Script.Parser
 				case TokenType.Word:
 					if (!expressionCreators.ContainsKey(token.Value))
 					{
-						expr = new VariableExpression(token.Value, token);
-						nextIndex++;
+						AssertNotEndOfList(tokens, nextIndex);
+						if (tokens[nextIndex + 1].Value == ":" && tokens[nextIndex + 1].TokenType == TokenType.Symbolic)
+						{
+							nextIndex+=2;
+							AssertNotEndOfList(tokens, nextIndex);
+							Token propertyNameToken = tokens[nextIndex++];
+							if (token.TokenType != TokenType.Word)
+								throw new TokenParserException("The \":\" symbol indicates that you want the value of a property of the preceding variable. In this case, you seem to have forgotten to put in the property name. e.g. \"variablename:property_name\"", propertyNameToken);
+							expr = new IteratorVariableExpression(token.Value, propertyNameToken.Value, token, propertyNameToken);
+						}
+						else
+						{
+							expr = new VariableExpression(token.Value, token);
+							nextIndex++;
+						}
 						break;
 						//throw new TokenParserException("I don't know what \"" + token.Value + "\" means.", token);
 					}
@@ -315,6 +328,12 @@ namespace Sprocket.Web.CMS.Script.Parser
 				}
 			}
 			throw new InstructionExecutionException("I was expecting something here that can take the value on the left and change the way it looks. \"" + token.Value + "\" doesn't have that capability.", token);
+		}
+
+		public static void AssertNotEndOfList(List<Token> list, int nextIndex)
+		{
+			if (list.Count <= nextIndex)
+				throw new TokenParserException("I seem to have come to the end of the script prematurely. Should something be here?", list[list.Count - 1]);
 		}
 	}
 }

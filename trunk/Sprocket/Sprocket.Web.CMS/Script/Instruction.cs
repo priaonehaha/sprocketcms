@@ -192,7 +192,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	#endregion
 
-	#region SetInstruction
 	public class VariableExpression : IExpression
 	{
 		private string name = null;
@@ -218,6 +217,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			if (state.Variables.ContainsKey(name))
 				return state.Variables[name];
+			else if (state.Iterators.ContainsKey(name))
+				return state.Iterators[name].Evaluate(state);
 			throw new InstructionExecutionException("I can't evaluate the word \"" + name + "\". Either it doesn't mean anything or you forgot to assign it a value.", token);
 		}
 
@@ -226,6 +227,53 @@ namespace Sprocket.Web.CMS.Script.Parser
 		}
 	}
 
+	public class IteratorVariableExpression : IExpression
+	{
+		private string name = null, propertyName = null;
+		private Token nameToken = null, propertyToken = null;
+
+		public string Name
+		{
+			get { return name; }
+		}
+
+		public string PropertyName
+		{
+			get { return propertyName; }
+		}
+
+		public Token NameToken
+		{
+			get { return nameToken; }
+		}
+
+		public Token PropertyToken
+		{
+			get { return propertyToken; }
+		}
+
+		public IteratorVariableExpression(string name, string propertyName, Token nameToken, Token propertyToken)
+		{
+			this.name = name;
+			this.propertyName = propertyName;
+			this.nameToken = nameToken;
+			this.propertyToken = propertyToken;
+		}
+
+		public object Evaluate(ExecutionState state)
+		{
+			if (!state.Iterators.ContainsKey(name))
+				throw new InstructionExecutionException("I can't evaluate the word \"" + name + "\". Either it doesn't mean anything or you forgot to assign it a value.", nameToken);
+			IIteratorObject expr = state.Iterators[name];
+			return expr.EvaluateProperty(propertyName, propertyToken, state);
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+	}
+
+	#region SetInstruction
 	public class SetInstruction : IInstruction
 	{
 		private IExpression expr = null;
@@ -295,6 +343,58 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		public string Keyword { get { return "while"; } }
 		public IInstruction Create() { return new WhileInstruction(); }
+	}
+
+	#endregion
+
+	#region ListEachInstruction
+
+	public class ListEachInstruction : IInstruction
+	{
+		private InstructionList instructions = null;
+		private IObjectListExpression expr = null;
+		private Token token = null, iteratorToken = null;
+
+		public void Build(List<Token> tokens, ref int nextIndex)
+		{
+			token = tokens[nextIndex - 1];
+			Token eachToken = tokens[nextIndex++];
+			if(eachToken.Value != "each" || eachToken.TokenType != TokenType.Word)
+				throw new TokenParserException("\"list\" must be followed by the word \"each\".", eachToken);
+			TokenParser.AssertNotEndOfList(tokens, nextIndex);
+			iteratorToken = tokens[nextIndex++];
+			TokenParser.AssertNotEndOfList(tokens, nextIndex);
+			Token inToken = tokens[nextIndex++];
+			if (inToken.Value != "in" || inToken.TokenType != TokenType.Word)
+				throw new TokenParserException("\"list each [something] must be followed by the word \"in\".", inToken);
+			TokenParser.AssertNotEndOfList(tokens, nextIndex);
+			Token listToken = tokens[nextIndex];
+			expr = TokenParser.BuildExpression(tokens, ref nextIndex) as IObjectListExpression;
+			if (expr == null)
+				throw new TokenParserException("This bit here should be something that will equate to a list of objects I can use in the loop that follows.", listToken);
+			instructions = new InstructionList();
+			instructions.AcceptELSEInPlaceOfEND = false;
+			instructions.Build(tokens, ref nextIndex);
+		}
+
+		public void Execute(ExecutionState state)
+		{
+			List<IIteratorObject> list = expr.GetList(state);
+			if (state.Iterators.ContainsKey(iteratorToken.Value))
+				throw new InstructionExecutionException("\"" + iteratorToken.Value + "\" already equates to something else. You should use a different word.", iteratorToken);
+			foreach(IIteratorObject item in list)
+			{
+				state.Iterators[iteratorToken.Value] = item;
+				instructions.Execute(state);
+			}
+			state.Iterators.Remove(iteratorToken.Value);
+		}
+	}
+
+	public class ListEachInstructionCreator : IInstructionCreator
+	{
+		public string Keyword { get { return "list"; } }
+		public IInstruction Create() { return new ListEachInstruction(); }
 	}
 
 	#endregion
