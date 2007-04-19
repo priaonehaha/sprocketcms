@@ -33,12 +33,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
 		{
 			token = functionCallToken;
-			if(arguments.Count == 0)
+			if (arguments.Count == 0)
 				throw new TokenParserException("The \"htmlencode\" function requires at least one argument.", token);
 			args = arguments;
 		}
 	}
-
 	class HtmlEncodeExpressionCreator : IExpressionCreator
 	{
 		public string Keyword
@@ -49,6 +48,94 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public IExpression Create()
 		{
 			return new HtmlEncodeExpression();
+		}
+	}
+
+	class SafeHtmlEncodeExpression : IFunctionExpression
+	{
+		Token token = null;
+		List<FunctionArgument> args = null;
+
+		public object Evaluate(ExecutionState state)
+		{
+			StringBuilder sb = new StringBuilder();
+			foreach (FunctionArgument arg in args)
+			{
+				object o = arg.Expression.Evaluate(state);
+				if (o == null)
+					sb.Append("null");
+				else
+					sb.Append(WebUtility.SafeHtmlString(o.ToString(), true));
+			}
+			return sb.ToString();
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			token = functionCallToken;
+			if (arguments.Count == 0)
+				throw new TokenParserException("The \"safehtmlencode\" function requires at least one argument.", token);
+			args = arguments;
+		}
+	}
+	class SafeHtmlEncodeExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "safehtmlencode"; }
+		}
+
+		public IExpression Create()
+		{
+			return new SafeHtmlEncodeExpression();
+		}
+	}
+
+	class UrlEncodeExpression : IFunctionExpression
+	{
+		Token token = null;
+		List<FunctionArgument> args = null;
+
+		public object Evaluate(ExecutionState state)
+		{
+			StringBuilder sb = new StringBuilder();
+			foreach (FunctionArgument arg in args)
+			{
+				object o = arg.Expression.Evaluate(state);
+				if (o == null)
+					sb.Append("null");
+				else
+					sb.Append(WebUtility.UrlEncode(o.ToString()));
+			}
+			return sb.ToString();
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			token = functionCallToken;
+			if (arguments.Count == 0)
+				throw new TokenParserException("The \"htmlencode\" function requires at least one argument.", token);
+			args = arguments;
+		}
+	}
+	class UrlEncodeExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "urlencode"; }
+		}
+
+		public IExpression Create()
+		{
+			return new UrlEncodeExpression();
 		}
 	}
 }

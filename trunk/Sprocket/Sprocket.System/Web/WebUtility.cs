@@ -200,5 +200,28 @@ namespace Sprocket.Web
 		{
 			return HttpUtility.UrlEncode(s).Replace("+", "%20");
 		}
+
+		public static string SafeHtmlString(string s, bool convertLineBreaks)
+		{
+			StringBuilder sb = new StringBuilder();
+			string[] arr = Regex.Split(Regex.Replace(s,
+					@"\</?(\<\!|script|style|iframe|link|head|body|html|frameset|frame|noframes|embed|object|applet|form)[^>]*\>?",
+					"", RegexOptions.IgnoreCase), @"(\<[^\S]*[^>]*\>)", RegexOptions.IgnoreCase);
+			Regex removeJavaScriptEvents = new Regex(@"(?<!\S)on\S+\s*\=", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+			Regex removeNastyStyles = new Regex(@"(expression\s*:\s*)|(position\s*:\s*(absolute|fixed)\s*;?)", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+			for (int i = 0; i < arr.Length; i++)
+			{
+				if (arr[i].StartsWith("<"))
+					sb.Append(removeNastyStyles.Replace(removeJavaScriptEvents.Replace(arr[i], ""), ""));
+				else
+					sb.Append(arr[i]);
+			}
+			if (convertLineBreaks)
+				return sb.ToString()
+					.Replace(Environment.NewLine, "<br />")
+					.Replace("\n", "<br />");
+			else
+				return sb.ToString();
+		}
 	}
 }

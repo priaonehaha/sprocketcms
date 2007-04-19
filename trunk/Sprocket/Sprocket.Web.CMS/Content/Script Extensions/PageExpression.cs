@@ -12,7 +12,8 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public enum Property
 		{
 			None,
-			Path
+			Path,
+			Code
 		}
 
 		private delegate object RenderHandler(ExecutionState state);
@@ -92,6 +93,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 					RenderValue = RenderPagePath;
 					break;
 
+				case "code":
+					property = Property.Code;
+					RenderValue = RenderPageCode;
+					break;
+
 				default:
 					return false;
 			}
@@ -151,12 +157,24 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				ContentManager.PageStack.Pop();
 			return page;
 		}
+
 		private object RenderPagePath(ExecutionState state)
 		{
 			if (arguments.Count > 1)
 				throw new InstructionExecutionException("Too many arguments specified. Specify none, or just one indicating the page code you are referring to.", functionToken);
 			FunctionArgument codeArg = arguments.Count == 0 ? null : arguments[0];
 			string str = GetPage(codeArg, state).Path;
+			if (popStack)
+				ContentManager.PageStack.Pop();
+			return str;
+		}
+
+		private object RenderPageCode(ExecutionState state)
+		{
+			if (arguments.Count > 0)
+				throw new InstructionExecutionException("Don't specify any arguments when requesting the page code. That would be like saying \"give me the color of blue\". :P", functionToken);
+			FunctionArgument codeArg = arguments.Count == 0 ? null : arguments[0];
+			string str = GetPage(codeArg, state).PageCode;
 			if (popStack)
 				ContentManager.PageStack.Pop();
 			return str;

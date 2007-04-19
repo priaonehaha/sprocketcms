@@ -52,6 +52,19 @@ function trim(str) {
 	return str.replace(/^\s*((\S|(\S\s+\S))+)\s*$/, '$1');
 }
 
+function queryString(arg) {
+	var qn = location.href.indexOf('?');
+	if(qn == -1 || qn == location.href.length - 1) return null;
+	var qs = location.href.substring(qn+1);
+	var arr = qs.split(/&/g);
+	for(var i=0; i<arr.length; i++) {
+		var nvp = arr[i].split(/=/);
+		if(nvp.length == 2 && nvp[0] == arg)
+			return unescape(nvp[1]);
+	}
+	return null;
+}
+
 function parseDate(dateString) {
 	return new Date(Date.parse(dateString));
 }
