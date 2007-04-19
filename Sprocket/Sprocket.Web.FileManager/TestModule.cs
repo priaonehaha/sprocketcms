@@ -22,7 +22,7 @@ namespace Sprocket.Web.FileManager
 	[ModuleDependency(typeof(FileManager))]
 	[ModuleDescription("A module for writing test code.")]
 	[ModuleTitle("FileManager Testing Module")]
-	public class TestModule : ISprocketModule
+	public class TestModule //: ISprocketModule
 	{
 		HttpRequest Request { get { return HttpContext.Current.Request; } }
 		HttpResponse Response { get { return HttpContext.Current.Response; } }
