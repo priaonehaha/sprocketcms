@@ -95,6 +95,7 @@ namespace Sprocket.Web
 			cookie.Values.Add("b", passwordHash);
 			cookie.Values.Add("c", Guid.NewGuid().ToString());
 			cookie.Expires = DateTime.Now.AddMinutes(timeoutMinutes);
+			#warning how is this affected by UTC?
 			HttpContext.Current.Response.Cookies.Add(cookie);
 		}
 

@@ -73,6 +73,17 @@ function isValidEmail(email) {
 	return (/^[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i).test(email);
 }
 
+function getGMTOffset() {
+	var dt = new Date();
+	var sub = dt.getUTCDate() < dt.getDate();
+	var hours;
+	if(sub)
+		hours = ((24 - dt.getUTCHours()) + dt.getHours());
+	else
+		hours = 0 - (dt.getUTCHours() - dt.getHours());
+	return hours;
+}
+
 Guid = {
 	Empty : '00000000-0000-0000-0000-000000000000'
 };

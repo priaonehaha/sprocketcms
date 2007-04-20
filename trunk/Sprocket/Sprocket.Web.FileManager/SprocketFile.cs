@@ -159,7 +159,7 @@ namespace Sprocket.Web.FileManager
 			this.contentType = fileData.ContentType;
 			this.title = title;
 			this.description = description;
-			this.uploadDate = DateTime.Now;
+			this.uploadDate = SprocketDate.Now;
 			dataLength = fileData.ContentLength;
 		}
 
@@ -237,7 +237,7 @@ namespace Sprocket.Web.FileManager
 			file.moduleRegCode = moduleRegCode;
 			file.description = description;
 			file.contentType = upload.ContentType;
-			file.uploadDate = DateTime.Now;
+			file.uploadDate = SprocketDate.Now;
 			file.FileTypeExtension = Path.GetExtension(upload.FileName);
 			upload.SaveAs(file.PhysicalPath);
 			if (Database.Main.IsTransactionActive)
