@@ -59,9 +59,9 @@ namespace Sprocket.Utility
 			return sb.ToString();
 		}
 
-		public static string ApproxHowLongAgo(DateTime dt)
+		public static string ApproxHowLongAgo(DateTime now, DateTime occurranceDate)
 		{
-			TimeSpan ts = DateTime.Now.Subtract(dt);
+			TimeSpan ts = now.Subtract(occurranceDate);
 			if (ts.TotalSeconds > 3)
 			{
 				if (ts.TotalSeconds > 55)

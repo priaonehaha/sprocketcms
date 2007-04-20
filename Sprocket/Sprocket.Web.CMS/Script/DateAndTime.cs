@@ -8,7 +8,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		public object Evaluate(ExecutionState state)
 		{
-			return DateTime.Now;
+			return SprocketDate.Now;
 		}
 
 		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)

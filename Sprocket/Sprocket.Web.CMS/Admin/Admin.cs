@@ -117,7 +117,7 @@ namespace Sprocket.Web.CMS.Admin
 					WebClientScripts scripts = WebClientScripts.Instance;
 					admin.AddMainMenuLink(new AdminMenuLink("Administrative Tasks", WebUtility.MakeFullPath("admin"), -100));
 					admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), 100));
-					admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + DateTime.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", 100));
+					admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + SprocketDate.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", 100));
 					string powered = SprocketSettings.GetValue("ShowPoweredBySprocket");
 					if(powered != null)
 						if(StringUtilities.MatchesAny(powered.ToLower(), "true", "yes"))

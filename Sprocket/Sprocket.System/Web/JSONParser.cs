@@ -390,6 +390,8 @@ namespace Sprocket.Web
 			private object ReadNumber()
 			{
 				int pos1 = pos;
+				if (str[pos] == '-') // can start with a negative (-) sign
+					pos++;
 				while (pos < str.Length) // must start with at least one digit
 					if(str[pos] >= '0' && str[pos] <= '9')
 						pos++;
