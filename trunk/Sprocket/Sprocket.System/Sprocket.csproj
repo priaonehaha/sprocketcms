@@ -96,6 +96,7 @@
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\SQLite\SQLiteDatabase.cs" />
     <Compile Include="Data\SqlServer2005\SqlServer2005Database.cs" />
+    <Compile Include="Mail\EmailHandler.cs" />
     <Compile Include="ModuleHandler.cs" />
     <Compile Include="Data\DatabaseManager.cs" />
     <Compile Include="Data\IDatabaseHandler.cs" />
@@ -116,6 +117,7 @@
     <Compile Include="Web\DatabaseSetup.cs" />
     <Compile Include="Web\JavaScriptCondenser.cs" />
     <Compile Include="Web\JSONParser.cs" />
+    <Compile Include="Web\LogFile.cs" />
     <Compile Include="Web\RankedObject.cs" />
     <Compile Include="Web\SprocketPath.cs" />
     <Compile Include="Web\SysInfo.cs" />

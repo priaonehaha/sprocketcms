@@ -17,5 +17,19 @@ namespace Sprocket.Web
 			get { return (string[])CurrentRequest.Value["Sprocket.Web.SprocketPath.PathSections"]; }
 			internal set { CurrentRequest.Value["Sprocket.Web.SprocketPath.PathSections"] = value; }
 		}
+
+		public static string Physical
+		{
+			get
+			{
+				string s = CurrentRequest.Value["SprocketPath.Physical"] as string;
+				if (s == null)
+				{
+					s = WebUtility.MapPath(Value);
+					CurrentRequest.Value["SprocketPath.Physical"] = s;
+				}
+				return s;
+			}
+		}
 	}
 }
