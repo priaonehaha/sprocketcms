@@ -7,6 +7,7 @@ using System.Text;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 using Sprocket;
 using Sprocket.Utility;
@@ -187,6 +188,46 @@ namespace Sprocket.Web
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(WebEvents_OnBeforeLoadExistingFile);
+		}
+
+		private Dictionary<string, DateTime> compressedJSFiles = new Dictionary<string, DateTime>();
+		void WebEvents_OnBeforeLoadExistingFile(HandleFlag handled)
+		{
+			if (!SprocketPath.Value.EndsWith(".js")) return;
+			FileInfo file = new FileInfo(SprocketPath.Physical);
+			HttpContext.Current.Response.Cache.SetLastModified(file.LastWriteTime);
+			HttpContext.Current.Response.Cache.SetMaxAge(new TimeSpan(24, 0, 0));
+			if (!CompressJavaScript) return;
+			bool rewrite = false;
+			if (!ContentCache.IsContentCached(SprocketPath.Value))
+				rewrite = true;
+			else if (!compressedJSFiles.ContainsKey(file.FullName))
+				rewrite = true;
+			else if (compressedJSFiles[file.FullName] != file.LastWriteTime)
+				rewrite = true;
+			HttpContext.Current.Response.ContentType = "text/javascript";
+			if (rewrite)
+			{
+				try
+				{
+					using (StreamReader reader = file.OpenText())
+					{
+						string s = JavaScriptCondenser.Condense(reader.ReadToEnd());
+						HttpContext.Current.Response.Write(s);
+						ContentCache.CacheContent(SprocketPath.Value, s);
+						reader.Close();
+						compressedJSFiles[file.FullName] = file.LastWriteTime;
+					}
+				}
+				catch
+				{
+					return; // if an error occurs, let the system serve up the file normally
+				}
+			}
+			else
+				HttpContext.Current.Response.Write(ContentCache.ReadCache(SprocketPath.Value));
+			handled.Set();
 		}
 
 		public static bool CompressJavaScript

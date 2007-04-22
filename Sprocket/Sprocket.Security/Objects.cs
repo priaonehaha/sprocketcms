@@ -267,6 +267,14 @@ namespace Sprocket.Security
 			return SecurityProvider.Instance.DataLayer.IsUserInRole(userID, roleCode);
 		}
 
+		public MailAddress GetMailAddress(bool useFullName)
+		{
+			if (useFullName)
+				return new MailAddress(email, FullName);
+			else
+				return new MailAddress(email, username);
+		}
+
 		#endregion
 	}
 

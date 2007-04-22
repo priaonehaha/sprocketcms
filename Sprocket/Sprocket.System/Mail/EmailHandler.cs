@@ -6,9 +6,11 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
+using System.Threading;
 
 using Sprocket;
 using Sprocket.Utility;
+using Sprocket.Web;
 
 namespace Sprocket.Mail
 {
@@ -16,10 +18,6 @@ namespace Sprocket.Mail
 	[ModuleTitle("Email Handler")]
 	public class EmailHandler : ISprocketModule
 	{
-		public event InterruptableEventHandler<MailMessage> OnSendingEmail;
-		public NotificationEventHandler<MailSendResult> OnEmailDeliverySuccess;
-		public NotificationEventHandler<MailSendResult> OnEmailDeliveryFailed;
-
 		public static EmailHandler Instance
 		{
 			get { return (EmailHandler)Core.Instance[typeof(EmailHandler)].Module; }
@@ -27,12 +25,13 @@ namespace Sprocket.Mail
 
 		public static void Send(MailMessage msg)
 		{
-			Instance.Send(msg, false, null);
-		}
-
-		public static void SendAsync(MailMessage msg, string callbackModuleRegCode)
-		{
-			Instance.Send(msg, true, callbackModuleRegCode);
+			SendParams prms = new SendParams();
+			prms.Message = msg;
+			prms.RedirectAllMailTo = RedirectAllEmailTo;
+			prms.Client = Instance.GetClient();
+			prms.LogFile = new LogFile("mail-send-errors.log");
+			Thread thread = new Thread(new ParameterizedThreadStart(Instance.SendThread));
+			thread.Start(prms);
 		}
 
 		public static void Send(MailAddress to, MailAddress from, string subject, string body, bool isHTML)
@@ -41,7 +40,13 @@ namespace Sprocket.Mail
 			msg.Subject = subject;
 			msg.Body = body;
 			msg.IsBodyHtml = isHTML;
-			Instance.Send(msg, false, null);
+			Send(msg);
+		}
+
+		/*
+		public static void SendAsync(MailMessage msg, string callbackModuleRegCode)
+		{
+			Instance.Send(msg, true, callbackModuleRegCode);
 		}
 
 		public static void SendAsync(MailAddress to, MailAddress from, string subject, string body, bool isHTML, string callbackModuleRegCode)
@@ -89,6 +94,7 @@ namespace Sprocket.Mail
 					OnEmailDeliverySuccess(new MailSendResult(msg, moduleCode, null));
 			}
 		}
+		*/
 
 		public static MailAddress NullEmailAddress
 		{
@@ -110,16 +116,12 @@ namespace Sprocket.Mail
 			}
 		}
 
-		void client_SendCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+		private static string RedirectAllEmailTo
 		{
-			if (e.Error != null && OnEmailDeliveryFailed != null)
+			get
 			{
-				MailSendResult r = (MailSendResult)e.UserState;
-				r.ErrorMessage = e.Error.Message;
-				OnEmailDeliveryFailed(r);
+				return SprocketSettings.GetValue("RedirectAllEmailTo");
 			}
-			else if (e.Error == null && OnEmailDeliverySuccess != null)
-				OnEmailDeliverySuccess((MailSendResult)e.UserState);
 		}
 
 		private SmtpClient GetClient()
@@ -154,6 +156,34 @@ namespace Sprocket.Mail
 			catch
 			{
 				return false;
+			}
+		}
+
+		internal class SendParams
+		{
+			public MailMessage Message;
+			public string RedirectAllMailTo;
+			public SmtpClient Client;
+			public LogFile LogFile;
+		}
+
+		internal void SendThread(object data)
+		{
+			if (data == null) return;
+			SendParams prms = data as SendParams;
+			if (prms.RedirectAllMailTo != null)
+			{
+				MailAddress addr = new MailAddress(prms.Message.To[0].Address, prms.Message.To[0].DisplayName);
+				prms.Message.To.Clear();
+				prms.Message.To.Add(addr);
+			}
+			try
+			{
+				prms.Client.Send(prms.Message);
+			}
+			catch(Exception ex)
+			{
+				prms.LogFile.Write("Error sending message to " + prms.Message.From.Address + Environment.NewLine + ex + Environment.NewLine);
 			}
 		}
 
