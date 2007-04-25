@@ -180,7 +180,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public void Execute(ExecutionState state)
 		{
 			object val = expr.Evaluate(state);
-			if (val.Equals(true))
+			if (BooleanExpression.True.Equals(val))
 				whenTrue.Execute(state);
 			else if (whenFalse != null)
 				whenFalse.Execute(state);
@@ -374,7 +374,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			DateTime start = DateTime.Now;
 			DateTime stop = start.AddSeconds(15);
-			BooleanExpression.SoftBoolean _true = new BooleanExpression.SoftBoolean(true);
 			while (true)
 			{
 				if (DateTime.Now > stop)
@@ -382,7 +381,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 				object val = expr.Evaluate(state);
 				if (val == null)
 					break;
-				if (_true.Equals(val))
+				if (BooleanExpression.True.Equals(val))
 					list.Execute(state);
 				else
 					break;

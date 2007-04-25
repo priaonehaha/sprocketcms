@@ -18,7 +18,6 @@ namespace Sprocket.Security.CMS
 		{
 		}
 	}
-
 	class LoggedInExpressionCreator : IExpressionCreator
 	{
 		public string Keyword
@@ -43,10 +42,8 @@ namespace Sprocket.Security.CMS
 
 		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			throw new Exception("The method or operation is not implemented.");
 		}
 	}
-
 	class UsernameExpressionCreator : IExpressionCreator
 	{
 		public string Keyword
@@ -60,6 +57,31 @@ namespace Sprocket.Security.CMS
 		}
 	}
 
+	class AccountActivatedExpression : IExpression
+	{
+		public object Evaluate(ExecutionState state)
+		{
+			if (!WebAuthentication.Instance.IsLoggedIn)
+				return "[not logged in]";
+			return SecurityProvider.CurrentUser.Activated;
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+	}
+	class AccountActivatedExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "accountactivated"; }
+		}
+
+		public IExpression Create()
+		{
+			return new AccountActivatedExpression();
+		}
+	}
 
 	class UserIDExpression : IExpression
 	{
@@ -72,10 +94,8 @@ namespace Sprocket.Security.CMS
 
 		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
-			throw new Exception("The method or operation is not implemented.");
 		}
 	}
-
 	class UserIDExpressionCreator : IExpressionCreator
 	{
 		public string Keyword
@@ -86,6 +106,41 @@ namespace Sprocket.Security.CMS
 		public IExpression Create()
 		{
 			return new UserIDExpression();
+		}
+	}
+
+	class EmailChangePendingExpression : IExpression
+	{
+		public object Evaluate(ExecutionState state)
+		{
+			if (!WebAuthentication.Instance.IsLoggedIn)
+				return "[not logged in]";
+			if (CurrentRequest.Value["EmailChangePendingExpression_Value"] != null)
+				return (bool)CurrentRequest.Value["EmailChangePendingExpression_Value"];
+			EmailChangeRequest ecr = SecurityProvider.Instance.DataLayer.SelectEmailChangeRequest(SecurityProvider.CurrentUser.UserID);
+			bool val;
+			if (ecr == null)
+				val = false;
+			else
+				val = true;
+			CurrentRequest.Value["EmailChangePendingExpression_Value"] = val;
+			return val;
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+	}
+	class EmailChangePendingExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "emailchangepending"; }
+		}
+
+		public IExpression Create()
+		{
+			return new EmailChangePendingExpression();
 		}
 	}
 }

@@ -29,17 +29,19 @@ namespace Sprocket.Security
 				{
 					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SqlServer2005Database db = (SqlServer2005Database)DatabaseManager.DatabaseEngine;
-					result = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.tables.sql"));
-					if (result.Succeeded)
+					Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.tables.sql"));
+					if (!r.Succeeded)
 					{
-						Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.procedures.sql"));
-						if (!r.Succeeded)
-						{
-							result.SetFailed(r.Message);
-							return;
-						}
-						scope.Complete();
+						result.SetFailed(r.Message);
+						return;
 					}
+					r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Security.SqlServer2005.procedures.sql"));
+					if (!r.Succeeded)
+					{
+						result.SetFailed(r.Message);
+						return;
+					}
+					scope.Complete();
 				}
 			}
 			finally
@@ -157,6 +159,104 @@ namespace Sprocket.Security
 					cmd.ExecuteNonQuery();
 					conn.Close();
 					return !(bool)prm.Value;
+				}
+			}
+		}
+
+		public Result ActivateUser(string activationCode, out long userID)
+		{
+			SqlConnection conn = null;
+			userID = 0;
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					try
+					{
+						SqlCommand cmd = new SqlCommand("ActivateUser", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						SqlParameter prm = new SqlParameter("@Success", SqlDbType.Bit);
+						prm.Direction = ParameterDirection.Output;
+						cmd.Parameters.Add(prm);
+						SqlParameter prm2 = new SqlParameter("@UserID", SqlDbType.BigInt);
+						prm2.Direction = ParameterDirection.Output;
+						cmd.Parameters.Add(prm2);
+						cmd.Parameters.Add(new SqlParameter("@ActivationCode", activationCode));
+						for (int i = 0; i < cmd.Parameters.Count; i++)
+							if (cmd.Parameters[i].Value == null)
+								cmd.Parameters[i].Value = DBNull.Value;
+						cmd.ExecuteNonQuery();
+						if (!(bool)prm.Value)
+							return new Result("Unable to find which user to activate. The activation code is not valid.");
+						userID = (long)prm2.Value;
+						scope.Complete();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
+				}
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+			}
+			return new Result();
+		}
+
+		public Result SetEmailChangeRequest(long userID, string newEmailAddress, string activationCode)
+		{
+			SqlConnection conn = null;
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					try
+					{
+						SqlCommand cmd = new SqlCommand("SetEmailChangeRequest", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+						cmd.Parameters.Add(new SqlParameter("@Email", newEmailAddress));
+						cmd.Parameters.Add(new SqlParameter("@ActivationCode", activationCode));
+						for (int i = 0; i < cmd.Parameters.Count; i++)
+							if (cmd.Parameters[i].Value == null)
+								cmd.Parameters[i].Value = DBNull.Value;
+						cmd.ExecuteNonQuery();
+						scope.Complete();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
+				}
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+			}
+			return new Result();
+		}
+
+		public EmailChangeRequest SelectEmailChangeRequest(long userID)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("SelectEmailChangeRequest", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					EmailChangeRequest obj;
+					if (!reader.Read())
+						obj = null;
+					else
+						obj = new EmailChangeRequest(reader);
+					reader.Close();
+					return obj;
 				}
 			}
 		}

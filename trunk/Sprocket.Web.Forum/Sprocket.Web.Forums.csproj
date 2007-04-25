@@ -42,10 +42,6 @@
     <Compile Include="SqlServer2005\SqlServer2005ForumDataHandler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sprocket\Sprocket.Mail\Sprocket.Mail.csproj">
-      <Project>{6941A8A2-614E-4FD8-B006-038E60191405}</Project>
-      <Name>Sprocket.Mail</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Sprocket\Sprocket.Security\Sprocket.Security.csproj">
       <Project>{C4A4A15A-4756-4AF2-8F5D-E246B04265E2}</Project>
       <Name>Sprocket.Security</Name>

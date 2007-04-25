@@ -243,6 +243,11 @@ namespace Sprocket.Web.CMS.Script.Parser
 			}
 			public override bool Equals(object obj)
 			{
+				if(value is bool)
+					if((bool)value)
+						return BooleanExpression.False.Equals(obj);
+					else
+						return BooleanExpression.True.Equals(obj);
 				return !object.Equals(obj, value);
 			}
 			public override string ToString()
@@ -265,7 +270,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 		object o = null;
 		public object Evaluate(ExecutionState state)
 		{
-			if(expr != null)
+			if (expr != null)
 				o = expr.Evaluate(state);
 			if (o == null)
 				return new SoftBoolean(false);
@@ -289,14 +294,25 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 			public override string ToString()
 			{
-				return value.ToString();
+				return "{" + value.ToString() + "}";
 			}
+		}
+
+		private static SoftBoolean _true = new SoftBoolean(true);
+		private static SoftBoolean _false = new SoftBoolean(false);
+		public static SoftBoolean True
+		{
+			get { return _true; }
+		}
+		public static SoftBoolean False
+		{
+			get { return _false; }
 		}
 
 		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
 		{
 			Token token = expressionToken;
-			if(token.Value == "true")
+			if (token.Value == "true")
 				o = true;
 			else
 				o = false;

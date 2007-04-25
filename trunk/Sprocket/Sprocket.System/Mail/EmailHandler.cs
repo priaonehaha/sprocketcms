@@ -173,7 +173,7 @@ namespace Sprocket.Mail
 			SendParams prms = data as SendParams;
 			if (prms.RedirectAllMailTo != null)
 			{
-				MailAddress addr = new MailAddress(prms.Message.To[0].Address, prms.Message.To[0].DisplayName);
+				MailAddress addr = new MailAddress(prms.RedirectAllMailTo, "Sprocket Mail Redirect");
 				prms.Message.To.Clear();
 				prms.Message.To.Add(addr);
 			}

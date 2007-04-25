@@ -96,6 +96,7 @@
     <Compile Include="Data\IEntity.cs" />
     <Compile Include="Data\SQLite\SQLiteDatabase.cs" />
     <Compile Include="Data\SqlServer2005\SqlServer2005Database.cs" />
+    <Compile Include="HandleFlag.cs" />
     <Compile Include="Mail\EmailHandler.cs" />
     <Compile Include="ModuleHandler.cs" />
     <Compile Include="Data\DatabaseManager.cs" />

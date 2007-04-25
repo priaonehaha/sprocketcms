@@ -558,5 +558,30 @@ namespace Sprocket.Security.SQLite
 		}
 
 		#endregion
+
+		#region ISecurityProviderDataLayer Members
+
+
+		public Result ActivateUser(string activationCode, out long userID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		public Result SetEmailChangeRequest(long userID, string newEmailAddress, string activationCode)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
+
+		#region ISecurityProviderDataLayer Members
+
+
+		public EmailChangeRequest SelectEmailChangeRequest(long userID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
 	}
 }

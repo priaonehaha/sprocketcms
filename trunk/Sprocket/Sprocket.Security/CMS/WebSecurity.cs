@@ -6,6 +6,7 @@ using System.IO;
 using System.Web;
 using System.Net;
 using System.Net.Mail;
+using System.Transactions;
 
 using Sprocket;
 using Sprocket.Data;
@@ -35,6 +36,9 @@ namespace Sprocket.Web.CMS.Security
 			}
 		}
 
+		public RespondableEventHandler<User> OnUserActivated;
+		public RespondableEventHandler<Result> OnUserActivationError;
+
 		public static WebSecurity Instance
 		{
 			get { return (WebSecurity)Core.Instance[typeof(WebSecurity)].Module; }
@@ -50,7 +54,97 @@ namespace Sprocket.Web.CMS.Security
 			AjaxFormHandler.Instance.OnValidateForm += new AjaxFormSubmissionHandler(OnValidateForm);
 			AjaxFormHandler.Instance.OnSaveForm += new AjaxFormSubmissionHandler(OnSaveForm);
 			AjaxRequestHandler.Instance.OnAjaxRequestAuthenticationCheck += new InterruptableEventHandler<System.Reflection.MethodInfo>(OnAjaxRequestAuthenticationCheck);
+			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			Pages.PageRequestHandler.Instance.OnRegisteringPlaceHolderRenderers += new Sprocket.Web.CMS.Pages.PageRequestHandler.RegisteringPlaceHolderRenderers(Instance_OnRegisteringPlaceHolderRenderers);
+		}
+
+		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
+		{
+			if (handled.Handled) return;
+			switch (SprocketPath.Value)
+			{
+				case "activate/fix":
+					{
+						bool failed = false;
+						if (!WebAuthentication.Instance.IsLoggedIn)
+							failed = true;
+						else if(!SecurityProvider.CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
+							failed = true;
+						if (failed)
+						{
+							HttpContext.Current.Response.Write("<html><body><p>Access denied. Administrative access required.</p></body></html>");
+							handled.Set();
+							return;
+						}
+						else
+						{
+							try
+							{
+								int k;
+								using (TransactionScope scope = new TransactionScope())
+								{
+									DatabaseManager.DatabaseEngine.PersistConnection();
+									List<User> users = SecurityProvider.Instance.DataLayer.FilterUsers(null, null, null, null, null, null, false, out k);
+									foreach (User user in users)
+										SecurityProvider.RequestUserActivation(user.UserID, user.Email);
+									scope.Complete();
+								}
+								HttpContext.Current.Response.Write("<html><body><p>" + k + " activation requests created.</p></body></html>");
+								handled.Set();
+								return;
+							}
+							finally
+							{
+								DatabaseManager.DatabaseEngine.ReleaseConnection();
+							}
+						}
+					}
+					break;
+
+				default:
+					switch (SprocketPath.Sections[0])
+					{
+						case "activate":
+							if (SprocketPath.Sections.Length == 2)
+							{
+								string activationCode = SprocketPath.Sections[1];
+								long userID;
+								Result r = SecurityProvider.Instance.DataLayer.ActivateUser(activationCode, out userID);
+								if (r.Succeeded)
+								{
+									User user = null;
+									if (WebAuthentication.Instance.IsLoggedIn)
+										if (SecurityProvider.CurrentUser.UserID == userID)
+										{
+											user = SecurityProvider.CurrentUser;
+											user.Activated = true;
+										}
+									if (user == null)
+										user = SecurityProvider.Instance.DataLayer.SelectUser(userID);
+
+									if (OnUserActivated != null)
+										OnUserActivated(user, handled);
+									if (!handled.Handled)
+									{
+										HttpContext.Current.Response.Write("<html><body><p>The user has been successfully activated.</p></body></html>");
+										handled.Set();
+									}
+								}
+								else
+								{
+									if (OnUserActivationError != null)
+										OnUserActivationError(r, handled);
+									if (!handled.Handled)
+									{
+										HttpContext.Current.Response.Write("<html><body><p>" + r.Message + "</p></body></html>");
+										handled.Set();
+									}
+								}
+							}
+							break;
+					}
+					break;
+			}
 		}
 
 		void AdminWindow_OnBeforeDisplayAdminWindowOverlay(Result result)
@@ -120,20 +214,6 @@ namespace Sprocket.Web.CMS.Security
 
 		void OnCheckingSettings(SprocketSettings.SettingsErrors errors)
 		{
-		}
-
-		public void Initialise(ModuleRegistry registry)
-		{
-		}
-
-		public string RegistrationCode
-		{
-			get { return "WebSecurity"; }
-		}
-
-		public string Title
-		{
-			get { return "Web Security Functions"; }
 		}
 	}
 }

@@ -36,6 +36,18 @@ namespace Sprocket
 	public delegate void NotificationEventHandler<T>(T source);
 
 	/// <summary>
+	/// Generic notification delegate for event handlers that serve simply to notify
+	/// that some action has occurred without requiring a variable response once
+	/// the event has completed. An optional HandleFlag is provided so that the source
+	/// of the event can be notified that the event was responded to, in case the source
+	/// wants to behave in an alternate way as a result.
+	/// </summary>
+	/// <typeparam name="T">The type of object for which the event is occurring</typeparam>
+	/// <param name="source">The source of the event</param>
+	/// <param name="handled">An object to indicate whether or not the event was responded to</param>
+	public delegate void RespondableEventHandler<T>(T source, HandleFlag handled);
+
+	/// <summary>
 	/// Same as NotificationEventHandler except designed for notification that data has been
 	/// added or updated.
 	/// </summary>

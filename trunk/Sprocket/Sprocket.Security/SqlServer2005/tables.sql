@@ -96,6 +96,17 @@ CREATE TABLE dbo.Permissions
 
 go
 
+IF OBJECT_ID(N'dbo.UserActivationRequests') IS NULL
+CREATE TABLE dbo.UserActivationRequests
+(
+	UserID bigint PRIMARY KEY FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+	Email nvarchar(100) NOT NULL,
+	ActivationCode nvarchar(100) NOT NULL,
+	RequestDate datetime NOT NULL
+)
+
+go
+
 IF OBJECT_ID(N'dbo.OnDeleteRole') IS NOT NULL
 	DROP TRIGGER dbo.OnDeleteRole
 go

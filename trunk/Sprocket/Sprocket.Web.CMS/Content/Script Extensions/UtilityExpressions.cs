@@ -138,4 +138,92 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			return new UrlEncodeExpression();
 		}
 	}
+
+	class LowerCaseExpression : IFunctionExpression
+	{
+		Token token = null;
+		List<FunctionArgument> args = null;
+
+		public object Evaluate(ExecutionState state)
+		{
+			StringBuilder sb = new StringBuilder();
+			foreach (FunctionArgument arg in args)
+			{
+				object o = arg.Expression.Evaluate(state);
+				if (o == null)
+					sb.Append("null");
+				else
+					sb.Append(o.ToString().ToLower());
+			}
+			return sb.ToString();
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			token = functionCallToken;
+			if (arguments.Count == 0)
+				throw new TokenParserException("The \"lowercase\" function requires at least one argument.", token);
+			args = arguments;
+		}
+	}
+	class LowerCaseExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "lowercase"; }
+		}
+
+		public IExpression Create()
+		{
+			return new LowerCaseExpression();
+		}
+	}
+
+	class UpperCaseExpression : IFunctionExpression
+	{
+		Token token = null;
+		List<FunctionArgument> args = null;
+
+		public object Evaluate(ExecutionState state)
+		{
+			StringBuilder sb = new StringBuilder();
+			foreach (FunctionArgument arg in args)
+			{
+				object o = arg.Expression.Evaluate(state);
+				if (o == null)
+					sb.Append("null");
+				else
+					sb.Append(o.ToString().ToUpper());
+			}
+			return sb.ToString();
+		}
+
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			token = functionCallToken;
+			if (arguments.Count == 0)
+				throw new TokenParserException("The \"uppercase\" function requires at least one argument.", token);
+			args = arguments;
+		}
+	}
+	class UpperCaseExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "uppercase"; }
+		}
+
+		public IExpression Create()
+		{
+			return new UpperCaseExpression();
+		}
+	}
 }
