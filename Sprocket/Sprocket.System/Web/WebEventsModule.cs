@@ -321,18 +321,4 @@ namespace Sprocket.Web
 
 		#endregion
 	}
-
-	public class HandleFlag
-	{
-		private bool flag=false;
-		public bool Handled
-		{
-			get { return flag; }
-		}
-
-		public void Set()
-		{
-			flag = true;
-		}
-	}
 }

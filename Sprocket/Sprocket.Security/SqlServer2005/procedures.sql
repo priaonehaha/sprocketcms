@@ -980,3 +980,71 @@ END
 
 
 GO
+
+IF OBJECT_ID(N'dbo.ActivateUser') IS NOT NULL
+	DROP PROCEDURE ActivateUser
+go
+CREATE PROCEDURE dbo.ActivateUser
+	@ActivationCode nvarchar(100),
+	@Success bit=null OUTPUT,
+	@UserID bigint=null OUTPUT
+AS
+BEGIN
+	SET @Success = 0
+	DECLARE @Email nvarchar(100)
+	
+	SELECT @Email = Email,
+		   @UserID = UserID
+	  FROM UserActivationRequests
+	 WHERE ActivationCode = @ActivationCode
+	   
+	IF @Email IS NOT NULL
+	BEGIN
+		UPDATE Users
+		   SET Email = @Email,
+			   Activated = 1
+		 WHERE UserID = @UserID
+		 
+		IF @@ROWCOUNT > 0
+		BEGIN
+			DELETE
+			  FROM UserActivationRequests
+			 WHERE UserID = @UserID
+			 
+			SET @Success = 1
+		END
+	END
+END
+
+go
+
+IF OBJECT_ID(N'dbo.SetEmailChangeRequest') IS NOT NULL
+	DROP PROCEDURE SetEmailChangeRequest
+go
+CREATE PROCEDURE dbo.SetEmailChangeRequest
+	@UserID bigint,
+	@Email nvarchar(100),
+	@ActivationCode nvarchar(100)
+AS
+BEGIN
+	DELETE
+	  FROM UserActivationRequests
+	 WHERE UserID = @UserID
+	
+	INSERT INTO UserActivationRequests (UserID, Email, ActivationCode, RequestDate)
+	VALUES (@UserID, @Email, @ActivationCode, (GETUTCDATE()))
+END
+
+go
+
+IF OBJECT_ID(N'dbo.SelectEmailChangeRequest') IS NOT NULL
+	DROP PROCEDURE SelectEmailChangeRequest
+go
+CREATE PROCEDURE dbo.SelectEmailChangeRequest
+	@UserID bigint
+AS
+BEGIN
+	SELECT *
+	  FROM UserActivationRequests
+	 WHERE UserID = @UserID
+END

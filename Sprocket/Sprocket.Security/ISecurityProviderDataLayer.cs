@@ -20,6 +20,10 @@ namespace Sprocket.Security
 		bool IsEmailAddressTaken(long clientSpaceID, string email, long? excludeUserID);
 		bool IsUsernameTaken(long clientSpaceID, string username, long? excludeUserID);
 
+		Result ActivateUser(string activationCode, out long userID);
+		Result SetEmailChangeRequest(long userID, string newEmailAddress, string activationCode);
+		EmailChangeRequest SelectEmailChangeRequest(long userID);
+
 		Result Store(ClientSpace client);
 		Result Store(User user);
 		Result Store(Role role);

@@ -137,6 +137,15 @@ namespace Sprocket.Security
 			}
 		}
 
+		public static string RequestUserActivation(long userID, string email)
+		{
+			string code = (Guid.NewGuid().ToString() + Guid.NewGuid()).Replace("-", "");
+			Result r = Instance.DataLayer.SetEmailChangeRequest(userID, email, code);
+			if (!r.Succeeded)
+				throw new Exception(r.Message);
+			return code;
+		}
+
 		//public static class RoleCodes
 		//{
 		//    public static readonly string SuperUser = "SUPERUSER";

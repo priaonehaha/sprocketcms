@@ -473,4 +473,39 @@ namespace Sprocket.Security
 			this.state = state;
 		}
 	}
+
+	public class EmailChangeRequest
+	{
+		private string activationCode, email;
+		private long userID;
+		private DateTime requestDate;
+
+		public DateTime RequestDate
+		{
+			get { return requestDate; }
+		}
+
+		public long UserID
+		{
+			get { return userID; }
+		}
+
+		public string ActivationCode
+		{
+			get { return activationCode; }
+		}
+
+		public string Email
+		{
+			get { return email; }
+		}
+
+		public EmailChangeRequest(IDataReader reader)
+		{
+			activationCode = reader["ActivationCode"].ToString();
+			email = reader["Email"].ToString();
+			userID = (long)reader["UserID"];
+			requestDate = (DateTime)reader["RequestDate"];
+		}
+	}
 }

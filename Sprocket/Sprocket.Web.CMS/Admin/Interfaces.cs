@@ -9,6 +9,7 @@ namespace Sprocket.Web.CMS.Admin
 		string MenuLinkText { get; }
 		string MenuLinkOnClick { get; }
 		string HeadContent { get; }
+		string IconPath { get; }
 		AdminMenuPriority Priority { get; }
 	}
 

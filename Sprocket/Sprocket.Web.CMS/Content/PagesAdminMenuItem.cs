@@ -30,5 +30,14 @@ namespace Sprocket.Web.CMS.Content
 		{
 			get { return AdminMenuPriority.Middle; }
 		}
+
+		#region IAdminMenuItem Members
+
+		public string IconPath
+		{
+			get { throw new Exception("The method or operation is not implemented."); }
+		}
+
+		#endregion
 	}
 }
