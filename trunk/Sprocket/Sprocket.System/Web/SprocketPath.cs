@@ -31,5 +31,38 @@ namespace Sprocket.Web
 				return s;
 			}
 		}
+
+		public static bool IsPathDescendentOf(string descendentPath, string parentPath)
+		{
+			if (parentPath.Length + 1 >= descendentPath.Length)
+				return false;
+			if (descendentPath.Substring(parentPath.Length, 1) != "/")
+				return false;
+			return descendentPath.StartsWith(parentPath);
+		}
+
+		public static bool IsCurrentPathDescendentOf(string parentPath)
+		{
+			return IsPathDescendentOf(Value, parentPath);
+		}
+
+		public static string GetDescendentPath(string descendentPath, string parentPath)
+		{
+			if (parentPath.Length + 1 >= descendentPath.Length) // don't allow for just a trailing slash
+				return "";
+			if (descendentPath.Substring(parentPath.Length, 1) != "/")
+				return "";
+			return descendentPath.Substring(0, parentPath.Length + 1);
+		}
+
+		public static string GetDescendentPath(string parentPath)
+		{
+			string descendentPath = Value;
+			if (parentPath.Length + 1 >= descendentPath.Length) // don't allow for just a trailing slash
+				return "";
+			if (descendentPath.Substring(parentPath.Length, 1) != "/")
+				return "";
+			return descendentPath.Substring(parentPath.Length + 1);
+		}
 	}
 }

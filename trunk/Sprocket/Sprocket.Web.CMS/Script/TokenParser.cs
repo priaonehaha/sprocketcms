@@ -109,6 +109,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 			if(token.TokenType == TokenType.GroupStart || token.TokenType == TokenType.GroupEnd)
 				throw new TokenParserException("Not sure why there is a bracket here.", token);
 
+			if(token.Value == "end" && token.TokenType == TokenType.Word && nextIndex == tokens.Count-1)
+				throw new TokenParserException("The end of the script has been reached prematurely.", tokens[tokens.Count-2]);
+
 			throw new TokenParserException("I have no idea what \"" + token.Value + "\" means or at least what I'm supposed to do with it here.", token);
 		}
 

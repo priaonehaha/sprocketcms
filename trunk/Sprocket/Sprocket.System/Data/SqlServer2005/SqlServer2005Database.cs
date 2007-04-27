@@ -25,7 +25,6 @@ namespace Sprocket.Data
 				using (TransactionScope scope = new TransactionScope())
 				{
 					DatabaseManager.DatabaseEngine.PersistConnection();
-
 					SqlConnection conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					result = ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Data.SqlServer2005.scripts.sql"));
 					if (result.Succeeded && OnInitialise != null)

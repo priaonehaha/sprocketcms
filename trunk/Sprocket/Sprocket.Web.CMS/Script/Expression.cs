@@ -75,10 +75,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	public interface IObjectListExpression : IFunctionExpression
 	{
-		List<IIteratorObject> GetList(ExecutionState state);
+		List<IObjectListIteratorItem> GetList(ExecutionState state);
 	}
 
-	public interface IIteratorObject : IExpression
+	public interface IObjectListIteratorItem : IExpression
 	{
 		object EvaluateProperty(string propertyName, Token propertyToken, ExecutionState state);
 	}

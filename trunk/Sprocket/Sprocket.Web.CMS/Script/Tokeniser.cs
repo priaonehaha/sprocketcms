@@ -283,6 +283,11 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return token.value == "else";
 		}
 
+		public static bool IsLoop(Token token)
+		{
+			return token.value == "loop";
+		}
+
 		public override string ToString()
 		{
 			return "{" + tokenType + "; " + value + "}";

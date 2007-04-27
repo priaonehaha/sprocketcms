@@ -15,6 +15,13 @@ namespace Sprocket.Web.CMS.Content
 		private Guid internalID = Guid.NewGuid();
 		private PageEntry parent = null;
 		private List<PageEntry> pages = new List<PageEntry>();
+		private bool handleSubPaths = false;
+
+		public bool HandleSubPaths
+		{
+			get { return handleSubPaths; }
+			set { handleSubPaths = value; }
+		}
 
 		public string ContentType
 		{
