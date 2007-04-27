@@ -345,6 +345,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 			Token toToken = tokens[nextIndex++];
 			if (varNameToken.TokenType != TokenType.Word)
 				throw new TokenParserException("the \"set\" instruction must be followed by a word of your choice that will be subsequently used to hold some value.", tokens[nextIndex - 1]);
+			if (TokenParser.IsReservedWord(varNameToken.Value))
+				throw new TokenParserException("you can't use \"" + varNameToken.Value + "\" as a variable name. It is the keyword for either an expression or an instruction.", varNameToken);
 			if (toToken.TokenType != TokenType.Word || toToken.Value != "to")
 				throw new TokenParserException("the \"set\" instruction must be formatted like this: \"set something to some_expression\"", toToken);
 			expr = TokenParser.BuildExpression(tokens, ref nextIndex);
@@ -423,6 +425,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 				throw new TokenParserException("\"list\" must be followed by the word \"each\".", eachToken);
 			TokenParser.AssertNotEndOfList(tokens, nextIndex);
 			iteratorToken = tokens[nextIndex++];
+			if (iteratorToken.TokenType != TokenType.Word)
+				throw new TokenParserException("you must specify a word here that can be used as a variable, e.g. \"list each item in whatever\"", iteratorToken);
+			if(TokenParser.IsReservedWord(iteratorToken.Value))
+				throw new TokenParserException("you can't use \"" + iteratorToken.Value + "\" as a variable name. It is the keyword for either an expression or an instruction.", iteratorToken);
 			TokenParser.AssertNotEndOfList(tokens, nextIndex);
 			Token inToken = tokens[nextIndex++];
 			if (inToken.Value != "in" || inToken.TokenType != TokenType.Word)
