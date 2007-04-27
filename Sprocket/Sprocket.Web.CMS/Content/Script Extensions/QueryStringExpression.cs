@@ -46,15 +46,15 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 
-		public List<IIteratorObject> GetList(ExecutionState state)
+		public List<IObjectListIteratorItem> GetList(ExecutionState state)
 		{
-			List<IIteratorObject> list = new List<IIteratorObject>();
+			List<IObjectListIteratorItem> list = new List<IObjectListIteratorItem>();
 			foreach (string s in HttpContext.Current.Request.QueryString)
 				list.Add(new QSComponent(s, HttpContext.Current.Request.QueryString[s]));
 			return list;
 		}
 
-		private class QSComponent : IIteratorObject
+		private class QSComponent : IObjectListIteratorItem
 		{
 			public object EvaluateProperty(string propertyName, Token propertyToken, ExecutionState state)
 			{

@@ -55,7 +55,6 @@ namespace Sprocket.Web.CMS.Security
 			AjaxFormHandler.Instance.OnSaveForm += new AjaxFormSubmissionHandler(OnSaveForm);
 			AjaxRequestHandler.Instance.OnAjaxRequestAuthenticationCheck += new InterruptableEventHandler<System.Reflection.MethodInfo>(OnAjaxRequestAuthenticationCheck);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
-			Pages.PageRequestHandler.Instance.OnRegisteringPlaceHolderRenderers += new Sprocket.Web.CMS.Pages.PageRequestHandler.RegisteringPlaceHolderRenderers(Instance_OnRegisteringPlaceHolderRenderers);
 		}
 
 		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
@@ -153,11 +152,6 @@ namespace Sprocket.Web.CMS.Security
 				if(SecurityProvider.CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
 					return;
 			result.SetFailed("access denied");
-		}
-
-		void Instance_OnRegisteringPlaceHolderRenderers(Dictionary<string, Sprocket.Web.CMS.Pages.IPlaceHolderRenderer> placeHolderRenderers)
-		{
-			placeHolderRenderers.Add("currentuser", new CurrentUserPlaceHolderRenderer());
 		}
 
 		void OnCMSAdminAuthenticationSuccess(string source, Result result)

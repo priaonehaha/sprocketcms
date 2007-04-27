@@ -52,7 +52,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		public const string Keyword = "section";
 		List<IInstruction> list = new List<IInstruction>();
-		private bool acceptELSEInPlaceOfEND = false;
+		private bool acceptELSEInPlaceOfEND = false, isLoopBlock = false;
 		private string name = null;
 		private Token instructionListToken = null;
 
@@ -67,6 +67,12 @@ namespace Sprocket.Web.CMS.Script.Parser
 			set { acceptELSEInPlaceOfEND = value; }
 		}
 
+		public bool IsLoopBlock
+		{
+			get { return isLoopBlock; }
+			set { isLoopBlock = value; }
+		}
+
 		public void Build(List<Token> tokens, ref int nextIndex)
 		{
 			instructionListToken = tokens[nextIndex - 1];
@@ -76,7 +82,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 			while (nextIndex < tokens.Count)
 			{
 				Token token = tokens[nextIndex];
-				if (Token.IsEnd(token) || (acceptELSEInPlaceOfEND && Token.IsElse(token)))
+				if ((!isLoopBlock && Token.IsEnd(token)) ||
+					(isLoopBlock && Token.IsLoop(token)) ||
+					(acceptELSEInPlaceOfEND && Token.IsElse(token)))
 				{
 					nextIndex++;
 					return;
@@ -195,39 +203,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	#endregion
 
-	public class _VariableExpression : IExpression
-	{
-		private string name = null;
-		private Token token = null;
-
-		public string Name
-		{
-			get { return name; }
-		}
-
-		public Token Token
-		{
-			get { return token; }
-		}
-
-		public _VariableExpression(string name, Token token)
-		{
-			this.name = name;
-			this.token = token;
-		}
-
-		public object Evaluate(ExecutionState state)
-		{
-			if (state.Variables.ContainsKey(name))
-				return state.Variables[name];
-			throw new InstructionExecutionException("I can't evaluate the word \"" + name + "\". Either it doesn't mean anything or you forgot to assign it a value.", token);
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-		}
-	}
-
 	public class VariableExpression : IExpression
 	{
 		private string name = null, propertyName = null;
@@ -273,16 +248,16 @@ namespace Sprocket.Web.CMS.Script.Parser
 			if (!state.Variables.ContainsKey(name))
 				throw new InstructionExecutionException("I can't evaluate the word \"" + name + "\". Either it doesn't mean anything or you forgot to assign it a value.", nameToken);
 			object o = state.Variables[name];
-			IIteratorObject ix = o as IIteratorObject;
+			IObjectListIteratorItem ix = o as IObjectListIteratorItem;
 			if (propertyName == null)
 			{
 				if (ix != null)
 					return ix.Evaluate(state);
 				return o;
 			}
-			else if (o is List<IIteratorObject>)
+			else if (o is List<IObjectListIteratorItem>)
 			{
-				List<IIteratorObject> list = (List<IIteratorObject>)o;
+				List<IObjectListIteratorItem> list = (List<IObjectListIteratorItem>)o;
 				if (indexExpr == null)
 				{
 					switch (propertyName)
@@ -301,7 +276,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 					int n = Convert.ToInt32(index);
 					if(n >= list.Count)
 						throw new InstructionExecutionException("The index you've specified is higher than the highest index in the list contained by this variable", indexToken);
-					IIteratorObject item = list[n];
+					IObjectListIteratorItem item = list[n];
 					return item.EvaluateProperty(propertyName, propertyToken, state);
 				}
 			}
@@ -366,7 +341,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 			token = tokens[nextIndex - 1];
 			expr = TokenParser.BuildExpression(tokens, ref nextIndex);
 			list = new InstructionList();
-			list.AcceptELSEInPlaceOfEND = false;
+			list.IsLoopBlock = true;
 			list.Build(tokens, ref nextIndex);
 		}
 
@@ -421,16 +396,16 @@ namespace Sprocket.Web.CMS.Script.Parser
 			listToken = tokens[nextIndex];
 			expr = TokenParser.BuildExpression(tokens, ref nextIndex);
 			instructions = new InstructionList();
-			instructions.AcceptELSEInPlaceOfEND = false;
+			instructions.IsLoopBlock = true;
 			instructions.Build(tokens, ref nextIndex);
 		}
 
 		public void Execute(ExecutionState state)
 		{
-			List<IIteratorObject> list;
+			List<IObjectListIteratorItem> list;
 			if (expr is VariableExpression)
 			{
-				list = expr.Evaluate(state) as List<IIteratorObject>;
+				list = expr.Evaluate(state) as List<IObjectListIteratorItem>;
 				if (list == null)
 					throw new InstructionExecutionException("\"" + listToken.Value + "\" doesn't contain a list of anything.", listToken);
 			}
@@ -440,7 +415,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 				list = ((IObjectListExpression)expr).GetList(state);
 			if (state.Variables.ContainsKey(iteratorToken.Value))
 				throw new InstructionExecutionException("\"" + iteratorToken.Value + "\" already equates to something else. You should use a different word.", iteratorToken);
-			foreach(IIteratorObject item in list)
+			foreach(IObjectListIteratorItem item in list)
 			{
 				state.Variables[iteratorToken.Value] = item;
 				instructions.Execute(state);

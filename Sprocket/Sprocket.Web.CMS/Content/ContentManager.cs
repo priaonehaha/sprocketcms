@@ -23,15 +23,20 @@ namespace Sprocket.Web.CMS.Content
 		public delegate void BeforeRenderPage(PageEntry page);
 		public event BeforeRenderPage OnBeforeRenderPage;
 
-		private static class Values
+		private class StateValues
 		{
-			public static string XmlSprocketPath = "resources/definitions.xml";
-			public static string XmlPath = null;
-			public static XmlDocument MainXml = null;
-			public static DateTime LastXmlFileUpdate = DateTime.MinValue;
-			public static ContentManager.TemplateRegistry Templates = null;
-			public static ContentManager.PageRegistry Pages = null;
-			public static Stack<PageEntry> PageStack = new Stack<PageEntry>();
+			public string XmlSprocketPath = "resources/definitions.xml";
+			public string XmlPath = null;
+			public XmlDocument MainXml = null;
+			public DateTime LastXmlFileUpdate = DateTime.MinValue;
+			public ContentManager.TemplateRegistry Templates = null;
+			public ContentManager.PageRegistry Pages = null;
+			public Stack<PageEntry> PageStack = new Stack<PageEntry>();
+		}
+		private StateValues stateValues = new StateValues();
+		private static StateValues Values
+		{
+			get { return Instance.stateValues; }
 		}
 
 		public static XmlDocument DefinitionsXml
@@ -213,6 +218,7 @@ namespace Sprocket.Web.CMS.Content
 			private Dictionary<string, PageEntry> requestPaths = null;
 			private Dictionary<string, PageEntry> pageCodes = null;
 			private Dictionary<string, PageEntry> contentFiles = null;
+			private List<PageEntry> flexiblePaths = null;
 			private DateTime fileDate = DateTime.MinValue;
 
 			public PageRegistry()
@@ -226,6 +232,7 @@ namespace Sprocket.Web.CMS.Content
 				requestPaths = new Dictionary<string, PageEntry>();
 				pageCodes = new Dictionary<string, PageEntry>();
 				contentFiles = new Dictionary<string, PageEntry>();
+				flexiblePaths = new List<PageEntry>();
 				foreach (XmlNode node in ContentManager.DefinitionsXml.SelectNodes("/Definitions/Pages/*"))
 					if (node is XmlElement)
 						LoadEntry((XmlElement)node, null);
@@ -244,6 +251,11 @@ namespace Sprocket.Web.CMS.Content
 				{
 					pageEntry.Path = xml.GetAttribute("Path").ToLower();
 					requestPaths[pageEntry.Path] = pageEntry;
+					if (xml.HasAttribute("HandleSubPaths"))
+					{
+						pageEntry.HandleSubPaths = StringUtilities.BoolFromString(xml.GetAttribute("HandleSubPaths"));
+						flexiblePaths.Add(pageEntry);
+					}
 				}
 				if (xml.HasAttribute("Code"))
 				{
@@ -267,6 +279,9 @@ namespace Sprocket.Web.CMS.Content
 			{
 				if (requestPaths.ContainsKey(sprocketPath))
 					return requestPaths[sprocketPath];
+				foreach (PageEntry page in flexiblePaths)
+					if (SprocketPath.IsCurrentPathDescendentOf(page.Path))
+						return page;
 				return null;
 			}
 
@@ -328,6 +343,12 @@ namespace Sprocket.Web.CMS.Content
 			get { return Values.PageStack; }
 		}
 
+		private PageEntry requestedPage = null;
+		public static PageEntry RequestedPage
+		{
+			get { return Instance.requestedPage; }
+		}
+
 		HttpRequest Request { get { return HttpContext.Current.Request; } }
 		HttpResponse Response { get { return HttpContext.Current.Response; } }
 
@@ -337,6 +358,7 @@ namespace Sprocket.Web.CMS.Content
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(WebEvents_OnBeginHttpRequest);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			WebEvents.Instance.OnPathNotFound += new WebEvents.RequestedPathEventHandler(WebEvents_OnPathNotFound);
+			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(WebEvents_OnEndHttpRequest);
 		}
 
 		void WebEvents_OnBeginHttpRequest(HandleFlag handled)
@@ -380,10 +402,12 @@ namespace Sprocket.Web.CMS.Content
 
 		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
 		{
+			requestedPage = null;
 			if (handled.Handled) return;
 			PageEntry page = Pages.FromPath(SprocketPath.Value);
 			if (page == null)
 				return;
+			requestedPage = page;
 			PageStack.Push(page);
 			if (OnBeforeRenderPage != null)
 				OnBeforeRenderPage(page);
@@ -392,6 +416,11 @@ namespace Sprocket.Web.CMS.Content
 			Response.ContentType = page.ContentType;
 			Response.Write(txt);
 			handled.Set();
+		}
+
+		void WebEvents_OnEndHttpRequest()
+		{
+			requestedPage = null;
 		}
 		#endregion
 

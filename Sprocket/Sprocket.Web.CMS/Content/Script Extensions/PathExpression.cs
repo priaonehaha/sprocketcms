@@ -13,7 +13,6 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 		}
 	}
-
 	public class BasePathExpressionCreator : IExpressionCreator
 	{
 		public string Keyword { get { return "basepath"; } }
@@ -81,10 +80,93 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 	}
-
 	public class SprocketPathExpressionCreator : IExpressionCreator
 	{
 		public string Keyword { get { return "path"; } }
 		public IExpression Create() { return new SprocketPathExpression(); }
+	}
+
+	public class DescendentPathExpression : IObjectExpression
+	{
+		IExpression expr = null;
+		Token argToken = null, propertyToken = null;
+
+		public object Evaluate(ExecutionState state)
+		{
+			string descendentPath;
+			string[] sections;
+			if (CurrentRequest.Value["DescendentPathExpression.Evaluate.Sections"] == null)
+			{
+				if (ContentManager.RequestedPage == null)
+					return null;
+				descendentPath = SprocketPath.GetDescendentPath(ContentManager.RequestedPage.Path);
+				sections = descendentPath.Split('/');
+				CurrentRequest.Value["DescendentPathExpression.Evaluate.Sections"] = sections;
+				CurrentRequest.Value["DescendentPathExpression.Evaluate.Path"] = descendentPath;
+			}
+			else
+			{
+				sections = (string[])CurrentRequest.Value["DescendentPathExpression.Evaluate.Sections"];
+				descendentPath = (string)CurrentRequest.Value["DescendentPathExpression.Evaluate.Path"];
+			}
+
+			if (propertyToken != null)
+			{
+				if (propertyToken.Value == "total_sections")
+					return sections.Length;
+			}
+			if (expr == null)
+			{
+				return descendentPath;
+			}
+			else
+			{
+				object obj = expr.Evaluate(state);
+				if (obj is int || obj is long || obj is short || obj is decimal || obj is double || obj is float)
+				{
+					int n = Convert.ToInt32(obj);
+					if (n >= sections.Length)
+						throw new InstructionExecutionException("The argument you specified for the \"descendentpath\" expression equates to the number " + n + ", which is too high. Remember, the first component in the path is index zero (0). The second is one (1), and so forth.", argToken);
+					return sections[n];
+				}
+				else if (obj == null)
+					return descendentPath;
+				else
+					throw new InstructionExecutionException("You specified an argument for the \"descendentpath\" expression, but it isn't equating to a number. I need a number to know which bit of the path you are referring to.", argToken);
+			}
+		}
+		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		{
+		}
+
+		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		{
+			if (propertyToken != null && arguments.Count > 0)
+				throw new TokenParserException("you have specified one or more arguments for the \"descendentpath\" expression, even though you specified a property as well. I'm not sure how to deal with that.", functionCallToken);
+			if (arguments.Count > 1)
+				throw new TokenParserException("the \"descendentpath\" expression must contain no more than one argument, and it should be a number specifying which querystring element you want, or a string (word) specifying the name of the querystring parameter you want.", functionCallToken);
+			if (arguments.Count == 1)
+			{
+				expr = arguments[0].Expression;
+				argToken = arguments[0].Token;
+			}
+		}
+
+		public bool PrepareProperty(Token propertyToken, List<Token> tokens, ref int nextIndex)
+		{
+			this.propertyToken = propertyToken;
+			switch (propertyToken.Value)
+			{
+				case "total_sections":
+					return true;
+				default:
+					return false;
+			}
+		}
+	}
+	public class DescendentPathExpressionCreator : IExpressionCreator
+	{
+		public string Keyword { get { return "descendentpath"; } }
+		public IExpression Create() { return new DescendentPathExpression(); }
 	}
 }
