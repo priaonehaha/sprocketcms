@@ -48,7 +48,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 		}
 
-		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
 		{
 			this.arguments = arguments;
 			token = functionCallToken;

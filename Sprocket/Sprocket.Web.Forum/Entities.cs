@@ -200,6 +200,7 @@ namespace Sprocket.Web.Forums
 
 		protected long forumID = 0;
 		protected long forumCategoryID = 0;
+		protected string forumCode = null;
 		protected string name = "";
 		protected string uRLToken = null;
 		protected DateTime dateCreated = DateTime.MinValue;
@@ -235,6 +236,15 @@ namespace Sprocket.Web.Forums
 		{
 			get { return forumCategoryID; }
 			set { forumCategoryID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ForumCode
+		///</summary>
+		public string ForumCode
+		{
+			get { return forumCode; }
+			set { forumCode = value; }
 		}
 
 		///<summary>
@@ -371,10 +381,11 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public Forum(long forumID, long forumCategoryID, string name, string uRLToken, DateTime dateCreated, int? rank, short writeAccess, short readAccess, short markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, short topicDisplayOrder, bool locked)
+		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string uRLToken, DateTime dateCreated, int? rank, short writeAccess, short readAccess, short markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, short topicDisplayOrder, bool locked)
 		{
 			this.forumID = forumID;
 			this.forumCategoryID = forumCategoryID;
+			this.forumCode = forumCode;
 			this.name = name;
 			this.uRLToken = uRLToken;
 			this.dateCreated = dateCreated;
@@ -395,6 +406,7 @@ namespace Sprocket.Web.Forums
 		{
 			if (reader["ForumID"] != DBNull.Value) forumID = (long)reader["ForumID"];
 			if (reader["ForumCategoryID"] != DBNull.Value) forumCategoryID = (long)reader["ForumCategoryID"];
+			if (reader["ForumCode"] != DBNull.Value) forumCode = (string)reader["ForumCode"];
 			if (reader["Name"] != DBNull.Value) name = (string)reader["Name"];
 			if (reader["URLToken"] != DBNull.Value) uRLToken = (string)reader["URLToken"];
 			if (reader["DateCreated"] != DBNull.Value) dateCreated = (DateTime)reader["DateCreated"];
@@ -419,6 +431,7 @@ namespace Sprocket.Web.Forums
 			Forum copy = new Forum();
 			copy.forumID = forumID;
 			copy.forumCategoryID = forumCategoryID;
+			copy.forumCode = forumCode;
 			copy.name = name;
 			copy.uRLToken = uRLToken;
 			copy.dateCreated = dateCreated;
@@ -448,6 +461,8 @@ namespace Sprocket.Web.Forums
 			JSON.EncodeNameValuePair(writer, "ForumID", forumID);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "ForumCategoryID", forumCategoryID);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ForumCode", forumCode);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "Name", name);
 			writer.Write(",");
@@ -485,6 +500,7 @@ namespace Sprocket.Web.Forums
 			if (values == null) return;
 			forumID = (long)values["ForumID"];
 			forumCategoryID = (long)values["ForumCategoryID"];
+			forumCode = (string)values["ForumCode"];
 			name = (string)values["Name"];
 			uRLToken = (string)values["URLToken"];
 			dateCreated = (DateTime)values["DateCreated"];
@@ -503,6 +519,83 @@ namespace Sprocket.Web.Forums
 
 		#endregion
 		#endregion
+
+		#region Custom
+		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string uRLToken, DateTime dateCreated, int? rank, WriteAccessType writeAccess, ReadAccessType readAccess, MarkupType markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, DisplayOrderType topicDisplayOrder, bool locked)
+		{
+			this.forumID = forumID;
+			this.forumCategoryID = forumCategoryID;
+			this.forumCode = forumCode;
+			this.name = name;
+			this.uRLToken = uRLToken;
+			this.dateCreated = dateCreated;
+			this.rank = rank;
+			this.writeAccess = (short)writeAccess;
+			this.readAccess = (short)readAccess;
+			this.markupLevel = (short)markupLevel;
+			this.showSignatures = showSignatures;
+			this.allowImagesInMessages = allowImagesInMessages;
+			this.allowImagesInSignatures = allowImagesInSignatures;
+			this.requireModeration = requireModeration;
+			this.allowVoting = allowVoting;
+			this.topicDisplayOrder = (short)topicDisplayOrder;
+			this.locked = locked;
+		}
+
+		public enum WriteAccessType
+		{
+			AdminOnly = 0,
+			SpecifiedMembersOnly = 1,
+			MembersOnly = 2,
+			AllowAnonymous = 3
+		}
+
+		public enum ReadAccessType
+		{
+			AdminOnly = 0,
+			OnlyUsersWhoCanPost = 1,
+			AllowAnonymous = 2
+		}
+
+		public enum MarkupType
+		{
+			None = 0,
+			BBCode = 1,
+			LimitedHTML = 2,
+			ExtendedHTML = 3
+		}
+
+		public enum DisplayOrderType
+		{
+			TopicDate = 0,
+			TopicLastMessageDate = 1,
+			VoteWeight = 2
+		}
+
+		public MarkupType Markup
+		{
+			get { return (MarkupType)markupLevel; }
+			set { markupLevel = (short)value; }
+		}
+
+		public DisplayOrderType DisplayOrder
+		{
+			get { return (DisplayOrderType)topicDisplayOrder; }
+			set { topicDisplayOrder = (short)value; }
+		}
+
+		public ReadAccessType Read
+		{
+			get { return (ReadAccessType)readAccess; }
+			set { readAccess = (short)value; }
+		}
+
+		public WriteAccessType Write
+		{
+			get { return (WriteAccessType)readAccess; }
+			set { writeAccess = (short)value; }
+		}
+		#endregion
 	}
 
 	public class ForumTopic : IJSONEncoder, IJSONReader
@@ -513,6 +606,7 @@ namespace Sprocket.Web.Forums
 		protected long forumTopicID = 0;
 		protected long forumID = 0;
 		protected long? authorUserID = null;
+		protected string authorName = null;
 		protected string subject = "";
 		protected DateTime dateCreated = DateTime.MinValue;
 		protected bool sticky = false;
@@ -548,6 +642,15 @@ namespace Sprocket.Web.Forums
 		{
 			get { return authorUserID; }
 			set { authorUserID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for AuthorName
+		///</summary>
+		public string AuthorName
+		{
+			get { return authorName; }
+			set { authorName = value; }
 		}
 
 		///<summary>
@@ -603,11 +706,12 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public ForumTopic(long forumTopicID, long forumID, long? authorUserID, string subject, DateTime dateCreated, bool sticky, short moderationState, bool locked)
+		public ForumTopic(long forumTopicID, long forumID, long? authorUserID, string authorName, string subject, DateTime dateCreated, bool sticky, short moderationState, bool locked)
 		{
 			this.forumTopicID = forumTopicID;
 			this.forumID = forumID;
 			this.authorUserID = authorUserID;
+			this.authorName = authorName;
 			this.subject = subject;
 			this.dateCreated = dateCreated;
 			this.sticky = sticky;
@@ -620,6 +724,7 @@ namespace Sprocket.Web.Forums
 			if (reader["ForumTopicID"] != DBNull.Value) forumTopicID = (long)reader["ForumTopicID"];
 			if (reader["ForumID"] != DBNull.Value) forumID = (long)reader["ForumID"];
 			if (reader["AuthorUserID"] != DBNull.Value) authorUserID = (long?)reader["AuthorUserID"];
+			if (reader["AuthorName"] != DBNull.Value) authorName = (string)reader["AuthorName"];
 			if (reader["Subject"] != DBNull.Value) subject = (string)reader["Subject"];
 			if (reader["DateCreated"] != DBNull.Value) dateCreated = (DateTime)reader["DateCreated"];
 			if (reader["Sticky"] != DBNull.Value) sticky = (bool)reader["Sticky"];
@@ -636,6 +741,7 @@ namespace Sprocket.Web.Forums
 			copy.forumTopicID = forumTopicID;
 			copy.forumID = forumID;
 			copy.authorUserID = authorUserID;
+			copy.authorName = authorName;
 			copy.subject = subject;
 			copy.dateCreated = dateCreated;
 			copy.sticky = sticky;
@@ -659,6 +765,8 @@ namespace Sprocket.Web.Forums
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "AuthorUserID", authorUserID);
 			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "AuthorName", authorName);
+			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "Subject", subject);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "DateCreated", dateCreated);
@@ -678,6 +786,7 @@ namespace Sprocket.Web.Forums
 			forumTopicID = (long)values["ForumTopicID"];
 			forumID = (long)values["ForumID"];
 			authorUserID = (long?)values["AuthorUserID"];
+			authorName = (string)values["AuthorName"];
 			subject = (string)values["Subject"];
 			dateCreated = (DateTime)values["DateCreated"];
 			sticky = (bool)values["Sticky"];
@@ -696,7 +805,8 @@ namespace Sprocket.Web.Forums
 
 		protected long forumTopicMessageID = 0;
 		protected long forumTopicID = 0;
-		protected long authorUserID = 0;
+		protected long? authorUserID = null;
+		protected string authorName = null;
 		protected DateTime dateCreated = DateTime.MinValue;
 		protected string body = "";
 		protected short markupType = 0;
@@ -726,10 +836,19 @@ namespace Sprocket.Web.Forums
 		///<summary>
 		///Gets or sets the value for AuthorUserID
 		///</summary>
-		public long AuthorUserID
+		public long? AuthorUserID
 		{
 			get { return authorUserID; }
 			set { authorUserID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for AuthorName
+		///</summary>
+		public string AuthorName
+		{
+			get { return authorName; }
+			set { authorName = value; }
 		}
 
 		///<summary>
@@ -767,11 +886,12 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long authorUserID, DateTime dateCreated, string body, short markupType)
+		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, string body, short markupType)
 		{
 			this.forumTopicMessageID = forumTopicMessageID;
 			this.forumTopicID = forumTopicID;
 			this.authorUserID = authorUserID;
+			this.authorName = authorName;
 			this.dateCreated = dateCreated;
 			this.body = body;
 			this.markupType = markupType;
@@ -781,7 +901,8 @@ namespace Sprocket.Web.Forums
 		{
 			if (reader["ForumTopicMessageID"] != DBNull.Value) forumTopicMessageID = (long)reader["ForumTopicMessageID"];
 			if (reader["ForumTopicID"] != DBNull.Value) forumTopicID = (long)reader["ForumTopicID"];
-			if (reader["AuthorUserID"] != DBNull.Value) authorUserID = (long)reader["AuthorUserID"];
+			if (reader["AuthorUserID"] != DBNull.Value) authorUserID = (long?)reader["AuthorUserID"];
+			if (reader["AuthorName"] != DBNull.Value) authorName = (string)reader["AuthorName"];
 			if (reader["DateCreated"] != DBNull.Value) dateCreated = (DateTime)reader["DateCreated"];
 			if (reader["Body"] != DBNull.Value) body = (string)reader["Body"];
 			if (reader["MarkupType"] != DBNull.Value) markupType = (short)reader["MarkupType"];
@@ -796,6 +917,7 @@ namespace Sprocket.Web.Forums
 			copy.forumTopicMessageID = forumTopicMessageID;
 			copy.forumTopicID = forumTopicID;
 			copy.authorUserID = authorUserID;
+			copy.authorName = authorName;
 			copy.dateCreated = dateCreated;
 			copy.body = body;
 			copy.markupType = markupType;
@@ -817,6 +939,8 @@ namespace Sprocket.Web.Forums
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "AuthorUserID", authorUserID);
 			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "AuthorName", authorName);
+			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "DateCreated", dateCreated);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "Body", body);
@@ -831,7 +955,8 @@ namespace Sprocket.Web.Forums
 			if (values == null) return;
 			forumTopicMessageID = (long)values["ForumTopicMessageID"];
 			forumTopicID = (long)values["ForumTopicID"];
-			authorUserID = (long)values["AuthorUserID"];
+			authorUserID = (long?)values["AuthorUserID"];
+			authorName = (string)values["AuthorName"];
 			dateCreated = (DateTime)values["DateCreated"];
 			body = (string)values["Body"];
 			markupType = (short)values["MarkupType"];

@@ -29,7 +29,7 @@ namespace Sprocket.Web.CMS.Script
 
 		List<FunctionArgument> args = null;
 		Token token = null;
-		public void SetArguments(List<FunctionArgument> arguments, Token functionToken)
+		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionToken)
 		{
 			args = arguments;
 			token = functionToken;

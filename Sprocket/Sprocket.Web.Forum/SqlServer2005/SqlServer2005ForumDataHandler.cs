@@ -29,17 +29,19 @@ namespace Sprocket.Web.Forums.SqlServer2005
 				{
 					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SqlServer2005Database db = (SqlServer2005Database)DatabaseManager.DatabaseEngine;
-					Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.Forums.SqlServer2005.schema.sql"));
-					if (!r.Succeeded)
+					string[] scripts = new string[]{
+						"Sprocket.Web.Forums.SqlServer2005.schema.sql",
+						"Sprocket.Web.Forums.SqlServer2005.Generated.Entity.Procedures.sql",
+						"Sprocket.Web.Forums.SqlServer2005.procedures.sql"
+					};
+					foreach (string sql in scripts)
 					{
-						result.SetFailed(r.Message);
-						return;
-					}
-					r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Web.Forums.SqlServer2005.Generated.Entity.Procedures.sql"));
-					if (!r.Succeeded)
-					{
-						result.SetFailed(r.Message);
-						return;
+						Result r = db.ExecuteScript(conn, ResourceLoader.LoadTextResource(sql));
+						if (!r.Succeeded)
+						{
+							result.SetFailed(sql + ": " + r.Message);
+							return;
+						}
 					}
 					scope.Complete();
 				}
@@ -74,6 +76,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					prm.Direction = ParameterDirection.InputOutput;
 					cmd.Parameters.Add(prm);
 					cmd.Parameters.Add(NewSqlParameter("@ForumCategoryID", forum.ForumCategoryID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@ForumCode", forum.ForumCode, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@Name", forum.Name, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@URLToken", forum.URLToken, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@DateCreated", forum.DateCreated, SqlDbType.DateTime));
@@ -277,6 +280,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					cmd.Parameters.Add(prm);
 					cmd.Parameters.Add(NewSqlParameter("@ForumID", forumTopic.ForumID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@AuthorUserID", forumTopic.AuthorUserID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@AuthorName", forumTopic.AuthorName, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@Subject", forumTopic.Subject, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@DateCreated", forumTopic.DateCreated, SqlDbType.DateTime));
 					cmd.Parameters.Add(NewSqlParameter("@Sticky", forumTopic.Sticky, SqlDbType.Bit));
@@ -374,6 +378,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					cmd.Parameters.Add(prm);
 					cmd.Parameters.Add(NewSqlParameter("@ForumTopicID", forumTopicMessage.ForumTopicID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@AuthorUserID", forumTopicMessage.AuthorUserID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@AuthorName", forumTopicMessage.AuthorName, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@DateCreated", forumTopicMessage.DateCreated, SqlDbType.DateTime));
 					cmd.Parameters.Add(NewSqlParameter("@Body", forumTopicMessage.Body, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@MarkupType", forumTopicMessage.MarkupType, SqlDbType.SmallInt));
@@ -452,5 +457,113 @@ namespace Sprocket.Web.Forums.SqlServer2005
 		}
 
 		#endregion
+
+		public Forum SelectForumByCode(string forumCode)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("Forum_SelectByCode", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@ForumCode", forumCode));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					Forum entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new Forum(reader);
+					reader.Close();
+					return entity;
+				}
+			}
+		}
+
+		public Forum SelectForumByURLToken(string urlToken)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("Forum_SelectByURLToken", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@URLToken", urlToken));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					Forum entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new Forum(reader);
+					reader.Close();
+					return entity;
+				}
+			}
+		}
+
+		public ForumCategory SelectForumCategoryByCode(string categoryCode)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("ForumCategory_SelectByCode", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@CategoryCode", categoryCode));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					ForumCategory entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new ForumCategory(reader);
+					reader.Close();
+					return entity;
+				}
+			}
+		}
+
+		public ForumCategory SelectForumCategoryByURLToken(string urlToken)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("ForumCategory_SelectByURLToken", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@URLToken", urlToken));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					ForumCategory entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new ForumCategory(reader);
+					reader.Close();
+					return entity;
+				}
+			}
+		}
+
+		public List<Forum> ListForums(long forumCategoryID)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("ForumCategory_ListForums", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@ForumCategoryID", forumCategoryID));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					List<Forum> list = new List<Forum>();
+					while (reader.Read())
+						list.Add(new Forum(reader));
+					reader.Close();
+					return list;
+				}
+			}
+		}
 	}
 }

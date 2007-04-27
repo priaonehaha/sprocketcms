@@ -26,7 +26,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 		}
 
-		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
 		{
 			token = functionCallToken;
 			if(arguments.Count != 1)

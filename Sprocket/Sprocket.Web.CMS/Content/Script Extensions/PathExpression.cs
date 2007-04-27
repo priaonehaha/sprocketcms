@@ -55,7 +55,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 		}
 
-		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
 		{
 			if(propertyToken != null && arguments.Count > 0)
 				throw new TokenParserException("you have specified one or more arguments for the \"path\" expression, even though you specified a property as well. I'm not sure how to deal with that.", functionCallToken);
@@ -68,7 +68,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 
-		public bool PrepareProperty(Token propertyToken, List<Token> tokens, ref int nextIndex)
+		public bool PresetPropertyName(Token propertyToken, List<Token> tokens, ref int nextIndex)
 		{
 			this.propertyToken = propertyToken;
 			switch (propertyToken.Value)
@@ -139,7 +139,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 		}
 
-		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
 		{
 			if (propertyToken != null && arguments.Count > 0)
 				throw new TokenParserException("you have specified one or more arguments for the \"descendentpath\" expression, even though you specified a property as well. I'm not sure how to deal with that.", functionCallToken);
@@ -152,7 +152,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 
-		public bool PrepareProperty(Token propertyToken, List<Token> tokens, ref int nextIndex)
+		public bool PresetPropertyName(Token propertyToken, List<Token> tokens, ref int nextIndex)
 		{
 			this.propertyToken = propertyToken;
 			switch (propertyToken.Value)

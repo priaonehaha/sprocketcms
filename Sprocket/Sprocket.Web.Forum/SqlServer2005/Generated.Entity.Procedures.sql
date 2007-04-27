@@ -4,6 +4,7 @@ go
 CREATE PROCEDURE dbo.Forum_Store
 	@ForumID bigint OUTPUT,
 	@ForumCategoryID bigint,
+	@ForumCode nvarchar(50) = null,
 	@Name nvarchar(250),
 	@URLToken nvarchar(50) = null,
 	@DateCreated datetime,
@@ -25,14 +26,15 @@ BEGIN
 		IF @ForumID = 0 OR @ForumID IS NULL
 			EXEC GetUniqueID @ForumID OUTPUT
 		INSERT INTO Forum
-			(ForumID, ForumCategoryID, Name, URLToken, DateCreated, Rank, WriteAccess, ReadAccess, MarkupLevel, ShowSignatures, AllowImagesInMessages, AllowImagesInSignatures, RequireModeration, AllowVoting, TopicDisplayOrder, Locked)
+			(ForumID, ForumCategoryID, ForumCode, Name, URLToken, DateCreated, Rank, WriteAccess, ReadAccess, MarkupLevel, ShowSignatures, AllowImagesInMessages, AllowImagesInSignatures, RequireModeration, AllowVoting, TopicDisplayOrder, Locked)
 		VALUES
-			(@ForumID, @ForumCategoryID, @Name, @URLToken, @DateCreated, @Rank, @WriteAccess, @ReadAccess, @MarkupLevel, @ShowSignatures, @AllowImagesInMessages, @AllowImagesInSignatures, @RequireModeration, @AllowVoting, @TopicDisplayOrder, @Locked)
+			(@ForumID, @ForumCategoryID, @ForumCode, @Name, @URLToken, @DateCreated, @Rank, @WriteAccess, @ReadAccess, @MarkupLevel, @ShowSignatures, @AllowImagesInMessages, @AllowImagesInSignatures, @RequireModeration, @AllowVoting, @TopicDisplayOrder, @Locked)
 	END
 	ELSE
 	BEGIN
 		UPDATE Forum SET
 			ForumCategoryID = @ForumCategoryID,
+			ForumCode = @ForumCode,
 			Name = @Name,
 			URLToken = @URLToken,
 			DateCreated = @DateCreated,
@@ -149,6 +151,7 @@ CREATE PROCEDURE dbo.ForumTopic_Store
 	@ForumTopicID bigint OUTPUT,
 	@ForumID bigint,
 	@AuthorUserID bigint = null,
+	@AuthorName nvarchar(100) = null,
 	@Subject nvarchar(500),
 	@DateCreated datetime,
 	@Sticky bit,
@@ -161,15 +164,16 @@ BEGIN
 		IF @ForumTopicID = 0 OR @ForumTopicID IS NULL
 			EXEC GetUniqueID @ForumTopicID OUTPUT
 		INSERT INTO ForumTopic
-			(ForumTopicID, ForumID, AuthorUserID, Subject, DateCreated, Sticky, ModerationState, Locked)
+			(ForumTopicID, ForumID, AuthorUserID, AuthorName, Subject, DateCreated, Sticky, ModerationState, Locked)
 		VALUES
-			(@ForumTopicID, @ForumID, @AuthorUserID, @Subject, @DateCreated, @Sticky, @ModerationState, @Locked)
+			(@ForumTopicID, @ForumID, @AuthorUserID, @AuthorName, @Subject, @DateCreated, @Sticky, @ModerationState, @Locked)
 	END
 	ELSE
 	BEGIN
 		UPDATE ForumTopic SET
 			ForumID = @ForumID,
 			AuthorUserID = @AuthorUserID,
+			AuthorName = @AuthorName,
 			Subject = @Subject,
 			DateCreated = @DateCreated,
 			Sticky = @Sticky,
@@ -212,7 +216,8 @@ go
 CREATE PROCEDURE dbo.ForumTopicMessage_Store
 	@ForumTopicMessageID bigint OUTPUT,
 	@ForumTopicID bigint,
-	@AuthorUserID bigint,
+	@AuthorUserID bigint = null,
+	@AuthorName nvarchar(100) = null,
 	@DateCreated datetime,
 	@Body nvarchar(max),
 	@MarkupType smallint
@@ -223,15 +228,16 @@ BEGIN
 		IF @ForumTopicMessageID = 0 OR @ForumTopicMessageID IS NULL
 			EXEC GetUniqueID @ForumTopicMessageID OUTPUT
 		INSERT INTO ForumTopicMessage
-			(ForumTopicMessageID, ForumTopicID, AuthorUserID, DateCreated, Body, MarkupType)
+			(ForumTopicMessageID, ForumTopicID, AuthorUserID, AuthorName, DateCreated, Body, MarkupType)
 		VALUES
-			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @DateCreated, @Body, @MarkupType)
+			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @AuthorName, @DateCreated, @Body, @MarkupType)
 	END
 	ELSE
 	BEGIN
 		UPDATE ForumTopicMessage SET
 			ForumTopicID = @ForumTopicID,
 			AuthorUserID = @AuthorUserID,
+			AuthorName = @AuthorName,
 			DateCreated = @DateCreated,
 			Body = @Body,
 			MarkupType = @MarkupType

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
@@ -43,7 +44,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	public interface IFunctionExpression : IExpression
 	{
-		void SetArguments(List<FunctionArgument> arguments, Token functionCallToken);
+		void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken);
 	}
 
 	public class FunctionArgument
@@ -70,17 +71,17 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	public interface IObjectExpression : IFunctionExpression
 	{
-		bool PrepareProperty(Token propertyToken, List<Token> tokens, ref int nextIndex);
+		bool PresetPropertyName(Token propertyToken, List<Token> tokens, ref int nextIndex);
 	}
 
 	public interface IObjectListExpression : IFunctionExpression
 	{
-		List<IObjectListIteratorItem> GetList(ExecutionState state);
+		IList GetList(ExecutionState state);
 	}
 
-	public interface IObjectListIteratorItem : IExpression
+	public interface IVariableObject : IExpression
 	{
-		object EvaluateProperty(string propertyName, Token propertyToken, ExecutionState state);
+		object EvaluateVariableProperty(string propertyName, Token propertyToken, ExecutionState state);
 	}
 
 	#region BinaryExpression (abstract)

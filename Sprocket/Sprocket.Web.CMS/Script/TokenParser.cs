@@ -174,12 +174,12 @@ namespace Sprocket.Web.CMS.Script.Parser
 								if (propertyToken.TokenType != TokenType.Word)
 									throw new TokenParserException("This point in the script should be a word indicating a property of the preceding object.", propertyToken);
 								nextIndex++;
-								if (!((IObjectExpression)expr).PrepareProperty(propertyToken, tokens, ref nextIndex))
+								if (!((IObjectExpression)expr).PresetPropertyName(propertyToken, tokens, ref nextIndex))
 									throw new TokenParserException("\"" + propertyToken.Value + "\" is not a valid property for this object.", propertyToken);
 							}
 						}
 						if (expr is IFunctionExpression)
-							((IFunctionExpression)expr).SetArguments(BuildFunctionArgumentList(tokens, ref nextIndex), token);
+							((IFunctionExpression)expr).SetFunctionArguments(BuildFunctionArgumentList(tokens, ref nextIndex), token);
 						expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
 					}
 					break;
