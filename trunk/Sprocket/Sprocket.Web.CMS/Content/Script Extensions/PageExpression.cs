@@ -78,13 +78,13 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			//    RenderValue = RenderPage;
 		}
 
-		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
 		{
 			this.functionToken = functionCallToken;
 			this.arguments = arguments;
 		}
 
-		public bool PrepareProperty(Token propertyToken, List<Token> tokens, ref int nextIndex)
+		public bool PresetPropertyName(Token propertyToken, List<Token> tokens, ref int nextIndex)
 		{
 			switch (propertyToken.Value)
 			{

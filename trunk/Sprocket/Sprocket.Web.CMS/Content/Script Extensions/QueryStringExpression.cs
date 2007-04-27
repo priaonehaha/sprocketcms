@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Web;
@@ -35,7 +36,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 		}
 
-		public void SetArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
 		{
 			if (arguments.Count > 1)
 				throw new TokenParserException("the querystring expression must contain no more than one argument, and it should be a number specifying which querystring element you want, or a string (word) specifying the name of the querystring parameter you want.", functionCallToken);
@@ -46,17 +47,17 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 
-		public List<IObjectListIteratorItem> GetList(ExecutionState state)
+		public IList GetList(ExecutionState state)
 		{
-			List<IObjectListIteratorItem> list = new List<IObjectListIteratorItem>();
+			List<IVariableObject> list = new List<IVariableObject>();
 			foreach (string s in HttpContext.Current.Request.QueryString)
 				list.Add(new QSComponent(s, HttpContext.Current.Request.QueryString[s]));
 			return list;
 		}
 
-		private class QSComponent : IObjectListIteratorItem
+		private class QSComponent : IVariableObject
 		{
-			public object EvaluateProperty(string propertyName, Token propertyToken, ExecutionState state)
+			public object EvaluateVariableProperty(string propertyName, Token propertyToken, ExecutionState state)
 			{
 				switch (propertyName)
 				{

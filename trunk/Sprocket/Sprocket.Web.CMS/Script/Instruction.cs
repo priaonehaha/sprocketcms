@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
@@ -145,10 +146,37 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public void Execute(ExecutionState state)
 		{
 			object text = expression.Evaluate(state);
-			if(text == null)
+			if (text is IList)
+				state.Output.Write(RenderList((IList)text, state));
+			else if (text == null)
 				state.Output.Write("null");
 			else
 				state.Output.Write(text.ToString());
+		}
+
+		private string RenderList(IList list, ExecutionState state)
+		{
+			StringBuilder sb = new StringBuilder("[");
+			foreach (object o in list)
+			{
+				if(sb.Length > 1)
+					sb.Append(",");
+				object val = o;
+				while (val is IExpression)
+				{
+					val = ((IExpression)o).Evaluate(state);
+					if (object.ReferenceEquals(o, val))
+						break;
+				}
+				if (val is IList)
+					sb.Append(RenderList((IList)val, state));
+				else if (val == null)
+					sb.Append("null");
+				else
+					sb.Append(val.ToString());
+			}
+			sb.Append("]");
+			return sb.ToString();
 		}
 	}
 
@@ -207,6 +235,9 @@ namespace Sprocket.Web.CMS.Script.Parser
 	{
 		private string name = null, propertyName = null;
 		private Token nameToken = null, propertyToken = null, indexToken = null;
+		/// <summary>
+		/// Indicates the expression that will determine which index to return in the list
+		/// </summary>
 		private IExpression indexExpr = null;
 
 		public string Name
@@ -248,16 +279,17 @@ namespace Sprocket.Web.CMS.Script.Parser
 			if (!state.Variables.ContainsKey(name))
 				throw new InstructionExecutionException("I can't evaluate the word \"" + name + "\". Either it doesn't mean anything or you forgot to assign it a value.", nameToken);
 			object o = state.Variables[name];
-			IObjectListIteratorItem ix = o as IObjectListIteratorItem;
+			IVariableObject ix = o as IVariableObject;
 			if (propertyName == null)
 			{
 				if (ix != null)
 					return ix.Evaluate(state);
 				return o;
 			}
-			else if (o is List<IObjectListIteratorItem>)
+			else if (o is IList)
 			{
-				List<IObjectListIteratorItem> list = (List<IObjectListIteratorItem>)o;
+				IList list = (IList)o;
+				// if it's a collection but we haven't specified which index we're referring to
 				if (indexExpr == null)
 				{
 					switch (propertyName)
@@ -276,15 +308,18 @@ namespace Sprocket.Web.CMS.Script.Parser
 					int n = Convert.ToInt32(index);
 					if(n >= list.Count)
 						throw new InstructionExecutionException("The index you've specified is higher than the highest index in the list contained by this variable", indexToken);
-					IObjectListIteratorItem item = list[n];
-					return item.EvaluateProperty(propertyName, propertyToken, state);
+					object value = list[n];
+					IVariableObject item = value as IVariableObject;
+					if (item == null)
+						return value;
+					return item.EvaluateVariableProperty(propertyName, propertyToken, state);
 				}
 			}
 			else
 			{
 				if (ix == null)
 					throw new InstructionExecutionException("The variable \"" + nameToken + "\" does not have a property called \"" + name + "\".", propertyToken);
-				return ix.EvaluateProperty(propertyName, propertyToken, state);
+				return ix.EvaluateVariableProperty(propertyName, propertyToken, state);
 			}
 		}
 
@@ -402,20 +437,21 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		public void Execute(ExecutionState state)
 		{
-			List<IObjectListIteratorItem> list;
+			IList list;
 			if (expr is VariableExpression)
 			{
-				list = expr.Evaluate(state) as List<IObjectListIteratorItem>;
+				list = expr.Evaluate(state) as IList;
 				if (list == null)
 					throw new InstructionExecutionException("\"" + listToken.Value + "\" doesn't contain a list of anything.", listToken);
 			}
-			else if(!(expr is IObjectListExpression))
-			    throw new TokenParserException("This bit here should be something that will equate to a list of objects I can use in the loop that follows.", listToken);
-			else
+			else if(expr is IObjectListExpression)
 				list = ((IObjectListExpression)expr).GetList(state);
+			else
+				throw new TokenParserException("This bit here should be something that will equate to a list of objects I can use in the loop that follows.", listToken);
+			
 			if (state.Variables.ContainsKey(iteratorToken.Value))
 				throw new InstructionExecutionException("\"" + iteratorToken.Value + "\" already equates to something else. You should use a different word.", iteratorToken);
-			foreach(IObjectListIteratorItem item in list)
+			foreach(object item in list)
 			{
 				state.Variables[iteratorToken.Value] = item;
 				instructions.Execute(state);

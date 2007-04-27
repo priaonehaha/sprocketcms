@@ -19,6 +19,10 @@ namespace Sprocket.Web.Forums
 		Forum SelectForum(long id);
 
 		#endregion
+
+		Forum SelectForumByCode(string forumCode);
+		Forum SelectForumByURLToken(string urlToken);
+
 		#region Definitions for ForumCategory
 
 		event InterruptableEventHandler<ForumCategory> OnBeforeDeleteForumCategory;
@@ -28,6 +32,10 @@ namespace Sprocket.Web.Forums
 		ForumCategory SelectForumCategory(long id);
 
 		#endregion
+
+		ForumCategory SelectForumCategoryByCode(string categoryCode);
+		ForumCategory SelectForumCategoryByURLToken(string urlToken);
+
 		#region Definitions for ForumTopic
 
 		event InterruptableEventHandler<ForumTopic> OnBeforeDeleteForumTopic;
@@ -46,5 +54,7 @@ namespace Sprocket.Web.Forums
 		ForumTopicMessage SelectForumTopicMessage(long id);
 
 		#endregion
+
+		List<Forum> ListForums(long forumCategoryID);
 	}
 }

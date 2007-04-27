@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities.cs" />
+    <Compile Include="Expressions\ForumCategoryExpression.cs" />
     <Compile Include="Expressions\ForumExpression.cs" />
     <Compile Include="ForumHandler.cs" />
     <Compile Include="IDataHandler.cs" />
@@ -43,15 +44,15 @@
     <Compile Include="SqlServer2005\SqlServer2005ForumDataHandler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sprocket\Sprocket.Security\Sprocket.Security.csproj">
+    <ProjectReference Include="..\Sprocket.Security\Sprocket.Security.csproj">
       <Project>{C4A4A15A-4756-4AF2-8F5D-E246B04265E2}</Project>
       <Name>Sprocket.Security</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sprocket\Sprocket.System\Sprocket.csproj">
+    <ProjectReference Include="..\Sprocket.System\Sprocket.csproj">
       <Project>{CD7033E9-1953-4E97-B353-9F9A250B8C69}</Project>
       <Name>Sprocket</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sprocket\Sprocket.Web.CMS\Sprocket.Web.CMS.csproj">
+    <ProjectReference Include="..\Sprocket.Web.CMS\Sprocket.Web.CMS.csproj">
       <Project>{8BE3F644-9B56-4D93-9FE8-797CE35061AE}</Project>
       <Name>Sprocket.Web.CMS</Name>
     </ProjectReference>
@@ -61,6 +62,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SqlServer2005\Generated.Entity.Procedures.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SqlServer2005\procedures.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
