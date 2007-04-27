@@ -28,6 +28,15 @@ namespace Sprocket.Web.CMS.Script.Parser
 		private static Dictionary<string, IExpressionCreator> expressionCreators;
 		private static Dictionary<string, IFilterExpressionCreator> filterExpressionCreators;
 
+		public static bool IsReservedWord(string word)
+		{
+			if (instructionCreators.ContainsKey(word)) return true;
+			if (binaryExpressionCreators.ContainsKey(word)) return true;
+			if (expressionCreators.ContainsKey(word)) return true;
+			if (filterExpressionCreators.ContainsKey(word)) return true;
+			return false;
+		}
+
 		static TokenParser()
 		{
 			instructionCreators = new Dictionary<string, IInstructionCreator>();
