@@ -3,37 +3,24 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace Sprocket.Web.CMS.Script.Parser
+namespace Sprocket.Web.CMS.Script
 {
-	public class TokenParserException : Exception
-	{
-		private Token token;
-
-		public Token Token
-		{
-			get { return token; }
-		}
-
-		public TokenParserException(string message, Token token)
-			: base(message)
-		{
-			this.token = token;
-		}
-	}
-
 	public static class TokenParser
 	{
 		private static Dictionary<string, IInstructionCreator> instructionCreators;
 		private static Dictionary<string, IBinaryExpressionCreator> binaryExpressionCreators;
 		private static Dictionary<string, IExpressionCreator> expressionCreators;
-		private static Dictionary<string, IFilterExpressionCreator> filterExpressionCreators;
 
+		/// <summary>
+		/// Determines if the word has been reserved for use as the keyword for an expression or instruction.
+		/// </summary>
+		/// <param name="word">A word to check</param>
+		/// <returns>True if the word is reserved by an existing instruction or expression, otherwise False</returns>
 		public static bool IsReservedWord(string word)
 		{
 			if (instructionCreators.ContainsKey(word)) return true;
 			if (binaryExpressionCreators.ContainsKey(word)) return true;
 			if (expressionCreators.ContainsKey(word)) return true;
-			if (filterExpressionCreators.ContainsKey(word)) return true;
 			return false;
 		}
 
@@ -42,7 +29,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 			instructionCreators = new Dictionary<string, IInstructionCreator>();
 			binaryExpressionCreators = new Dictionary<string, IBinaryExpressionCreator>();
 			expressionCreators = new Dictionary<string, IExpressionCreator>();
-			filterExpressionCreators = new Dictionary<string, IFilterExpressionCreator>();
 
 			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(IInstructionCreator)))
 			{
@@ -61,141 +47,120 @@ namespace Sprocket.Web.CMS.Script.Parser
 				IExpressionCreator xc = (IExpressionCreator)Activator.CreateInstance(t);
 				expressionCreators.Add(xc.Keyword.ToLower(), xc);
 			}
-
-			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(IFilterExpressionCreator)))
-			{
-				IFilterExpressionCreator fxc = (IFilterExpressionCreator)Activator.CreateInstance(t);
-				filterExpressionCreators.Add(fxc.Keyword.ToLower(), fxc);
-			}
 		}
 
-		public static IInstruction BuildInstruction(List<Token> tokens)
+		public static IInstruction BuildInstruction(TokenList tokens)
 		{
-			int n = 0;
-			return BuildInstruction(tokens, ref n);
-		}
+			Token token = tokens.Current;
 
-		public static IInstruction BuildInstruction(List<Token> tokens, ref int nextIndex)
-		{
-			// if we're just starting, encase the root-level instructions with a section statement
-			if (nextIndex == 0)
-			{
-				tokens.Insert(0, new Token(InstructionList.Keyword, TokenType.Word, 0));
-				tokens.Add(new Token("end", TokenType.Word, 0));
-				nextIndex++;
-				InstructionList il = new InstructionList();
-				il.Build(tokens, ref nextIndex);
-				return il;
-			}
-
-			Token token = tokens[nextIndex];
-
-			// special case: if a standalone literal is found, create a "show" instruction to process it
-			if (token.TokenType == TokenType.StringLiteral)
-			{
-				if (!token.IsNonScriptText)
-					throw new TokenParserException("What's this quote here for?", token);
-				ShowInstruction si = new ShowInstruction();
-				si.Build(tokens, ref nextIndex, true);
-				return si;
-			}
-
-			//if(token.TokenType == TokenType.GroupEnd)
-				
+			// special case: if free text is found, create a "show" instruction to process it
+			if (token.TokenType == TokenType.FreeText)
+				return new ShowInstruction(BuildExpression(tokens));
 
 			// find the relevant creator/processor for the instruction
-			if (token.TokenType == TokenType.Word || token.TokenType == TokenType.Symbolic)
+			if (token.TokenType == TokenType.Word || token.TokenType == TokenType.OtherSymbolic)
 			{
 				if (instructionCreators.ContainsKey(token.Value))
 				{
 					IInstruction instruction = instructionCreators[token.Value].Create();
-					nextIndex++;
-					instruction.Build(tokens, ref nextIndex);
+					instruction.Build(tokens);
 					return instruction;
 				}
 			}
 
-			if(token.TokenType == TokenType.GroupStart || token.TokenType == TokenType.GroupEnd)
+			if (token.TokenType == TokenType.GroupStart || token.TokenType == TokenType.GroupEnd)
 				throw new TokenParserException("Not sure why there is a bracket here.", token);
 
-			if(token.Value == "end" && token.TokenType == TokenType.Word && nextIndex == tokens.Count-1)
-				throw new TokenParserException("The end of the script has been reached prematurely.", tokens[tokens.Count-2]);
+			if (token.Value == "end" && token.TokenType == TokenType.Word && tokens.Next == null)
+				throw new TokenParserException("The end of the script has been reached prematurely.", tokens.Peek(-1));
 
-			throw new TokenParserException("I have no idea what \"" + token.Value + "\" means or at least what I'm supposed to do with it here.", token);
+			if (expressionCreators.ContainsKey(token.Value))
+				throw new TokenParserException("\"" + token.Value + "\" can't stand by itself, as it is only designed to equate to a value. If you want to display the value, precede the keyword with a \"show\" instruction.", token);
+
+			throw new TokenParserException("I have no idea what \"" + token.Value + "\" means.", token);
 		}
 
-		public static IExpression BuildExpression(List<Token> tokens, ref int nextIndex)
+		public static IExpression BuildExpression(TokenList tokens)
 		{
 			Stack<int?> stack = new Stack<int?>();
 			stack.Push(null);
-			return BuildExpression(tokens, ref nextIndex, stack);
+			return BuildExpression(tokens, stack);
 		}
 
-		public static IExpression BuildExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public static IExpression BuildExpression(TokenList tokens, Stack<int?> precedenceStack)
 		{
-			if (nextIndex >= tokens.Count)
-				throw new TokenParserException("The script seems to have ended prematurely while I was doing calculations. Shouldn't there be something here?", tokens[tokens.Count - 1]);
+			if (tokens.Current == null)
+				throw new TokenParserException("The script seems to have ended prematurely. Shouldn't there be something here?", tokens.Peek(-2));
 
-			Token token = tokens[nextIndex];
+			Token token = tokens.Current;
 			IExpression expr = null;
 			bool endGroupedExpression = false;
 			switch (token.TokenType)
 			{
 				case TokenType.Number:
-				case TokenType.StringLiteral:
-					expr = BuildSingularExpression(tokens, ref nextIndex);
+					expr = new NumericExpression(tokens, precedenceStack);
 					break;
+
+				case TokenType.QuotedString:
+					expr = new StringExpression(tokens, precedenceStack);
+					break;
+
+				case TokenType.FreeText:
+					expr = new StringExpression(tokens, precedenceStack);
+					return expr;
 
 				case TokenType.Word:
-					if (!expressionCreators.ContainsKey(token.Value))
+					if (expressionCreators.ContainsKey(token.Value))
 					{
-						AssertNotEndOfList(tokens, nextIndex);
-						if (tokens[nextIndex + 1].Value == ":" && tokens[nextIndex + 1].TokenType == TokenType.Symbolic)
-						{
-							nextIndex+=2;
-							AssertNotEndOfList(tokens, nextIndex);
-							Token propertyNameToken = tokens[nextIndex++];
-							if (token.TokenType != TokenType.Word)
-								throw new TokenParserException("The \":\" symbol indicates that you want the value of a property of the preceding variable. In this case, you seem to have forgotten to put in the property name. e.g. \"variablename:property_name\"", propertyNameToken);
-							expr = new VariableExpression(token.Value, propertyNameToken.Value, token, propertyNameToken);
-							if (tokens[nextIndex].TokenType == TokenType.GroupStart)
-							{
-								Token indexToken = tokens[nextIndex];
-								((VariableExpression)expr).SetListIndex(BuildGroupedExpression(tokens, ref nextIndex), indexToken);
-							}
-						}
-						else
-						{
-							expr = new VariableExpression(token.Value, token);
-							nextIndex++;
-						}
-						break;
-					}
-					else
-					{
+						// find the appropriate handler for this keyword
 						expr = expressionCreators[token.Value].Create();
-						nextIndex++;
-						if (expr is IObjectExpression)
-						{
-							if (tokens[nextIndex].TokenType == TokenType.Symbolic && tokens[nextIndex].Value == ":")
-							{
-								Token propertyToken = tokens[++nextIndex];
-								if (propertyToken.TokenType != TokenType.Word)
-									throw new TokenParserException("This point in the script should be a word indicating a property of the preceding object.", propertyToken);
-								nextIndex++;
-								if (!((IObjectExpression)expr).PresetPropertyName(propertyToken, tokens, ref nextIndex))
-									throw new TokenParserException("\"" + propertyToken.Value + "\" is not a valid property for this object.", propertyToken);
-							}
-						}
-						if (expr is IFunctionExpression)
-							((IFunctionExpression)expr).SetFunctionArguments(BuildFunctionArgumentList(tokens, ref nextIndex), token);
-						expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
 					}
+					else // we don't recognise the word, so we can assume it's a variable and validate it at run-time
+					{
+						// don't allow instruction keywords to be used as variable names
+						if (instructionCreators.ContainsKey(token.Value))
+							throw new TokenParserException("This word is the name of an instruction. You can't use it here in this context.", token);
+						else
+							expr = new VariableExpression();
+					}
+
+					// if applicable, have the expression prepare itself according to its own rules
+					if (expr is IFlexibleSyntaxExpression)
+						((IFlexibleSyntaxExpression)expr).PrepareExpression(tokens, precedenceStack);
+					else // otherwise just advance to the next token
+						tokens.Advance();
+
+					// if the expression can take an argument list, supply it with the trailing argument list if it has been supplied
+					if (expr is IArgumentListEvaluatorExpression)
+					{
+						List<ExpressionArgument> args = BuildArgumentList(tokens);
+						if (args.Count > 0)
+							expr = new ArgumentsOfExpression((IArgumentListEvaluatorExpression)expr, args, tokens, token);
+					}
+
+					// if the expression can have properties, check for a property designator and if it exists, build a property chain
+					if (expr is IPropertyEvaluatorExpression)
+					{
+						ExpressionProperty ep = BuildPropertyExpression((IPropertyEvaluatorExpression)expr, tokens);
+						if (ep != null)
+						{
+							Token t = tokens.TokensFollowingCurrent >= 2 ? tokens.Peek(2) : null;
+							expr = new PropertyOfExpression((IPropertyEvaluatorExpression)expr, ep, t);
+						}
+					}
+					else if (tokens.Current.TokenType == TokenType.PropertyDesignator)
+						goto case TokenType.PropertyDesignator;
 					break;
 
+				case TokenType.PropertyDesignator:
+					// property designators are handled elsewhere. if we found one here, it's a parsing error.
+					if (tokens.Previous.TokenType == TokenType.Word)
+						throw new TokenParserException("This type of expression doesn't allow you to specify a property.", tokens.Next);
+					throw new TokenParserException("You've got a property designator in a spot where it doesn't belong.", tokens.Next);
+
 				case TokenType.GroupStart:
-					expr = BuildGroupedExpression(tokens, ref nextIndex);
-				    break;
+					expr = BuildGroupedExpression(tokens);
+					break;
 
 				case TokenType.GroupEnd:
 					endGroupedExpression = true;
@@ -208,122 +173,147 @@ namespace Sprocket.Web.CMS.Script.Parser
 			if (!endGroupedExpression)
 			{
 				int? precedence = precedenceStack.Peek();
-				while (NextHasGreaterPrecedence(precedence, tokens, nextIndex))
-					expr = BuildBinaryExpression(tokens, ref nextIndex, expr, precedenceStack);
-				//if (index < tokens.Count - 1)
-				//    if (tokens[index].TokenType == TokenType.GroupEnd)
-				//        index++;
+				while (NextHasGreaterPrecedence(precedence, tokens))
+					expr = BuildBinaryExpression(tokens, expr, precedenceStack);
 			}
 			return expr;
 		}
 
-		public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex)
+		public static ExpressionProperty BuildPropertyExpression(TokenList tokens)
 		{
-			Stack<int?> stack = new Stack<int?>();
-			return BuildSingularExpression(tokens, ref nextIndex, stack);
-		}
-
-		public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-			Token token = tokens[nextIndex];
-			IExpression expr;
-			switch (token.TokenType)
+			if (tokens.Current.TokenType == TokenType.PropertyDesignator)
 			{
-				case TokenType.Number:
-					expr = new NumericExpression();
-					break;
+				tokens.Advance(); // past the property designator
 
-				case TokenType.StringLiteral:
-					expr = new StringExpression();
-					break;
+				// read the property name token
+				Token propertyToken = tokens.Current;
+				if (propertyToken.TokenType != TokenType.Word)
+					throw new TokenParserException("This point in the script should be a word indicating a property of the preceding expression.", propertyToken);
 
-				default:
-					expr = BuildExpression(tokens, ref nextIndex, precedenceStack);
-					break;
+				return new ExpressionProperty(tokens);
 			}
-
-			expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
-			return expr;
+			else
+				return null;
 		}
 
-		public static IExpression BuildGroupedExpression(List<Token> tokens, ref int nextIndex)
+		public static ExpressionProperty BuildPropertyExpression(IPropertyEvaluatorExpression sourceExpression, TokenList tokens)
 		{
-			nextIndex++;
-			IExpression expr = BuildExpression(tokens, ref nextIndex);
-			if (tokens[nextIndex].TokenType != TokenType.GroupEnd)
+			Token propertyToken = tokens.Next;
+			ExpressionProperty ep = BuildPropertyExpression(tokens);
+
+			// make sure the property name is acceptable for this type of expression
+			if (ep != null)
+				if (!sourceExpression.IsValidPropertyName(propertyToken.Value))
+					throw new TokenParserException("\"" + propertyToken.Value + "\" is not a valid property for this expression.", propertyToken);
+
+			return ep;
+		}
+
+		//public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex)
+		//{
+		//    Stack<int?> stack = new Stack<int?>();
+		//    return BuildSingularExpression(tokens, ref nextIndex, stack);
+		//}
+
+		//public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		//{
+		//    Token token = tokens[nextIndex];
+		//    IExpression expr;
+		//    switch (token.TokenType)
+		//    {
+		//        case TokenType.Number:
+		//            expr = new NumericExpression();
+		//            break;
+
+		//        case TokenType.QuotedString:
+		//        case TokenType.FreeText:
+		//            expr = new StringExpression();
+		//            break;
+
+		//        default:
+		//            expr = BuildExpression(tokens, ref nextIndex, precedenceStack);
+		//            break;
+		//    }
+
+		//    expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
+		//    return expr;
+		//}
+
+		public static IExpression BuildGroupedExpression(TokenList tokens)
+		{
+			// advance past the opening bracket
+			tokens.Advance();
+
+			//build the expression
+			IExpression expr = BuildExpression(tokens);
+			if (tokens.Current.TokenType != TokenType.GroupEnd)
 			{
-				string tokenval = tokens[nextIndex].Value.Trim();
+				string tokenval = tokens.Current.Value.Trim();
 				if (tokenval == "")
 					tokenval = "#";
-				throw new TokenParserException("I think a closing bracket should be here. Did you forget to put it in?", new Token(tokenval, TokenType.Word, tokens[nextIndex].Position));
+				throw new TokenParserException("I think a closing bracket should be here. Did you forget to put it in?", new Token(tokenval, TokenType.Word, tokens.Current.Position));
 			}
-			nextIndex++;
+
+			//advance past the closing bracket
+			tokens.Advance();
 			return expr;
 		}
 
-		public static List<FunctionArgument> BuildFunctionArgumentList(List<Token> tokens, ref int nextIndex)
+		public static List<ExpressionArgument> BuildArgumentList(TokenList tokens)
 		{
-			List<FunctionArgument> args = new List<FunctionArgument>();
-			if (tokens[nextIndex].TokenType != TokenType.GroupStart)
+			List<ExpressionArgument> args = new List<ExpressionArgument>();
+			if (tokens.Current.TokenType != TokenType.GroupStart)
 				return args;
-			nextIndex++;
-			while (tokens[nextIndex].TokenType != TokenType.GroupEnd)
+
+			tokens.Advance(); // past the opening bracket
+
+			while (tokens.Current.TokenType != TokenType.GroupEnd)
 			{
-				Token token = tokens[nextIndex];
-				IExpression expr = BuildExpression(tokens, ref nextIndex);
-				if (nextIndex >= tokens.Count)
-					throw new TokenParserException("Oops, looks like someone didn't finish writing the script. It ended while I was putting together a list of arguments for a function call.", tokens[tokens.Count-1]);
-				args.Add(new FunctionArgument(expr, token));
-				token = tokens[nextIndex];
+				Token token = tokens.Current;
+				IExpression expr = BuildExpression(tokens);
+				if (tokens.Next == null)
+					throw new TokenParserException("Oops, looks like someone didn't finish writing the script. It ended while I was putting together a list of arguments for a function call.", tokens.Peek(-2));
+				args.Add(new ExpressionArgument(expr, token));
+				token = tokens.Current;
 				if (token.TokenType == TokenType.GroupEnd)
 					continue;
-				if (token.TokenType == TokenType.Symbolic && token.Value == ",")
-					nextIndex++;
+				if (token.TokenType == TokenType.OtherSymbolic && token.Value == ",")
+				{
+					tokens.Advance();
+					if (tokens.Current.TokenType == TokenType.GroupEnd)
+						throw new TokenParserException("There is a comma here to indicate that I should expect an argument following it, but instead there is a closing bracket.", tokens.Current);
+				}
 				else
 					throw new TokenParserException("The list of function arguments needs to either end with a closing bracket, or have a comma to indicate that another argument is next.", token);
 			}
-			nextIndex++;
+
+			tokens.Advance();
 			return args;
 		}
 
-		public static IExpression BuildBinaryExpression(List<Token> tokens, ref int nextIndex, IExpression leftExpr, Stack<int?> precedenceStack)
+		public static IExpression BuildBinaryExpression(TokenList tokens, IExpression leftExpr, Stack<int?> precedenceStack)
 		{
-			IBinaryExpressionCreator bxc = binaryExpressionCreators[tokens[nextIndex++].Value];
+			IBinaryExpressionCreator bxc = binaryExpressionCreators[tokens.Current.Value];
 			IBinaryExpression bx = bxc.Create();
 			bx.Left = leftExpr;
 			precedenceStack.Push(bx.Precedence);
-			bx.PrepareExpression(tokens[nextIndex], tokens, ref nextIndex, precedenceStack);
+			bx.PrepareExpression(tokens, precedenceStack);
 			precedenceStack.Pop();
 			return bx;
 		}
 
-		public static bool NextHasGreaterPrecedence(int? thanPrecedence, List<Token> tokens, int nextIndex)
+		public static bool NextHasGreaterPrecedence(int? thanPrecedence, TokenList tokens)
 		{
-			if (nextIndex >= tokens.Count)
+			if (tokens.Current == null)
 				return false;
-			Token token = tokens[nextIndex];
-			if (token.TokenType != TokenType.Symbolic && token.TokenType != TokenType.Word)
+			Token token = tokens.Current;
+			if (token.TokenType != TokenType.OtherSymbolic && token.TokenType != TokenType.Word)
 				return false;
 			if (!binaryExpressionCreators.ContainsKey(token.Value))
 				return false;
 			if (thanPrecedence == null) // previous check must come before this one or we'll get a default true even if the operator (e.g. "@") isn't defined as a standard binary expression
 				return true;
 			return binaryExpressionCreators[token.Value].Precedence < thanPrecedence.Value;
-		}
-
-		internal static IFilterExpression BuildFilterExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-			Token token = tokens[nextIndex++];
-			if (token.TokenType == TokenType.Word)
-			{
-				if (filterExpressionCreators.ContainsKey(token.Value))
-				{
-					IFilterExpression fx = filterExpressionCreators[token.Value].Create();
-					fx.PrepareExpression(tokens[nextIndex], tokens, ref nextIndex, precedenceStack);
-					return fx;
-				}
-			}
-			throw new InstructionExecutionException("I was expecting something here that can take the value on the left and change the way it looks. \"" + token.Value + "\" doesn't have that capability.", token);
 		}
 
 		public static void AssertNotEndOfList(List<Token> list, int nextIndex)

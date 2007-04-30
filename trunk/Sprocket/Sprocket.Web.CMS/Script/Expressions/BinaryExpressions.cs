@@ -2,88 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 using System.ComponentModel;
 
-namespace Sprocket.Web.CMS.Script.Parser
+namespace Sprocket.Web.CMS.Script
 {
-	public interface IExpression
-	{
-		object Evaluate(ExecutionState state);
-		void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack);
-	}
-
-	public interface IExpressionCreator
-	{
-		string Keyword { get; }
-		IExpression Create();
-	}
-
-	public interface IBinaryExpression : IExpression
-	{
-		int Precedence { get; }
-		IExpression Left { get; set; }
-		IExpression Right { get; }
-	}
-	public interface IBinaryExpressionCreator
-	{
-		string Keyword { get; }
-		int Precedence { get; }
-		IBinaryExpression Create();
-	}
-
-	public interface IFilterExpression : IExpression
-	{
-		object Evaluate(IExpression inputExpr, ExecutionState state);
-	}
-
-	public interface IFilterExpressionCreator
-	{
-		string Keyword { get; }
-		IFilterExpression Create();
-	}
-
-	public interface IFunctionExpression : IExpression
-	{
-		void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken);
-	}
-
-	public class FunctionArgument
-	{
-		private IExpression expression;
-		private Token token;
-
-		public Token Token
-		{
-			get { return token; }
-		}
-
-		public IExpression Expression
-		{
-			get { return expression; }
-		}
-
-		public FunctionArgument(IExpression expr, Token token)
-		{
-			this.token = token;
-			expression = expr;
-		}
-	}
-
-	public interface IObjectExpression : IFunctionExpression
-	{
-		bool PresetPropertyName(Token propertyToken, List<Token> tokens, ref int nextIndex);
-	}
-
-	public interface IObjectListExpression : IFunctionExpression
-	{
-		IList GetList(ExecutionState state);
-	}
-
-	public interface IVariableObject : IExpression
-	{
-		object EvaluateVariableProperty(string propertyName, Token propertyToken, ExecutionState state);
-	}
-
 	#region BinaryExpression (abstract)
 	public abstract class BinaryExpression : IBinaryExpression
 	{
@@ -108,7 +31,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 			set { left = value; }
 		}
 
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			return Evaluate(left, right, state);
 		}
@@ -117,10 +40,11 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public abstract int Precedence { get; }
 		protected Token token = null;
 
-		public virtual void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public virtual void PrepareExpression(TokenList tokens, Stack<int?> precedenceStack)
 		{
-			token = tokens[nextIndex - 1];
-			right = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack);
+			token = tokens.Current;
+			tokens.Advance();
+			right = TokenParser.BuildExpression(tokens, precedenceStack);
 		}
 
 		public static class PrecedenceValues
@@ -142,224 +66,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 	}
 	#endregion
 
-	#region UsingExpression
-
-	public class UsingExpression : BinaryExpression
-	{
-		public override int Precedence { get { return BinaryExpression.PrecedenceValues.Using; } }
-		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
-		{
-			return ((IFilterExpression)right).Evaluate(left, state);
-		}
-		public override void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-			token = tokens[nextIndex - 1];
-			Right = TokenParser.BuildFilterExpression(tokens, ref nextIndex, precedenceStack);
-			if (!(Right is IFilterExpression))
-				throw new TokenParserException("I can't do this because the right side doesn't have the ability to generate a value using the left side as input.", token);
-		}
-	}
-
-	public class UsingExpressionCreator : IBinaryExpressionCreator
-	{
-		public string Keyword { get { return "using"; } }
-		public int Precedence { get { return BinaryExpression.PrecedenceValues.Using; } }
-		public IBinaryExpression Create() { return new UsingExpression(); }
-	}
-
-	#endregion
-
-	#region number string not true/false/nothing/empty
-	#region NumericExpression
-	public class NumericExpression : IExpression
-	{
-		private object value;
-
-		public object Evaluate(ExecutionState state)
-		{
-			return value;
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-			decimal n;
-			if (decimal.TryParse(tokens[nextIndex++].Value, out n))
-				value = n;
-			else
-				value = null;
-		}
-
-		public override string ToString()
-		{
-			return "{NumericExpression: " + value + "}";
-		}
-	}
-
-
-	#endregion
-
-	#region StringExpression
-	public class StringExpression : IExpression
-	{
-		string text;
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-			text = tokens[nextIndex++].Value;
-		}
-
-		public object Evaluate(ExecutionState state)
-		{
-			return text;
-		}
-
-		public override string ToString()
-		{
-			return "{StringExpression}";
-		}
-	}
-	#endregion
-
-	#region NotExpression
-	public class NotExpression : IExpression
-	{
-		private IExpression expression = null;
-
-		public object Evaluate(ExecutionState state)
-		{
-			return new NotValue(expression.Evaluate(state));
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-			expression = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack);
-		}
-
-		public class NotValue
-		{
-			object value;
-			public NotValue(object value)
-			{
-				this.value = value;
-			}
-			public override bool Equals(object obj)
-			{
-				if(value is bool)
-					if((bool)value)
-						return BooleanExpression.False.Equals(obj);
-					else
-						return BooleanExpression.True.Equals(obj);
-				return !object.Equals(obj, value);
-			}
-			public override string ToString()
-			{
-				return "{not " + value + "}";
-			}
-		}
-	}
-	public class NotExpressionCreator : IExpressionCreator
-	{
-		public string Keyword { get { return "not"; } }
-		public IExpression Create() { return new NotExpression(); }
-	}
-	#endregion
-
-	#region BooleanExpression
-	public class BooleanExpression : IExpression
-	{
-		IExpression expr = null;
-		object o = null;
-		public object Evaluate(ExecutionState state)
-		{
-			if (expr != null)
-				o = expr.Evaluate(state);
-			if (o == null)
-				return new SoftBoolean(false);
-			return new SoftBoolean(!(o.Equals(0m) || o.Equals("") || o.Equals(false)));
-		}
-
-		public class SoftBoolean
-		{
-			bool value;
-			public SoftBoolean(bool value)
-			{
-				this.value = value;
-			}
-
-			public override bool Equals(object o)
-			{
-				if (o == null) return !value;
-				bool oValue = !(o.Equals(0m) || o.Equals(null) || o.Equals("") || o.Equals(false));
-				return value == oValue;
-			}
-
-			public override string ToString()
-			{
-				return "{" + value.ToString() + "}";
-			}
-		}
-
-		private static SoftBoolean _true = new SoftBoolean(true);
-		private static SoftBoolean _false = new SoftBoolean(false);
-		public static SoftBoolean True
-		{
-			get { return _true; }
-		}
-		public static SoftBoolean False
-		{
-			get { return _false; }
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-			Token token = expressionToken;
-			if (token.Value == "true")
-				o = true;
-			else
-				o = false;
-		}
-
-		public BooleanExpression() { }
-		public BooleanExpression(IExpression expr)
-		{
-			this.expr = expr;
-		}
-	}
-
-	public class BooleanExpressionCreator : IExpressionCreator
-	{
-		public string Keyword { get { return "true"; } }
-		public IExpression Create() { return new BooleanExpression(); }
-	}
-
-	public class BooleanExpressionCreator2 : IExpressionCreator
-	{
-		public string Keyword { get { return "false"; } }
-		public IExpression Create() { return new BooleanExpression(); }
-	}
-
-	public class BooleanExpressionCreator3 : IExpressionCreator
-	{
-		public string Keyword { get { return "empty"; } }
-		public IExpression Create() { return new BooleanExpression(); }
-	}
-
-	public class BooleanExpressionCreator4 : IExpressionCreator
-	{
-		public string Keyword { get { return "nothing"; } }
-		public IExpression Create() { return new BooleanExpression(); }
-	}
-
-	public class BooleanExpressionCreator5 : IExpressionCreator
-	{
-		public string Keyword { get { return "null"; } }
-		public IExpression Create() { return new BooleanExpression(); }
-	}
-	#endregion
-	#endregion
-
-	#region and or > >= < <= = != startswith endswith + - * /
-
 	#region AndExpression
 	public class AndExpression : BinaryExpression
 	{
@@ -369,7 +75,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 				left = new BooleanExpression(left);
 			if (!(right is BooleanExpression))
 				right = new BooleanExpression(right);
-			return left.Evaluate(state).Equals(true) && right.Evaluate(state).Equals(true);
+			return left.Evaluate(state, token).Equals(true) && right.Evaluate(state, token).Equals(true);
 		}
 
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.BooleanOperation; } }
@@ -399,7 +105,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 				left = new BooleanExpression(left);
 			if (!(right is BooleanExpression))
 				right = new BooleanExpression(right);
-			return left.Evaluate(state).Equals(true) || right.Evaluate(state).Equals(true);
+			return left.Evaluate(state, token).Equals(true) || right.Evaluate(state, token).Equals(true);
 		}
 
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.BooleanOperation; } }
@@ -426,8 +132,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			return a.Equals(b) || b.Equals(a); // we check both sides in case one side has overridden the Equals method
 		}
 	}
@@ -451,8 +157,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.NotEqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			return !(a.Equals(b) || b.Equals(a)); // we check both sides in case one side has overridden the Equals method
 		}
 	}
@@ -488,8 +194,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) > 0;
 			throw new InstructionExecutionException("I can't check if the first thing is greater than the second thing because they're not really comparable in that way.", token);
@@ -509,8 +215,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) >= 0;
 			throw new InstructionExecutionException("I can't check if the first thing is greater than the second thing because they're not really comparable in that way.", token);
@@ -530,8 +236,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) < 0;
 			throw new InstructionExecutionException("I can't check if the first thing is less than or equal to the second thing because they're not really comparable in that way.", token);
@@ -551,8 +257,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			if (a is IComparable && b is IComparable)
 				return ((IComparable)a).CompareTo(b) <= 0;
 			throw new InstructionExecutionException("I can't check if the first thing is less than or equal to the second thing because they're not really comparable in that way.", token);
@@ -575,8 +281,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			try
 			{
-				string a = left.Evaluate(state).ToString();
-				string b = right.Evaluate(state).ToString();
+				string a = left.Evaluate(state, token).ToString();
+				string b = right.Evaluate(state, token).ToString();
 				return a.StartsWith(b);
 			}
 			catch
@@ -603,8 +309,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 		{
 			try
 			{
-				string a = left.Evaluate(state).ToString();
-				string b = right.Evaluate(state).ToString();
+				string a = left.Evaluate(state, token).ToString();
+				string b = right.Evaluate(state, token).ToString();
 				return a.EndsWith(b);
 			}
 			catch
@@ -622,7 +328,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 	#endregion
 
-	#region + - * /
 	#region AdditionExpression
 	public class AdditionExpression : BinaryExpression
 	{
@@ -630,8 +335,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			decimal x, y;
 			//typeof(decimal).IsAssignableFrom(typeof(a))
 			if (a is decimal)
@@ -676,8 +381,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			decimal x, y;
 			if (a is decimal)
 				x = (decimal)a;
@@ -725,8 +430,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			decimal x, y;
 			if (a is decimal)
 				x = (decimal)a;
@@ -774,8 +479,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state));
-			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state));
+			object b = TokenParser.VerifyUnderlyingType(right.Evaluate(state, token));
+			object a = TokenParser.VerifyUnderlyingType(left.Evaluate(state, token));
 			decimal x, y;
 			if (a is decimal)
 				x = (decimal)a;
@@ -816,8 +521,5 @@ namespace Sprocket.Web.CMS.Script.Parser
 			return new DivisionExpression();
 		}
 	}
-	#endregion
-	#endregion
-
 	#endregion
 }

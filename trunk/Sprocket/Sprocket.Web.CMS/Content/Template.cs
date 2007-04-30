@@ -8,7 +8,7 @@ using Sprocket.Web.CMS.Script;
 
 namespace Sprocket.Web.CMS.Content
 {
-	public class Template
+	public class Template : IPropertyEvaluatorExpression
 	{
 		private Dictionary<string, DateTime> fileTimes;
 		public Dictionary<string, DateTime> FileTimes
@@ -22,10 +22,12 @@ namespace Sprocket.Web.CMS.Content
 			get { return script; }
 		}
 
-		public Template(SprocketScript script, Dictionary<string, DateTime> fileTimes)
+		private string name;
+		public Template(string name, SprocketScript script, Dictionary<string, DateTime> fileTimes)
 		{
 			this.fileTimes = fileTimes;
 			this.script = script;
+			this.name = name;
 		}
 
 		public bool IsOutOfDate
@@ -42,6 +44,38 @@ namespace Sprocket.Web.CMS.Content
 				}
 				return false;
 			}
+		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			return HasProperty(propertyName);
+		}
+
+		public static bool HasProperty(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "name":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		{
+			switch (prop.Name)
+			{
+				case "name":
+					return name;
+				default:
+					return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return Script.ExecuteToResolveExpression(state);
 		}
 	}
 }

@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Sprocket.Web.CMS.Script.Parser
+namespace Sprocket.Web.CMS.Script
 {
 	internal static class Tokeniser
 	{
-		public static List<Token> Extract(string source)
+		public static TokenList Extract(string source)
 		{
 
 			List<Token> tokens = new List<Token>();
 
 			if (source == null)
-				return tokens;
+				return new TokenList(tokens);
 
 			string sourceExpr = @"\{\?\s*(?<expr>(([^\{\}]*)|((?<=\\)[\{\}]))*)\s*\}";
 			MatchCollection matches = Regex.Matches(source, sourceExpr, RegexOptions.Multiline | RegexOptions.ExplicitCapture);
 			if (matches.Count == 0)
 			{
-				Token htmlToken = new Token(source, TokenType.StringLiteral, 0);
-				htmlToken.IsNonScriptText = true;
-				tokens.Add(htmlToken);
+				Token htmlToken = new Token(source, TokenType.FreeText, 0);
+				AddToken(tokens, htmlToken);
 			}
 			else
 			{
@@ -32,9 +31,8 @@ namespace Sprocket.Web.CMS.Script.Parser
 					int htmlLength = match.Index - previousMatchEndPosition;
 					if (htmlLength > 0)
 					{
-						Token htmlToken = new Token(source.Substring(previousMatchEndPosition, htmlLength), TokenType.StringLiteral, previousMatchEndPosition);
-						htmlToken.IsNonScriptText = true;
-						tokens.Add(htmlToken);
+						Token htmlToken = new Token(source.Substring(previousMatchEndPosition, htmlLength), TokenType.FreeText, previousMatchEndPosition);
+						AddToken(tokens, htmlToken);
 					}
 					try
 					{
@@ -48,7 +46,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 							if (token != null)
 							{
 								token.Position += match.Groups["expr"].Index;
-								tokens.Add(token);
+								AddToken(tokens, token);
 							}
 						}
 					}
@@ -70,16 +68,24 @@ namespace Sprocket.Web.CMS.Script.Parser
 				}
 				if (previousMatchEndPosition < source.Length)
 				{
-					Token htmlToken = new Token(source.Substring(previousMatchEndPosition), TokenType.StringLiteral, previousMatchEndPosition);
-					htmlToken.IsNonScriptText = true;
-					tokens.Add(htmlToken);
+					Token htmlToken = new Token(source.Substring(previousMatchEndPosition), TokenType.FreeText, previousMatchEndPosition);
+					AddToken(tokens, htmlToken);
 				}
 			}
 
-			return tokens;
+			return new TokenList(tokens);
 		}
 
-		private static bool IsSymbolic(char ch)
+		private static void AddToken(List<Token> list, Token token)
+		{
+			list.Add(token);
+			if (list.Count == 1) return;
+			Token p = list[list.Count - 2];
+			p.Next = token;
+			token.Previous = p;
+		}
+
+		private static bool IsOtherSymbolic(char ch)
 		{
 			switch (ch)
 			{
@@ -97,7 +103,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 				case '%':
 				case '^':
 				case '&':
-				case ':':
 				case ';':
 				case '?':
 				case ',':
@@ -116,16 +121,18 @@ namespace Sprocket.Web.CMS.Script.Parser
 			char ch = source[index];
 			if (char.IsDigit(ch) || ch == '.')
 				method = ReadNumber;
-			else if (IsSymbolic(ch))
-				method = ReadSymbolic;
 			else if (char.IsLetter(ch) || ch == '_')
 				method = ReadWord;
 			else if (ch == '(')
 				method = ReadGroupStart;
+			else if (ch == ':')
+				method = ReadPropertyDesignator;
 			else if (ch == ')')
 				method = ReadGroupEnd;
 			else if (char.IsWhiteSpace(ch))
 				method = ReadWhiteSpace;
+			else if (IsOtherSymbolic(ch))
+				method = ReadSymbolic;
 			else if (ch == '"')
 				method = ReadStringLiteral;
 			else
@@ -162,13 +169,13 @@ namespace Sprocket.Web.CMS.Script.Parser
 		private static Token ReadSymbolic(ref string source, ref int index)
 		{
 			int start = index;
-			while (IsSymbolic(source[index]))
+			while (IsOtherSymbolic(source[index]))
 			{
 				index++;
 				if (index == source.Length)
 					break;
 			}
-			return new Token(source.Substring(start, index - start), TokenType.Symbolic, start);
+			return new Token(source.Substring(start, index - start), TokenType.OtherSymbolic, start);
 		}
 		private static Token ReadWord(ref string source, ref int index)
 		{
@@ -181,6 +188,10 @@ namespace Sprocket.Web.CMS.Script.Parser
 					break;
 			}
 			return new Token(source.Substring(start, index - start), TokenType.Word, start);
+		}
+		private static Token ReadPropertyDesignator(ref string source, ref int index)
+		{
+			return new Token(":", TokenType.PropertyDesignator, index++);
 		}
 		private static Token ReadGroupStart(ref string source, ref int index)
 		{
@@ -214,7 +225,7 @@ namespace Sprocket.Web.CMS.Script.Parser
 						if (!isEscaped)
 						{
 							index++;
-							return new Token(sb.ToString(), TokenType.StringLiteral, start);
+							return new Token(sb.ToString(), TokenType.QuotedString, start);
 						}
 						break;
 
@@ -231,101 +242,6 @@ namespace Sprocket.Web.CMS.Script.Parser
 				isEscaped = false;
 			}
 			throw new TokeniserException("String literal missing a closing quote (\") character", index, source);
-		}
-	}
-
-	public class Token
-	{
-		TokenType tokenType;
-		string value;
-		int position;
-		bool isNonScriptText = false;
-
-		public bool IsNonScriptText
-		{
-			get { return isNonScriptText; }
-			set { isNonScriptText = value; }
-		}
-
-		public TokenType TokenType
-		{
-			get { return tokenType; }
-		}
-
-		public string Value
-		{
-			get { return value; }
-		}
-
-		public int Position
-		{
-			get { return position; }
-			internal set { position = value; }
-		}
-
-		public Token(string value, TokenType tokenType, int position)
-		{
-			if (tokenType == TokenType.Word)
-				this.value = value.ToLower();
-			else
-				this.value = value;
-			this.tokenType = tokenType;
-			this.position = position;
-		}
-
-		public static bool IsEnd(Token token)
-		{
-			return token.Value == "end" || token.value == ";";
-		}
-
-		public static bool IsElse(Token token)
-		{
-			return token.value == "else";
-		}
-
-		public static bool IsLoop(Token token)
-		{
-			return token.value == "loop";
-		}
-
-		public override string ToString()
-		{
-			return "{" + tokenType + "; " + value + "}";
-		}
-	}
-
-	public enum TokenType
-	{
-		None,
-		GroupStart,
-		GroupEnd,
-		StringLiteral,
-		Symbolic,
-		Word,
-		Number
-	}
-
-	internal class TokeniserException : Exception
-	{
-		private int position;
-		private string scriptSource;
-
-		public string ScriptSource
-		{
-			get { return scriptSource; }
-		}
-
-		public int Position
-		{
-			get { return position; }
-			internal set { position = value; }
-		}
-
-		public TokeniserException(string message, int position, string source)
-			: base(message)
-		{
-			this.position = position;
-			this.scriptSource = source;
 		}
 	}
 }

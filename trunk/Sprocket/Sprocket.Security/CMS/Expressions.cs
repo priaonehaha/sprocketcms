@@ -9,13 +9,9 @@ namespace Sprocket.Security.CMS
 {
 	class LoggedInExpression : IExpression
 	{
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			return WebAuthentication.Instance.IsLoggedIn;
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
 		}
 	}
 	class LoggedInExpressionCreator : IExpressionCreator
@@ -33,15 +29,11 @@ namespace Sprocket.Security.CMS
 
 	class UsernameExpression : IExpression
 	{
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			if (!WebAuthentication.Instance.IsLoggedIn)
 				return "[not logged in]";
 			return SecurityProvider.CurrentUser.Username;
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
 		}
 	}
 	class UsernameExpressionCreator : IExpressionCreator
@@ -59,15 +51,11 @@ namespace Sprocket.Security.CMS
 
 	class AccountActivatedExpression : IExpression
 	{
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			if (!WebAuthentication.Instance.IsLoggedIn)
 				return "[not logged in]";
 			return SecurityProvider.CurrentUser.Activated;
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
 		}
 	}
 	class AccountActivatedExpressionCreator : IExpressionCreator
@@ -85,15 +73,11 @@ namespace Sprocket.Security.CMS
 
 	class UserIDExpression : IExpression
 	{
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			if (!WebAuthentication.Instance.IsLoggedIn)
 				return "[not logged in]";
 			return SecurityProvider.CurrentUser.UserID;
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
 		}
 	}
 	class UserIDExpressionCreator : IExpressionCreator
@@ -111,7 +95,7 @@ namespace Sprocket.Security.CMS
 
 	class EmailChangePendingExpression : IExpression
 	{
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			if (!WebAuthentication.Instance.IsLoggedIn)
 				return "[not logged in]";
@@ -125,10 +109,6 @@ namespace Sprocket.Security.CMS
 				val = true;
 			CurrentRequest.Value["EmailChangePendingExpression_Value"] = val;
 			return val;
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
 		}
 	}
 	class EmailChangePendingExpressionCreator : IExpressionCreator

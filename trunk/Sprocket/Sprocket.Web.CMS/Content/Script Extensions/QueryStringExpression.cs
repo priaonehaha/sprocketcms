@@ -4,76 +4,30 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web;
 using Sprocket.Web.CMS.Script;
-using Sprocket.Web.CMS.Script.Parser;
 using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class QueryStringExpression : IFunctionExpression, IObjectListExpression
+	class QueryStringExpression : IListExpression, IArgumentListEvaluatorExpression
 	{
-		IExpression expr = null;
-		Token argToken = null;
-
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (expr == null)
-			{
-				return WebUtility.RawQueryString;
-			}
-			else
-			{
-				object obj = expr.Evaluate(state);
-				if (obj is int || obj is long || obj is short || obj is decimal || obj is double || obj is float)
-					return HttpContext.Current.Request.QueryString[Convert.ToInt32(obj)];
-				else if (obj == null)
-					return WebUtility.RawQueryString;
-				else
-					return HttpContext.Current.Request.QueryString[obj.ToString()];
-			}
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			if (arguments.Count > 1)
-				throw new TokenParserException("the querystring expression must contain no more than one argument, and it should be a number specifying which querystring element you want, or a string (word) specifying the name of the querystring parameter you want.", functionCallToken);
-			if (arguments.Count == 1)
-			{
-				expr = arguments[0].Expression;
-				argToken = arguments[0].Token;
-			}
+			return WebUtility.RawQueryString;
 		}
 
 		public IList GetList(ExecutionState state)
 		{
-			List<IVariableObject> list = new List<IVariableObject>();
-			foreach (string s in HttpContext.Current.Request.QueryString)
+			List<QSComponent> list = new List<QSComponent>();
+			foreach (string s in HttpContext.Current.Request.QueryString.Keys)
 				list.Add(new QSComponent(s, HttpContext.Current.Request.QueryString[s]));
 			return list;
 		}
 
-		private class QSComponent : IVariableObject
+		private class QSComponent : IPropertyEvaluatorExpression
 		{
-			public object EvaluateVariableProperty(string propertyName, Token propertyToken, ExecutionState state)
-			{
-				switch (propertyName)
-				{
-					case "length": return value.Length;
-					case "name": return name;
-					default: throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of this object", propertyToken);
-				}
-			}
-
-			public object Evaluate(ExecutionState state)
+			public object Evaluate(ExecutionState state, Token contextToken)
 			{
 				return value;
-			}
-
-			public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-			{
 			}
 
 			string value, name;
@@ -82,6 +36,53 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				this.name = name;
 				this.value = value;
 			}
+
+			public bool IsValidPropertyName(string propertyName)
+			{
+				switch (propertyName)
+				{
+					case "name":
+					case "value":
+					case "length":
+						return true;
+					default:
+						return false;
+				}
+			}
+
+			public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+			{
+				switch (prop.Name)
+				{
+					case "length": return value.Length;
+					case "name": return name;
+					case "value": return value;
+					default: throw new InstructionExecutionException("\"" + prop.Name + "\" is not a property of this variable", prop.PropertyToken);
+				}
+			}
+
+			public override string ToString()
+			{
+				return name + "=" + value;
+			}
+		}
+
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count > 1)
+				throw new TokenParserException("the querystring expression must contain no more than one argument, and it should be a number specifying which querystring element you want, or a string (word) specifying the name of the querystring parameter you want.", contextToken);
+			object o = TokenParser.VerifyUnderlyingType(args[0].Expression.Evaluate(state, args[0].Token));
+			if (o is decimal)
+			{
+				int n = Convert.ToInt32(o);
+				if (n >= HttpContext.Current.Request.QueryString.Count)
+					throw new TokenParserException("The index you specified is greater than the top index in the querystring", args[0].Token);
+				return HttpContext.Current.Request.QueryString[n];
+			}
+			else if (o == null)
+				throw new TokenParserException("The index you specified equates to null, which I can't use here.", args[0].Token);
+			else
+				return HttpContext.Current.Request.QueryString[o.ToString()];
 		}
 	}
 

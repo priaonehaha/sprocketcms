@@ -6,6 +6,8 @@ using System.IO;
 using Sprocket;
 using Sprocket.Data;
 using Sprocket.Web;
+using Sprocket.Web.CMS.Script;
+using Sprocket.Web.CMS.Script.Parser;
 
 namespace Sprocket.Web.Forums
 {
@@ -193,7 +195,7 @@ namespace Sprocket.Web.Forums
 		#endregion
 	}
 
-	public class Forum : IJSONEncoder, IJSONReader
+	public class Forum : IJSONEncoder, IJSONReader //, IVariableExpression, IArgumentListExpression
 	{
 		#region Constructor, Fields, Properties, JSON Methods
 		#region Fields
@@ -596,6 +598,95 @@ namespace Sprocket.Web.Forums
 			set { writeAccess = (short)value; }
 		}
 		#endregion
+
+		//#region Expression Methods
+		//private List<ExpressionArgument> args = new List<ExpressionArgument>();
+		//private Token expressionToken = null;
+
+		//public void SetArgumentList(List<ExpressionArgument> arguments, Token functionCallToken)
+		//{
+		//    args = arguments;
+		//}
+
+		//public object Evaluate(ExecutionState state, Token contextToken)
+		//{
+		//    if(args.Count == 1)
+		//        return LoadForum(state, expressionToken);
+		//    return this;
+		//}
+
+		//private Forum LoadForum(ExecutionState state, Token token)
+		//{
+		//    if (args.Count != 1)
+		//        throw new InstructionExecutionException("Could not load forum. An argument is required to specify which forum to load.", token);
+		//    object value = TokenParser.VerifyUnderlyingType(args[0].Expression.Evaluate(state));
+		//    if (value is decimal)
+		//        return ForumHandler.DataLayer.SelectForum(Convert.ToInt64(value));
+		//    else if (value is string)
+		//        return ForumHandler.DataLayer.SelectForumByCode((string)value);
+		//    else
+		//        throw new InstructionExecutionException("Could not load an instance of \"forum\" because the argument did not equate to the right kind of value.", args[0].Token);
+		//}
+
+		//public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		//{
+		//    this.expressionToken = expressionToken;
+		//}
+
+		//public object EvaluateVariableProperty(string propertyName, Token propertyToken, ExecutionState state)
+		//{
+		//    switch (propertyName)
+		//    {
+		//        case "forumid": return ForumID;
+		//        case "forumcategoryid": return ForumCategoryID;
+		//        case "forumcode": return ForumCode;
+		//        case "name": return Name;
+		//        case "urltoken": return URLToken;
+		//        case "datecreated": return DateCreated;
+		//        case "rank": return Rank;
+		//        case "writeaccess": return WriteAccess;
+		//        case "readaccess": return ReadAccess;
+		//        case "markuplevel": return MarkupLevel;
+		//        case "showsignatures": return ShowSignatures;
+		//        case "allowimagesinmessages": return AllowImagesInMessages;
+		//        case "allowimagesinsignatures": return AllowImagesInSignatures;
+		//        case "requiremoderation": return RequireModeration;
+		//        case "allowvoting": return AllowVoting;
+		//        case "topicdisplayorder": return TopicDisplayOrder;
+		//        case "locked": return Locked;
+		//        default:
+		//            throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of this variable.", propertyToken);
+		//    }
+		//}
+
+		//enum PropertyType
+		//{
+		//    None,
+		//    ForumID,
+		//    ForumCategoryID,
+		//    ForumCode,
+		//    Name,
+		//    URLToken,
+		//    DateCreated,
+		//    Rank,
+		//    WriteAccess,
+		//    ReadAccess,
+		//    MarkupLevel,
+		//    ShowSignatures,
+		//    AllowImagesInMessages,
+		//    AllowImagesInSignatures,
+		//    RequireModeration,
+		//    AllowVoting,
+		//    TopicDisplayOrder,
+		//    Locked
+		//}
+
+		//public class ForumExpressionCreator : IExpressionCreator
+		//{
+		//    public string Keyword { get { return "forum"; } }
+		//    public IExpression Create() { return new Forum(); }
+		//}
+		//#endregion
 	}
 
 	public class ForumTopic : IJSONEncoder, IJSONReader
@@ -809,6 +900,7 @@ namespace Sprocket.Web.Forums
 		protected string authorName = null;
 		protected DateTime dateCreated = DateTime.MinValue;
 		protected string body = "";
+		protected short moderationState = 0;
 		protected short markupType = 0;
 
 		#endregion
@@ -870,6 +962,15 @@ namespace Sprocket.Web.Forums
 		}
 
 		///<summary>
+		///Gets or sets the value for ModerationState
+		///</summary>
+		public short ModerationState
+		{
+			get { return moderationState; }
+			set { moderationState = value; }
+		}
+
+		///<summary>
 		///Gets or sets the value for MarkupType
 		///</summary>
 		public short MarkupType
@@ -886,7 +987,7 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, string body, short markupType)
+		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, string body, short moderationState, short markupType)
 		{
 			this.forumTopicMessageID = forumTopicMessageID;
 			this.forumTopicID = forumTopicID;
@@ -894,6 +995,7 @@ namespace Sprocket.Web.Forums
 			this.authorName = authorName;
 			this.dateCreated = dateCreated;
 			this.body = body;
+			this.moderationState = moderationState;
 			this.markupType = markupType;
 		}
 
@@ -905,6 +1007,7 @@ namespace Sprocket.Web.Forums
 			if (reader["AuthorName"] != DBNull.Value) authorName = (string)reader["AuthorName"];
 			if (reader["DateCreated"] != DBNull.Value) dateCreated = (DateTime)reader["DateCreated"];
 			if (reader["Body"] != DBNull.Value) body = (string)reader["Body"];
+			if (reader["ModerationState"] != DBNull.Value) moderationState = (short)reader["ModerationState"];
 			if (reader["MarkupType"] != DBNull.Value) markupType = (short)reader["MarkupType"];
 		}
 
@@ -920,6 +1023,7 @@ namespace Sprocket.Web.Forums
 			copy.authorName = authorName;
 			copy.dateCreated = dateCreated;
 			copy.body = body;
+			copy.moderationState = moderationState;
 			copy.markupType = markupType;
 			return copy;
 		}
@@ -945,6 +1049,8 @@ namespace Sprocket.Web.Forums
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "Body", body);
 			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ModerationState", moderationState);
+			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "MarkupType", markupType);
 			writer.Write("}");
 		}
@@ -959,6 +1065,7 @@ namespace Sprocket.Web.Forums
 			authorName = (string)values["AuthorName"];
 			dateCreated = (DateTime)values["DateCreated"];
 			body = (string)values["Body"];
+			moderationState = (short)values["ModerationState"];
 			markupType = (short)values["MarkupType"];
 		}
 

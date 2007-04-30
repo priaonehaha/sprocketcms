@@ -7,232 +7,43 @@ using System.Xml;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	public class PageExpression : IObjectExpression
+	public class PageExpression : IPropertyEvaluatorExpression, IArgumentListEvaluatorExpression
 	{
-		public enum Property
+		public bool IsValidPropertyName(string propertyName)
 		{
-			None,
-			Path,
-			Code
+			return new PageEntry().IsValidPropertyName(propertyName);
 		}
 
-		private delegate object RenderHandler(ExecutionState state);
-		private RenderHandler RenderValue;
-		private Token functionToken;
-
-		//private string xpathExpr = null;
-		//private Token xpathToken;
-		//private Token pageCodeToken;
-
-		private List<FunctionArgument> arguments = null;
-		private Property property = Property.None;
-
-		public PageExpression()
+		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
 		{
-			RenderValue = RenderPage;
+			if (ContentManager.PageStack.Count == 0)
+				throw new InstructionExecutionException("I can't retrieve information for the current page because there is not a specific page entry defined for the current request. (definitions.xml)", prop.PropertyToken);
+			return ContentManager.PageStack.Peek().EvaluateProperty(prop, state);
 		}
 
-		private static Dictionary<string, XmlDocument> xmlDocumentTempCache = new Dictionary<string, XmlDocument>();
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
-			//pageToken = tokens[nextIndex - 1];
-			//Token token = tokens[nextIndex];
-			//if (token.TokenType == TokenType.Symbolic)
-			//{
-			//    // if the token is a colon, then we're extracting specific information relating to the page
-			//    if (token.Value == ":")
-			//    {
-			//        nextIndex++;
-			//        token = tokens[nextIndex++];
-			//        // if it's a word, see what the word is
-			//        if (token.TokenType == TokenType.Word)
-			//        {
-			//            switch (token.Value)
-			//            {
-			//                case "path": // get the sprocket path for the page
-			//                    RenderValue = RenderPagePath;
-			//                    break;
-
-			//                //default:
-			//                //    throw new TokenParserException("I can't get the page info requested here because \"" + token.Value + "\" isn't an attribute of the specified page.", token);
-			//            }
-			//        } // otherwise if it's a string, it's an xpath expression
-			//        else if (token.TokenType == TokenType.StringLiteral && !token.IsNonScriptText)
-			//        {
-			//            xpathExpr = token.Value; //TokenParser.BuildExpression(tokens, ref index, precedenceStack);
-			//            xpathToken = token;
-			//            RenderValue = RenderPageXML;
-			//        }
-			//    }
-			//}
-
-			//token = tokens[nextIndex];
-			//if ((token.TokenType == TokenType.StringLiteral && !token.IsNonScriptText) || token.TokenType == TokenType.GroupStart)
-			//{
-			//    pageCodeExpr = TokenParser.BuildExpression(tokens, ref nextIndex, precedenceStack, true);
-			//    pageCodeToken = token;
-			//}
-
-			//if (RenderValue == null)
-			//    RenderValue = RenderPage;
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			this.functionToken = functionCallToken;
-			this.arguments = arguments;
-		}
-
-		public bool PresetPropertyName(Token propertyToken, List<Token> tokens, ref int nextIndex)
-		{
-			switch (propertyToken.Value)
-			{
-				case "path":
-					property = Property.Path;
-					RenderValue = RenderPagePath;
-					break;
-
-				case "code":
-					property = Property.Code;
-					RenderValue = RenderPageCode;
-					break;
-
-				default:
-					return false;
-			}
-			return true;
-		}
-
-		public object Evaluate(ExecutionState state)
-		{
-			return RenderValue(state);
-		}
-
-		bool popStack;
-		private PageEntry GetPage(FunctionArgument arg, ExecutionState state)
-		{
-			if (arg == null)
-			{
-				popStack = false;
-				if (ContentManager.PageStack.Count == 0)
-					throw new InstructionExecutionException("The current page was requested but somebody forgot to note down what the current page is!", functionToken);
-				else
-					return ContentManager.PageStack.Peek();
-			}
-			popStack = true;
-			PageEntry page = ContentManager.Pages.FromPageCode(arg.Expression.Evaluate(state).ToString());
-			ContentManager.PageStack.Push(page);
-			if (page == null)
-				throw new InstructionExecutionException("I can't get information about the page because the one specified doesn't seem to exist.", arg.Token);
+			if (args.Count != 1)
+				throw new InstructionExecutionException("There should be only one argument in the argument list and it should specify the code name of the page to retrieve.", contextToken);
+			object argval = args[0].Expression.Evaluate(state, args[0].Token);
+			if (argval == null)
+				throw new InstructionExecutionException("The argument you specified equates to null. I need a non-null value in order to retrieve the page you want.", args[0].Token);
+			PageEntry page = ContentManager.Pages.FromPageCode(argval.ToString());
+			if(page == null)
+				throw new InstructionExecutionException("The argument you specified equates to \"" + argval.ToString() + "\", which is not the code name for any existing page.", args[0].Token);
 			return page;
 		}
 
-		private XmlDocument GetXmlDocument(string path)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (xmlDocumentTempCache.ContainsKey(path))
-				return xmlDocumentTempCache[path];
-			XmlDocument doc = new XmlDocument();
-			try
-			{
-				doc.Load(WebUtility.MapPath(path));
-			}
-			catch
-			{
-				return null;
-			}
-			return doc;
+			if (ContentManager.PageStack.Count == 0)
+				throw new InstructionExecutionException("I can't retrieve information for the current page because there is not a specific page entry defined for the current request. (definitions.xml)", contextToken);
+			Token t = state.SourceToken;
+			state.SourceToken = contextToken.Next;
+			string s = ContentManager.PageStack.Peek().Render(state);
+			state.SourceToken = t;
+			return s;
 		}
-
-		private object RenderPage(ExecutionState state)
-		{
-			if (arguments.Count > 1)
-				throw new InstructionExecutionException("Too many arguments specified. Specify none, or just one indicating the page code you are referring to.", functionToken);
-			FunctionArgument codeArg = arguments.Count == 0 ? null : arguments[0];
-			Token prevToken = state.SourceToken;
-			state.SourceToken = functionToken;
-			string page = GetPage(codeArg, state).Render(state);
-			state.SourceToken = prevToken;
-			if (popStack)
-				ContentManager.PageStack.Pop();
-			return page;
-		}
-
-		private object RenderPagePath(ExecutionState state)
-		{
-			if (arguments.Count > 1)
-				throw new InstructionExecutionException("Too many arguments specified. Specify none, or just one indicating the page code you are referring to.", functionToken);
-			FunctionArgument codeArg = arguments.Count == 0 ? null : arguments[0];
-			string str = GetPage(codeArg, state).Path;
-			if (popStack)
-				ContentManager.PageStack.Pop();
-			return str;
-		}
-
-		private object RenderPageCode(ExecutionState state)
-		{
-			if (arguments.Count > 0)
-				throw new InstructionExecutionException("Don't specify any arguments when requesting the page code. That would be like saying \"give me the color of blue\". :P", functionToken);
-			FunctionArgument codeArg = arguments.Count == 0 ? null : arguments[0];
-			string str = GetPage(codeArg, state).PageCode;
-			if (popStack)
-				ContentManager.PageStack.Pop();
-			return str;
-		}
-		//private object RenderPageXML(ExecutionState state)
-		//{
-		//    string path = GetPage(state).ContentFile;
-		//    if (path == "")
-		//        throw new InstructionExecutionException("I can't get the XML content for the page because the Page element in the definitions.xml file doesn't have a ContentFile attribute.", xpathToken);
-
-		//    string text = "";
-		//    XmlDocument doc = new XmlDocument();
-		//    try
-		//    {
-		//        doc.Load(WebUtility.MapPath(path));
-		//    }
-		//    catch (Exception ex)
-		//    {
-		//        throw new InstructionExecutionException("I can't get the XML content for the page because the specified XML content file (" + path + ") doesn't seem to exist.", ex, xpathToken);
-		//    }
-		//    XmlNodeList nodes;
-		//    try
-		//    {
-		//        nodes = doc.SelectNodes(xpathExpr);
-		//    }
-		//    catch (Exception ex)
-		//    {
-		//        throw new InstructionExecutionException("I can't get the XML content for the page because the XPath expression has an error.", ex, xpathToken);
-		//    }
-		//    foreach (XmlNode node in nodes)
-		//    {
-		//        SprocketScript script = null;
-		//        if (node.NodeType == XmlNodeType.CDATA || node.NodeType == XmlNodeType.Text)
-		//            script = new SprocketScript(node.Value, path, path + ":{" + xpathExpr + "}");
-		//        else if (node.HasChildNodes)
-		//            script = new SprocketScript(node.FirstChild.Value, path, path + ":{" + xpathExpr + "}");
-		//        if (script != null)
-		//        {
-		//            //string str = node.FirstChild.Value;
-		//            //foreach (PlaceHolder ph in PlaceHolder.Extract(str))
-		//            //{
-		//            //    str = str.Replace(ph.RawText, ph.Render(pageEntry, content, placeHolderStack, out cache));
-		//            //    cacheable = cacheable && cache;
-		//            //}
-		//            //try
-		//            //{
-		//            text += script.ExecuteToResolveExpression(state);
-		//            //    if(script.HasParseError)
-		//            //        throw new InstructionExecutionException(script.Exception.Message, script.Exception, xpathToken);
-		//            //}
-		//            //catch (TokeniserException ex)
-		//            //{
-
-		//            //}
-		//        }
-		//    }
-		//    return text;
-		//}
 	}
 	public class PageExpressionCreator : IExpressionCreator
 	{

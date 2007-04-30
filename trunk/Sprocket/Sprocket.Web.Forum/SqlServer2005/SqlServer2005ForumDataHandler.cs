@@ -381,6 +381,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					cmd.Parameters.Add(NewSqlParameter("@AuthorName", forumTopicMessage.AuthorName, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@DateCreated", forumTopicMessage.DateCreated, SqlDbType.DateTime));
 					cmd.Parameters.Add(NewSqlParameter("@Body", forumTopicMessage.Body, SqlDbType.NVarChar));
+					cmd.Parameters.Add(NewSqlParameter("@ModerationState", forumTopicMessage.ModerationState, SqlDbType.SmallInt));
 					cmd.Parameters.Add(NewSqlParameter("@MarkupType", forumTopicMessage.MarkupType, SqlDbType.SmallInt));
 					cmd.ExecuteNonQuery();
 					forumTopicMessage.ForumTopicMessageID = (long)prm.Value;

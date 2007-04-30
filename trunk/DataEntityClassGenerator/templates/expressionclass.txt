@@ -40,15 +40,16 @@ namespace [namespace]
 			#error The following section should be changed/checked to match your code
 			// attempt to load the specified [classname]
 			object value = TokenParser.VerifyUnderlyingType(args[0].Expression.Evaluate(state));
-			if(!(value is decimal))
+			if(value is decimal)
+				[lesserclassname] = DataLayer.Select[classname](Convert.ToInt64(value));
+			else
 				throw new InstructionExecutionException("Could not load an instance of \"[classname_lower]\" because the argument did not equate to the right kind of value.", args[0].Token);
-			[lesserclassname] = DataLayer.[classname]_Select((long)value);
 			
 			// return the relevant value
 			switch(propertyType)
 			{
 				[evaluate_casestatements]
-				case PropertyType.None: return this;
+				case PropertyType.None: return [lesserclassname] == null ? null : this;
 				default: return "[[classname]]";
 			}
 		}

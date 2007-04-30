@@ -6,32 +6,26 @@ using Sprocket.Web.CMS.Script.Parser;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class TemplateExpression : IFunctionExpression
+	class TemplateExpression : IArgumentListEvaluatorExpression
 	{
-		IExpression expr = null;
-		Token token = null;
-
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
-			if (expr == null)
-				throw new InstructionExecutionException("I can't show a template because you didn't specify which one to show here.", token);
-			string name = expr.Evaluate(state).ToString();
-			Template t = ContentManager.Templates[name];
-			if (name == null)
-				throw new InstructionExecutionException("I can't show the template because the one you specified doesn't seem to exist.", token);
-			return t.Script.ExecuteToResolveExpression(state);
+			if (args.Count != 1)
+				throw new TokenParserException("The \"template\" expression takes a single argument specifying which template to load", contextToken);
+			object o = args[0].Expression.Evaluate(state, args[0].Token);
+			if(o == null)
+				throw new TokenParserException("You can't request a template using a null value as the template name.", args[0].Token);
+
+			Template t = ContentManager.Templates[o.ToString()];
+			if(t == null)
+				throw new TokenParserException("The template \"" + o.ToString() + "\" does not exist.", args[0].Token);
+
+			return t;
 		}
 
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			token = functionCallToken;
-			if(arguments.Count != 1)
-				throw new TokenParserException("The \"template\" expression requires one argument specifying which template to load", token);
-			expr = arguments[0].Expression;
+			throw new InstructionExecutionException("You can't use the \"template\" expression by itself as the default behaviour is to render the content of the template which would result in infinite recursion.", contextToken.Next);
 		}
 	}
 

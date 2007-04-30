@@ -7,7 +7,7 @@ using Sprocket.Web.CMS.Script;
 
 namespace Sprocket.Web.CMS.Content
 {
-	public class PageEntry
+	public class PageEntry : IPropertyEvaluatorExpression
 	{
 		#region Fields and Properties
 
@@ -94,8 +94,6 @@ namespace Sprocket.Web.CMS.Content
 
 		public string Render()
 		{
-			if (ContentManager.PageStack.Count == 0)
-				ContentManager.PageStack.Push(this);
 			string cachePath;
 			if (pageCode != null && pageCode != "")
 				cachePath = "$pagecode[" + PageCode + "]";
@@ -106,8 +104,49 @@ namespace Sprocket.Web.CMS.Content
 			if (ContentCache.IsContentCached(cachePath))
 				output = ContentCache.ReadCache(cachePath);
 			else
+			{
+				ContentManager.PageStack.Push(this);
 				output = Template.Script.Execute();
+				ContentManager.PageStack.Pop();
+			}
 			return output;
+		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "path":
+				case "code":
+				case "contentfile":
+				case "templatename":
+				case "contenttype":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		{
+			switch (prop.Name)
+			{
+				case "path": return path;
+				case "code": return pageCode;
+				case "contentfile": return contentFile;
+				case "templatename": return template;
+				case "contenttype": return contentType;
+				default: return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			Token t = state.SourceToken;
+			state.SourceToken = contextToken.Next;
+			string s = Render(state);
+			state.SourceToken = t;
+			return s;
 		}
 	}
 }
