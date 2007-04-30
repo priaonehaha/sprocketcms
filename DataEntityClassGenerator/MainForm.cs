@@ -84,8 +84,8 @@ namespace ClassGenerator
 		private string className = "";
 		private void TablesList_SelectedValueChanged(object sender, EventArgs e)
 		{
-			string cs, sql, csoutline, csinterface, csdatalayer, csmain, csexpr;
-			GenerateCode(TablesList.SelectedItem.ToString(), out cs, out sql, out csmain, out csoutline, out csexpr, out csdatalayer, out csinterface);
+			string cs, sql, csoutline, csinterface, csdatalayer, csmain, csexpr, csexpr2;
+			GenerateCode(TablesList.SelectedItem.ToString(), out cs, out sql, out csmain, out csoutline, out csexpr, out csexpr2, out csdatalayer, out csinterface);
 			Output.Text = cs;
 			Procedures.Text = sql;
 			DataLayerInterface.Text = csinterface;
@@ -93,9 +93,11 @@ namespace ClassGenerator
 			ClassMain.Text = csmain;
 			ClassOutline.Text = csoutline;
 			exprTextBox.Text = csexpr;
+			exprExtender.Text = csexpr2;
 		}
 
-		void GenerateCode(string tableName, out string cs, out string sql, out string csmain, out string csoutline, out string csexpr, out string csdatalayer, out string csinterface)
+		void GenerateCode(string tableName, out string cs, out string sql, out string csmain, out string csoutline, out string csexpr,
+			out string csexpr_extender, out string csdatalayer, out string csinterface)
 		{
 			SaveButton.Enabled = true;
 			ExecuteSQLButton.Enabled = true;
@@ -109,7 +111,7 @@ namespace ClassGenerator
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.ToString(), "Connection String Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				cs = ""; sql = ""; csmain = ""; csdatalayer = ""; csoutline = ""; csinterface = ""; csexpr = "";
+				cs = ""; sql = ""; csmain = ""; csdatalayer = ""; csoutline = ""; csinterface = ""; csexpr = ""; csexpr_extender = "";
 				return;
 			}
 			SqlCommand cmd = conn.CreateCommand();
@@ -126,6 +128,7 @@ namespace ClassGenerator
 			string sPropertyReadOnly = ResourceLoader.LoadTextResource("property-readonly.txt");
 			string sClass = ResourceLoader.LoadTextResource("class.txt");
 			string sExpressionClass = ResourceLoader.LoadTextResource("expressionclass.txt");
+			string sExpressionClassExtended = ResourceLoader.LoadTextResource("expression_classextender.txt");
 			string sRow = ResourceLoader.LoadTextResource("fromrow.txt");
 			string sProcs = ResourceLoader.LoadTextResource("procs.txt");
 			string sKeyVal = ResourceLoader.LoadTextResource("keyvalmethods.txt");
@@ -152,6 +155,7 @@ namespace ClassGenerator
 			string updateExplicitProcParams = "", fieldNameCaseStatements = "", enumFieldNames = "", filterOrderByClause = "";
 			string jsonWrites = "", jsonReads = "", fieldCopies = ""; ;
 			string exprPrepareProperty_CaseStatements = "", exprEvaluateProperty_CaseStatements = "", exprEvaluate_CaseStatements = "", exprPropertyTypes = "";
+			string exprEvaluateProperty_CaseStatements2 = "", exprEvaluate_CaseStatements2 = "";
 			int n = 0;
 			foreach (DataColumn c in ds.Tables[0].Columns)
 			{
@@ -370,11 +374,15 @@ namespace ClassGenerator
 					exprEvaluate_CaseStatements += Environment.NewLine + "\t\t\t\t";
 					exprEvaluateProperty_CaseStatements += Environment.NewLine + "\t\t\t\t";
 					exprPrepareProperty_CaseStatements += Environment.NewLine + "\t\t\t\t";
+					exprEvaluate_CaseStatements2 += Environment.NewLine + "\t\t\t\t";
+					exprEvaluateProperty_CaseStatements2 += Environment.NewLine + "\t\t\t\t";
 				}
 				exprPropertyTypes += "," + Environment.NewLine + "\t\t\t" + prName;
 				exprEvaluate_CaseStatements += string.Format("case PropertyType.{0}: return {1}.{0};", prName, lesserClassName);
 				exprEvaluateProperty_CaseStatements += string.Format("case \"{0}\": return {2}.{1};", prName.ToLower(), prName, lesserClassName);
 				exprPrepareProperty_CaseStatements += string.Format("case \"{0}\": propertyType = PropertyType.{1}; return true;", prName.ToLower(), prName);
+				exprEvaluate_CaseStatements2 += string.Format("case PropertyType.{0}: return {0};", prName);
+				exprEvaluateProperty_CaseStatements2 += string.Format("case \"{0}\": return {1};", prName.ToLower(), prName);
 
 				n++;
 			}
@@ -536,6 +544,17 @@ namespace ClassGenerator
 				.Replace("[evaluateproperty_casestatements]", exprEvaluateProperty_CaseStatements)
 				.Replace("[prepareproperty_casestatements]", exprPrepareProperty_CaseStatements)
 				.Replace("[evaluate_casestatements]", exprEvaluate_CaseStatements)
+				;
+
+			csexpr_extender = sExpressionClassExtended
+				.Replace("[namespace]", Namespace.Text)
+				.Replace("[classname]", className)
+				.Replace("[classname_lower]", classNameLower)
+				.Replace("[lesserclassname]", lesserClassName)
+				.Replace("[propertytypes]", exprPropertyTypes)
+				.Replace("[evaluateproperty_casestatements]", exprEvaluateProperty_CaseStatements2)
+				.Replace("[prepareproperty_casestatements]", exprPrepareProperty_CaseStatements)
+				.Replace("[evaluate_casestatements]", exprEvaluate_CaseStatements2)
 				;
 		}
 
@@ -778,8 +797,8 @@ namespace ClassGenerator
 		{
 			foreach (string name in TablesList.CheckedItems)
 			{
-				string cs, sql, cs1, cs2, cs3, cs4, cs5;
-				GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs5, out cs3, out cs4);
+				string cs, sql, cs1, cs2, cs3, cs4, cs5, cs6;
+				GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs5, out cs3, out cs4, out cs6);
 				ExecuteSQL(sql);
 			}
 		}
@@ -795,8 +814,8 @@ namespace ClassGenerator
 					string cname = name;
 					if (cname.ToLower().EndsWith("s"))
 						cname = cname.Substring(0, cname.Length - 1);
-					string cs, sql, cs1, cs2, cs3, cs4, cs5;
-					GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4, out cs5);
+					string cs, sql, cs1, cs2, cs3, cs4, cs5, cs6;
+					GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4, out cs5, out cs6);
 					StreamWriter writer = new StreamWriter(dlg.SelectedPath + "\\" + cname + ".Entity.cs");
 					writer.Write(cs);
 					writer.Flush();
@@ -822,8 +841,8 @@ namespace ClassGenerator
 					string cname = name;
 					if (cname.ToLower().EndsWith("s"))
 						cname = cname.Substring(0, cname.Length - 1);
-					string cs, sql, cs1, cs2, cs3, cs4, cs5;
-					GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4, out cs5);
+					string cs, sql, cs1, cs2, cs3, cs4, cs5, cs6;
+					GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4, out cs5, out cs6);
 					allsql += sql;
 				}
 				StreamWriter writer = new StreamWriter(dlg.FileName);

@@ -13,10 +13,10 @@ using Sprocket.Web.CMS.Script.Parser;
 
 namespace Sprocket.Web.Forums
 {
-	public class ForumCategoryExpression : IObjectExpression, IVariableObject
+	public class ForumCategoryExpression : IPropertyExpression, IVariableExpression
 	{
 		private PropertyType propertyType = PropertyType.None;
-		private List<FunctionArgument> args = null;
+		private List<ExpressionArgument> args = null;
 		private ForumCategory forumCategory = null;
 
 		public bool PresetPropertyName(Token propertyToken, List<Token> tokens, ref int nextIndex)
@@ -36,7 +36,7 @@ namespace Sprocket.Web.Forums
 			}
 		}
 
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		public void SetFunctionArguments(List<ExpressionArgument> arguments, Token functionCallToken)
 		{
 			args = arguments;
 			if (args.Count != 1)
@@ -54,7 +54,6 @@ namespace Sprocket.Web.Forums
 				forumCategory = ForumHandler.DataLayer.SelectForumCategoryByCode((string)value);
 			else
 				throw new InstructionExecutionException("Could not load an instance of \"forumcategory\" because the argument did not equate to the right kind of value.", args[0].Token);
-			
 
 			// return the relevant value
 			switch (propertyType)
@@ -67,8 +66,11 @@ namespace Sprocket.Web.Forums
 				case PropertyType.DateCreated: return forumCategory.DateCreated;
 				case PropertyType.Rank: return forumCategory.Rank;
 				case PropertyType.InternalUseOnly: return forumCategory.InternalUseOnly;
-				case PropertyType.ForumList: return ForumHandler.DataLayer.ListForums(forumCategory.ForumCategoryID);
-				case PropertyType.None: return this;
+				case PropertyType.ForumList: return GetForums();
+				case PropertyType.None:
+					if (forumCategory == null)
+						return null;
+					return this;
 				default: return "[ForumCategory]";
 			}
 		}
@@ -89,10 +91,16 @@ namespace Sprocket.Web.Forums
 				case "datecreated": return forumCategory.DateCreated;
 				case "rank": return forumCategory.Rank;
 				case "internaluseonly": return forumCategory.InternalUseOnly;
-				case "forumlist": return ForumHandler.DataLayer.ListForums(forumCategory.ForumCategoryID);
+				case "forumlist": return GetForums();
 				default:
 					throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of this variable.", propertyToken);
 			}
+		}
+
+		private List<Forum> GetForums()
+		{
+			List<Forum> forums = ForumHandler.DataLayer.ListForums(forumCategory.ForumCategoryID);
+			return forums;
 		}
 
 		enum PropertyType

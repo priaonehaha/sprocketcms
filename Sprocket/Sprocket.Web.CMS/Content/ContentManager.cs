@@ -122,7 +122,7 @@ namespace Sprocket.Web.CMS.Content
 				{
 					if (templates.ContainsKey(id))
 					{
-						if (templates[id].IsOutOfDate)
+						if (templates[id].IsOutOfDate || templates[id].Script.HasParseError)
 							templates[id] = BuildTemplateScript(id);
 					}
 					else
@@ -135,7 +135,7 @@ namespace Sprocket.Web.CMS.Content
 			{
 				Dictionary<string, DateTime> fileTimes = new Dictionary<string, DateTime>();
 				SprocketScript script = BuildTemplateScript(name, fileTimes);
-				return new Template(script, fileTimes);
+				return new Template(name, script, fileTimes);
 			}
 
 			private SprocketScript BuildTemplateScript(string name, Dictionary<string, DateTime> fileTimes)
@@ -408,11 +408,9 @@ namespace Sprocket.Web.CMS.Content
 			if (page == null)
 				return;
 			requestedPage = page;
-			PageStack.Push(page);
 			if (OnBeforeRenderPage != null)
 				OnBeforeRenderPage(page);
 			string txt = page.Render();
-			PageStack.Clear();
 			Response.ContentType = page.ContentType;
 			Response.Write(txt);
 			handled.Set();
@@ -420,6 +418,7 @@ namespace Sprocket.Web.CMS.Content
 
 		void WebEvents_OnEndHttpRequest()
 		{
+			PageStack.Clear();
 			requestedPage = null;
 		}
 		#endregion

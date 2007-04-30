@@ -7,30 +7,19 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class AjaxScriptsExpression : IFunctionExpression
+	class AjaxScriptsExpression : IArgumentListEvaluatorExpression
 	{
-		List<FunctionArgument> arguments = null;
-		Token token = null;
-
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(Token contextToken, List<ExpressionArgument> arguments, ExecutionState state)
 		{
-			Type[] types = new Type[arguments.Count];
+			string[] types = new string[arguments.Count];
 			int c = 0;
-			foreach (FunctionArgument arg in arguments)
+			foreach (ExpressionArgument arg in arguments)
 			{
-				IExpression expr = arg.Expression;
-				object o = expr.Evaluate(state);
+				object o = arg.Expression.Evaluate(state, arg.Token);
 				if (o == null) o = String.Empty;
-				string typeName = o.ToString();
-				RegisteredModule mod = Core.Instance[typeName];
-				if (mod == null)
-				{
-					return "alert('[Type " + typeName + " not found]');";
-				}
-				types[c++] = mod.Module.GetType();
+				types[c++] = o.ToString();
 			}
 
-			//System.Diagnostics.Debug.WriteLine("Rendering AJAX scripts with timestamp of " + AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString());
 			string scr =
 				ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
@@ -44,14 +33,9 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				return scr;
 		}
 
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			this.arguments = arguments;
-			token = functionCallToken;
+			return Evaluate(contextToken, new List<ExpressionArgument>(), state);
 		}
 	}
 

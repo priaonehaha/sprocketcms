@@ -56,7 +56,7 @@ BEGIN
 		Subject nvarchar(500) NOT NULL,
 		DateCreated datetime NOT NULL,
 		Sticky bit NOT NULL,
-		ModerationState smallint NOT NULL, -- 0: unreviewed, 1: approved, 2: flagged for review
+		ModerationState smallint NOT NULL, -- 0: unreviewed, 1: approved, 2: flagged for review, 3: spam
 		Locked bit NOT NULL
 	)
 	CREATE INDEX IX_ForumTopic ON ForumTopic(DateCreated,AuthorUserID,ForumID)
@@ -73,6 +73,7 @@ BEGIN
 		
 		DateCreated datetime NOT NULL,
 		Body nvarchar(max) NOT NULL,
+		ModerationState smallint NOT NULL, -- 0: unreviewed, 1: approved, 2: flagged for review, 3: spam
 		MarkupType smallint NOT NULL -- 0: none, 1: bbcode, 2: limited HTML, 3: full HTML
 	)
 	CREATE INDEX IX_ForumTopicMessage ON ForumTopicMessage(DateCreated)

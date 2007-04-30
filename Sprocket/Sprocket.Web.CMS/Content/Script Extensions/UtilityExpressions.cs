@@ -7,35 +7,42 @@ using Sprocket.Web.CMS.Script.Parser;
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
-	class HtmlEncodeExpression : IFunctionExpression
+	abstract class StringModifierBaseExpression : IArgumentListEvaluatorExpression, IFlexibleSyntaxExpression
 	{
-		Token token = null;
-		List<FunctionArgument> args = null;
-
-		public object Evaluate(ExecutionState state)
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
 			StringBuilder sb = new StringBuilder();
-			foreach (FunctionArgument arg in args)
+			foreach (ExpressionArgument arg in args)
 			{
-				object o = arg.Expression.Evaluate(state);
+				object o = arg.Expression.Evaluate(state, arg.Token);
 				if (o == null)
 					sb.Append("null");
 				else
-					sb.Append(HttpUtility.HtmlEncode(o.ToString()));
+					sb.Append(Adjust(o.ToString()));
 			}
 			return sb.ToString();
 		}
 
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
+			throw new InstructionExecutionException("This expression requires at least one argument.", token);
+		}
+	
+		Token token;
+		public void PrepareExpression(TokenList tokens, Stack<int?> precedenceStack)
+		{
+ 			token = tokens.Current;
+			tokens.Advance();
 		}
 
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
+		protected abstract string Adjust(string s);
+	}
+
+	class HtmlEncodeExpression : StringModifierBaseExpression
+	{
+		protected override string Adjust(string s)
 		{
-			token = functionCallToken;
-			if (arguments.Count == 0)
-				throw new TokenParserException("The \"htmlencode\" function requires at least one argument.", token);
-			args = arguments;
+			return HttpUtility.HtmlEncode(s);
 		}
 	}
 	class HtmlEncodeExpressionCreator : IExpressionCreator
@@ -51,35 +58,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		}
 	}
 
-	class SafeHtmlEncodeExpression : IFunctionExpression
+	class SafeHtmlEncodeExpression : StringModifierBaseExpression
 	{
-		Token token = null;
-		List<FunctionArgument> args = null;
-
-		public object Evaluate(ExecutionState state)
+		protected override string Adjust(string s)
 		{
-			StringBuilder sb = new StringBuilder();
-			foreach (FunctionArgument arg in args)
-			{
-				object o = arg.Expression.Evaluate(state);
-				if (o == null)
-					sb.Append("null");
-				else
-					sb.Append(WebUtility.SafeHtmlString(o.ToString(), true));
-			}
-			return sb.ToString();
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			token = functionCallToken;
-			if (arguments.Count == 0)
-				throw new TokenParserException("The \"safehtmlencode\" function requires at least one argument.", token);
-			args = arguments;
+			return WebUtility.SafeHtmlString(s, false);
 		}
 	}
 	class SafeHtmlEncodeExpressionCreator : IExpressionCreator
@@ -95,35 +78,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		}
 	}
 
-	class UrlEncodeExpression : IFunctionExpression
+	class UrlEncodeExpression : StringModifierBaseExpression
 	{
-		Token token = null;
-		List<FunctionArgument> args = null;
-
-		public object Evaluate(ExecutionState state)
+		protected override string Adjust(string s)
 		{
-			StringBuilder sb = new StringBuilder();
-			foreach (FunctionArgument arg in args)
-			{
-				object o = arg.Expression.Evaluate(state);
-				if (o == null)
-					sb.Append("null");
-				else
-					sb.Append(WebUtility.UrlEncode(o.ToString()));
-			}
-			return sb.ToString();
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			token = functionCallToken;
-			if (arguments.Count == 0)
-				throw new TokenParserException("The \"htmlencode\" function requires at least one argument.", token);
-			args = arguments;
+			return WebUtility.UrlEncode(s);
 		}
 	}
 	class UrlEncodeExpressionCreator : IExpressionCreator
@@ -139,35 +98,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		}
 	}
 
-	class LowerCaseExpression : IFunctionExpression
+	class LowerCaseExpression : StringModifierBaseExpression
 	{
-		Token token = null;
-		List<FunctionArgument> args = null;
-
-		public object Evaluate(ExecutionState state)
+		protected override string Adjust(string s)
 		{
-			StringBuilder sb = new StringBuilder();
-			foreach (FunctionArgument arg in args)
-			{
-				object o = arg.Expression.Evaluate(state);
-				if (o == null)
-					sb.Append("null");
-				else
-					sb.Append(o.ToString().ToLower());
-			}
-			return sb.ToString();
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			token = functionCallToken;
-			if (arguments.Count == 0)
-				throw new TokenParserException("The \"lowercase\" function requires at least one argument.", token);
-			args = arguments;
+			return s.ToLower();
 		}
 	}
 	class LowerCaseExpressionCreator : IExpressionCreator
@@ -183,35 +118,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		}
 	}
 
-	class UpperCaseExpression : IFunctionExpression
+	class UpperCaseExpression : StringModifierBaseExpression
 	{
-		Token token = null;
-		List<FunctionArgument> args = null;
-
-		public object Evaluate(ExecutionState state)
+		protected override string Adjust(string s)
 		{
-			StringBuilder sb = new StringBuilder();
-			foreach (FunctionArgument arg in args)
-			{
-				object o = arg.Expression.Evaluate(state);
-				if (o == null)
-					sb.Append("null");
-				else
-					sb.Append(o.ToString().ToUpper());
-			}
-			return sb.ToString();
-		}
-
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		{
-		}
-
-		public void SetFunctionArguments(List<FunctionArgument> arguments, Token functionCallToken)
-		{
-			token = functionCallToken;
-			if (arguments.Count == 0)
-				throw new TokenParserException("The \"uppercase\" function requires at least one argument.", token);
-			args = arguments;
+			return s.ToUpper();
 		}
 	}
 	class UpperCaseExpressionCreator : IExpressionCreator

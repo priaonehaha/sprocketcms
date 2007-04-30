@@ -9,17 +9,18 @@ namespace Sprocket.Web.CMS.Content
 {
 	public class RequestSpeedExpression : IExpression
 	{
-		private static DateTime start = DateTime.Now;
-		public static void Set() { start = DateTime.Now; }
-
-		public object Evaluate(ExecutionState state)
+		public static void Set()
 		{
-			TimeSpan ts = DateTime.Now.Subtract(start);
-			return ts.TotalSeconds.ToString("0.0##") + "s";
+			CurrentRequest.Value["RequestSpeedExpression.Start"] = SprocketDate.Now;
 		}
 
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
+			TimeSpan ts = SprocketDate.Now.Subtract((DateTime)CurrentRequest.Value["RequestSpeedExpression.Start"]);
+			string s = ts.TotalSeconds.ToString("0.####") + "s";
+			if (s == "0s")
+				return "instant";
+			return s;
 		}
 	}
 

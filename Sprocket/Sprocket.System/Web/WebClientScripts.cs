@@ -53,10 +53,10 @@ namespace Sprocket.Web
 		/// Builds a set of javascript methods which are mapped to corresponding ModuleBase-derived
 		/// class methods which are marked with the AjaxMethod attribute.
 		/// </summary>
-		/// <param name="restrictToTypes"></param>
+		/// <param name="restrictToAjaxModules">An optional list of ajax module names that should be used instead of the full list</param>
 		/// <returns>A block of javascript defining objects and methods that encapsulate ajax calls to
 		/// matching server-side methods</returns>
-		public string GetAjaxMethodsScript(params Type[] restrictToTypes)
+		public string GetAjaxMethodsScript(params string[] restrictToAjaxModules)
 		{
 			if (ajaxScripts == null)
 			{
@@ -91,8 +91,8 @@ namespace Sprocket.Web
 			foreach (AjaxModuleRef m in ajaxScripts.Values)
 			{
 				// if restrictions have been specified, make sure this module is included in the accepted module types
-				if (restrictToTypes.Length > 0)
-					if (Array.IndexOf<Type>(restrictToTypes, m.Type) == -1)
+				if (restrictToAjaxModules.Length > 0)
+					if (Array.IndexOf<string>(restrictToAjaxModules, m.AjaxTypeName) == -1)
 						continue;
 
 				sb.Append(m.ToString());
