@@ -1,0 +1,29 @@
+=Basic Website Construction=
+
+The current version of Sprocket supports a simple yet versatile page/template model which is defined by a single definitions file, one or more HTML templates and any number of optional XML files to hold content.
+
+A future version of Sprocket will move this functionality to a database to make it easier to support large amounts of content, but when this happens, the current method will be preserved via an import/export system to copy the pages between the database and the XML file(s).
+
+==1. The Definitions File==
+
+Your website should have a base-level folder called "resources". This is the standard place to put all of your website assets such as html files, xml files, images, etc. Place a new XML file called `definitions.xml` in the resources folder.
+
+This XML file has two main sections; Pages and Templates. Here is a sample definitions file:
+
+{{{
+<?xml version="1.0" encoding="utf-8" ?>
+<Definitions>
+	<Pages>
+		<Page Path="testpage" Code="test_page" Template="test_template" HandleSubPaths="true" />
+	</Pages>
+	<Templates>
+		<Template Name="test_template" File="resources/templates/html/test.htm" />
+	</Templates>
+</Definitions>
+}}}
+
+===Pages===
+
+A page is defined as a block of content that might be requestable directly via a URL, or embedded as a section in another page. This is useful because it allows you to delegate sections of content that appear in multiple locations to just one area, making your website easy to maintain.
+
+`Page` entries have multiple attributes you can use and all of them are optional. The attributes are:
