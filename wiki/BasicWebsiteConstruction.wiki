@@ -28,8 +28,9 @@ A page is defined as a block of content that might be requestable directly via a
 
 *Page* entries have multiple attributes you can use and all of them are optional. The attributes are:
 
-*Path*: A SprocketPath referring to the URL that should request this page
-*Code*: An identifier word that you can use to refer to this page entry from other locations
-*Template*: A reference to the name of the template that should be used to render this page
-*ContentType*: The default is "text/html" if you leave it out. If this page entry is being used for rendering javascript, xml, or some other content type, set this attribute accordingly.
-*HandleSubPaths*: Specifies that this page should render for all URLs that are descendants of the specified *Path* attribute.
+  * *Path*: A SprocketPath referring to the URL that should request this page
+  * *Code*: An identifier word that you can use to refer to this page entry from other locations
+  * *Template*: A reference to the name of the template that should be used to render this page
+  * *ContentType*: The default is "text/html" if you leave it out. If this page entry is being used for rendering javascript, xml, or some other content type, set this attribute accordingly.
+  * *HandleSubPaths*: Specifies that this page should render for all URLs that are descendants of the specified *Path* attribute.
+
