@@ -29,6 +29,20 @@ namespace Sprocket.Web.CMS.Script
 		}
 	}
 
+	public class InstructionExecutionParseErrorException : Exception
+	{
+		string html;
+		public InstructionExecutionParseErrorException(string errorHTML)
+		{
+			html = errorHTML;
+		}
+
+		public override string ToString()
+		{
+			return html;
+		}
+	}
+
 	public class TokenParserException : Exception
 	{
 		private Token token;

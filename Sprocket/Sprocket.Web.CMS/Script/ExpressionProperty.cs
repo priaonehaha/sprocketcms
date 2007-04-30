@@ -61,7 +61,7 @@ namespace Sprocket.Web.CMS.Script
 				if (o is IArgumentListEvaluatorExpression)
 					o = ((IArgumentListEvaluatorExpression)o).Evaluate(propertyToken, arguments, state);
 				else
-					throw new InstructionExecutionException("A list of arguments cannot be applied to the value held by this variable. (Internal variable type: " + o.GetType().FullName + ")", expressionToken);
+					return SystemTypeEvaluator.EvaluateArguments(state, o, arguments, arguments[0].Token);
 			}
 
 			if (subProperty != null)
