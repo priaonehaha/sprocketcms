@@ -439,7 +439,7 @@ namespace Sprocket.Web.CMS.Script
 			{
 				TypeConverter tc = TypeDescriptor.GetConverter(a);
 				if (!tc.CanConvertTo(typeof(decimal)))
-					ThrowException();
+					ThrowException(a);
 				x = (decimal)tc.ConvertTo(a, typeof(decimal));
 			}
 			if (b is decimal)
@@ -448,15 +448,21 @@ namespace Sprocket.Web.CMS.Script
 			{
 				TypeConverter tc = TypeDescriptor.GetConverter(b);
 				if (!tc.CanConvertTo(typeof(decimal)))
-					ThrowException();
+					ThrowException(b);
 				y = (decimal)tc.ConvertTo(b, typeof(decimal));
 			}
 			return x - y;
 		}
 
-		void ThrowException()
+		public override void PrepareExpression(TokenList tokens, Stack<int?> precedenceStack)
 		{
-			throw new InstructionExecutionException("I can't subtract the first thing from the second because at least one of them isn't a number.", token);
+			base.PrepareExpression(tokens, precedenceStack);
+		}
+
+		void ThrowException(object o)
+		{
+			string t = o == null ? "null" : o.GetType().Name;
+			throw new InstructionExecutionException("I can't subtract the first thing from the second because at least one of them isn't a number. (Underlying type: " + t + ")", token);
 		}
 	}
 
@@ -488,7 +494,7 @@ namespace Sprocket.Web.CMS.Script
 			{
 				TypeConverter tc = TypeDescriptor.GetConverter(a);
 				if (!tc.CanConvertTo(typeof(decimal)))
-					ThrowException();
+					ThrowException(a);
 				x = (decimal)tc.ConvertTo(a, typeof(decimal));
 			}
 			if (b is decimal)
@@ -497,7 +503,7 @@ namespace Sprocket.Web.CMS.Script
 			{
 				TypeConverter tc = TypeDescriptor.GetConverter(b);
 				if (!tc.CanConvertTo(typeof(decimal)))
-					ThrowException();
+					ThrowException(b);
 				y = (decimal)tc.ConvertTo(b, typeof(decimal));
 			}
 			if (y == 0)
@@ -505,9 +511,10 @@ namespace Sprocket.Web.CMS.Script
 			return x / y;
 		}
 
-		void ThrowException()
+		void ThrowException(object o)
 		{
-			throw new InstructionExecutionException("I can't divide the first thing by the second because at least one of them isn't a number.", token);
+			string t = o == null ? "null" : o.GetType().Name;
+			throw new InstructionExecutionException("I can't subtract the first thing from the second because at least one of them isn't a number. (Underlying type: " + t + ")", token);
 		}
 	}
 

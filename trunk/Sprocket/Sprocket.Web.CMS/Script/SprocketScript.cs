@@ -134,12 +134,18 @@ namespace Sprocket.Web.CMS.Script
 			{
 				return GetErrorHTML(ex.Message, ex.Token, state);
 			}
+			catch (InstructionExecutionParseErrorException ex)
+			{
+				return ex.ToString();
+			}
 		}
 
 		public string ExecuteToResolveExpression(ExecutionState baseState)
 		{
 			if (baseState.BaseExecutionState.ScriptIdentifierStack.Contains(identifier))
 				throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", baseState.SourceToken);
+			if (hasError)
+				throw new InstructionExecutionParseErrorException(Execute());
 
 			MemoryStream stream = new MemoryStream();
 			ExecutionState state = new ExecutionState(stream, baseState);
@@ -168,6 +174,8 @@ namespace Sprocket.Web.CMS.Script
 		{
 			if (state.BaseExecutionState.ScriptIdentifierStack.Contains(identifier))
 				throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", state.SourceToken);
+			if (hasError)
+				throw new InstructionExecutionParseErrorException(Execute());
 
 			state.BaseExecutionState.ScriptIdentifierStack.Push(identifier);
 			state.BaseExecutionState.ExecutingScript.Push(this);

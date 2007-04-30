@@ -65,7 +65,6 @@
     <Compile Include="Script\Enumerations.cs" />
     <Compile Include="Script\Expressions\ArgumentsOf.cs" />
     <Compile Include="Script\Expressions\PropertyOf.cs" />
-    <Compile Include="Script\Expressions\List.cs" />
     <Compile Include="Script\SystemTypeEvaluator.cs" />
     <Compile Include="Script\TokenList.cs" />
     <Compile Include="Script\Token.cs" />
