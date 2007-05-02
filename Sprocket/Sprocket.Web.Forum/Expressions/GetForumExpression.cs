@@ -12,22 +12,18 @@ using Sprocket.Web.CMS.Script;
 
 namespace Sprocket.Web.Forums
 {
-	public class ForumExpression : IArgumentListEvaluatorExpression, IFlexibleSyntaxExpression
+	public class GetForumExpression : IArgumentListEvaluatorExpression, IFlexibleSyntaxExpression
 	{
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
 			if (args.Count != 1)
-				throw new InstructionExecutionException("An argument was expected specifying which \"forum\" to load.", contextToken);
+				throw new InstructionExecutionException("An argument was expected specifying which forum to load.", contextToken);
 			object o = args[0].Expression.Evaluate(state, args[0].Token);
 			if(o == null)
 				throw new InstructionExecutionException("The specified argument equates to null. It needs to equate to the forum's code name.", args[0].Token);
 			Forum forum = ForumHandler.DataLayer.SelectForumByURLToken(o.ToString());
 			if (forum == null)
-			{
 				forum = ForumHandler.DataLayer.SelectForumByCode(o.ToString());
-				if (forum == null)
-					throw new InstructionExecutionException("The specified forum code name does not represent any existing forum in the database.", args[0].Token);
-			}
 			return forum;
 		}
 
@@ -43,9 +39,9 @@ namespace Sprocket.Web.Forums
 			tokens.Advance();
 		}
 	}
-	public class ForumExpressionCreator : IExpressionCreator
+	public class GetForumExpressionCreator : IExpressionCreator
 	{
-		public string Keyword { get { return "forum"; } }
-		public IExpression Create() { return new ForumExpression(); }
+		public string Keyword { get { return "getforum"; } }
+		public IExpression Create() { return new GetForumExpression(); }
 	}
 }
