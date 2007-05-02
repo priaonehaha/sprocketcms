@@ -42,6 +42,7 @@
     <Compile Include="CMS\Attributes.cs" />
     <Compile Include="CMS\Expressions.cs" />
     <Compile Include="CMS\LoginForm.cs" />
+    <Compile Include="CMS\RolesExpression.cs" />
     <Compile Include="CMS\WebSecurity.cs" />
     <Compile Include="CMS\WebSecurity_Ajax.cs" />
     <Compile Include="CMS\WebSecurity_FormProcessing.cs" />

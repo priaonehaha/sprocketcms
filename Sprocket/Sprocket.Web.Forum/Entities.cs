@@ -204,11 +204,16 @@ namespace Sprocket.Web.Forums
 		protected long forumCategoryID = 0;
 		protected string forumCode = null;
 		protected string name = "";
+		protected string description = "";
 		protected string uRLToken = null;
 		protected DateTime dateCreated = DateTime.MinValue;
 		protected int? rank = null;
-		protected short writeAccess = 0;
+		protected short postWriteAccess = 0;
+		protected short replyWriteAccess = 0;
 		protected short readAccess = 0;
+		protected long? writeAccessRoleID = null;
+		protected long? readAccessRoleID = null;
+		protected long? moderatorRoleID = null;
 		protected short markupLevel = 0;
 		protected bool? showSignatures = null;
 		protected bool allowImagesInMessages = false;
@@ -259,6 +264,15 @@ namespace Sprocket.Web.Forums
 		}
 
 		///<summary>
+		///Gets or sets the value for Description
+		///</summary>
+		public string Description
+		{
+			get { return description; }
+			set { description = value; }
+		}
+
+		///<summary>
 		///Gets or sets the value for URLToken
 		///</summary>
 		public string URLToken
@@ -286,12 +300,21 @@ namespace Sprocket.Web.Forums
 		}
 
 		///<summary>
-		///Gets or sets the value for WriteAccess
+		///Gets or sets the value for PostWriteAccess
 		///</summary>
-		public short WriteAccess
+		public short PostWriteAccess
 		{
-			get { return writeAccess; }
-			set { writeAccess = value; }
+			get { return postWriteAccess; }
+			set { postWriteAccess = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ReplyWriteAccess
+		///</summary>
+		public short ReplyWriteAccess
+		{
+			get { return replyWriteAccess; }
+			set { replyWriteAccess = value; }
 		}
 
 		///<summary>
@@ -301,6 +324,33 @@ namespace Sprocket.Web.Forums
 		{
 			get { return readAccess; }
 			set { readAccess = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for WriteAccessRoleID
+		///</summary>
+		public long? WriteAccessRoleID
+		{
+			get { return writeAccessRoleID; }
+			set { writeAccessRoleID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ReadAccessRoleID
+		///</summary>
+		public long? ReadAccessRoleID
+		{
+			get { return readAccessRoleID; }
+			set { readAccessRoleID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ModeratorRoleID
+		///</summary>
+		public long? ModeratorRoleID
+		{
+			get { return moderatorRoleID; }
+			set { moderatorRoleID = value; }
 		}
 
 		///<summary>
@@ -383,17 +433,22 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string uRLToken, DateTime dateCreated, int? rank, short writeAccess, short readAccess, short markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, short topicDisplayOrder, bool locked)
+		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string description, string uRLToken, DateTime dateCreated, int? rank, short postWriteAccess, short replyWriteAccess, short readAccess, long? writeAccessRoleID, long? readAccessRoleID, long? moderatorRoleID, short markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, short topicDisplayOrder, bool locked)
 		{
 			this.forumID = forumID;
 			this.forumCategoryID = forumCategoryID;
 			this.forumCode = forumCode;
 			this.name = name;
+			this.description = description;
 			this.uRLToken = uRLToken;
 			this.dateCreated = dateCreated;
 			this.rank = rank;
-			this.writeAccess = writeAccess;
+			this.postWriteAccess = postWriteAccess;
+			this.replyWriteAccess = replyWriteAccess;
 			this.readAccess = readAccess;
+			this.writeAccessRoleID = writeAccessRoleID;
+			this.readAccessRoleID = readAccessRoleID;
+			this.moderatorRoleID = moderatorRoleID;
 			this.markupLevel = markupLevel;
 			this.showSignatures = showSignatures;
 			this.allowImagesInMessages = allowImagesInMessages;
@@ -410,11 +465,16 @@ namespace Sprocket.Web.Forums
 			if (reader["ForumCategoryID"] != DBNull.Value) forumCategoryID = (long)reader["ForumCategoryID"];
 			if (reader["ForumCode"] != DBNull.Value) forumCode = (string)reader["ForumCode"];
 			if (reader["Name"] != DBNull.Value) name = (string)reader["Name"];
+			if (reader["Description"] != DBNull.Value) description = (string)reader["Description"];
 			if (reader["URLToken"] != DBNull.Value) uRLToken = (string)reader["URLToken"];
 			if (reader["DateCreated"] != DBNull.Value) dateCreated = (DateTime)reader["DateCreated"];
 			if (reader["Rank"] != DBNull.Value) rank = (int?)reader["Rank"];
-			if (reader["WriteAccess"] != DBNull.Value) writeAccess = (short)reader["WriteAccess"];
+			if (reader["PostWriteAccess"] != DBNull.Value) postWriteAccess = (short)reader["PostWriteAccess"];
+			if (reader["ReplyWriteAccess"] != DBNull.Value) replyWriteAccess = (short)reader["ReplyWriteAccess"];
 			if (reader["ReadAccess"] != DBNull.Value) readAccess = (short)reader["ReadAccess"];
+			if (reader["WriteAccessRoleID"] != DBNull.Value) writeAccessRoleID = (long?)reader["WriteAccessRoleID"];
+			if (reader["ReadAccessRoleID"] != DBNull.Value) readAccessRoleID = (long?)reader["ReadAccessRoleID"];
+			if (reader["ModeratorRoleID"] != DBNull.Value) moderatorRoleID = (long?)reader["ModeratorRoleID"];
 			if (reader["MarkupLevel"] != DBNull.Value) markupLevel = (short)reader["MarkupLevel"];
 			if (reader["ShowSignatures"] != DBNull.Value) showSignatures = (bool?)reader["ShowSignatures"];
 			if (reader["AllowImagesInMessages"] != DBNull.Value) allowImagesInMessages = (bool)reader["AllowImagesInMessages"];
@@ -435,11 +495,16 @@ namespace Sprocket.Web.Forums
 			copy.forumCategoryID = forumCategoryID;
 			copy.forumCode = forumCode;
 			copy.name = name;
+			copy.description = description;
 			copy.uRLToken = uRLToken;
 			copy.dateCreated = dateCreated;
 			copy.rank = rank;
-			copy.writeAccess = writeAccess;
+			copy.postWriteAccess = postWriteAccess;
+			copy.replyWriteAccess = replyWriteAccess;
 			copy.readAccess = readAccess;
+			copy.writeAccessRoleID = writeAccessRoleID;
+			copy.readAccessRoleID = readAccessRoleID;
+			copy.moderatorRoleID = moderatorRoleID;
 			copy.markupLevel = markupLevel;
 			copy.showSignatures = showSignatures;
 			copy.allowImagesInMessages = allowImagesInMessages;
@@ -468,15 +533,25 @@ namespace Sprocket.Web.Forums
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "Name", name);
 			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "Description", description);
+			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "URLToken", uRLToken);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "DateCreated", dateCreated);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "Rank", rank);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "WriteAccess", writeAccess);
+			JSON.EncodeNameValuePair(writer, "PostWriteAccess", postWriteAccess);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ReplyWriteAccess", replyWriteAccess);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "ReadAccess", readAccess);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "WriteAccessRoleID", writeAccessRoleID);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ReadAccessRoleID", readAccessRoleID);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ModeratorRoleID", moderatorRoleID);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "MarkupLevel", markupLevel);
 			writer.Write(",");
@@ -504,11 +579,16 @@ namespace Sprocket.Web.Forums
 			forumCategoryID = (long)values["ForumCategoryID"];
 			forumCode = (string)values["ForumCode"];
 			name = (string)values["Name"];
+			description = (string)values["Description"];
 			uRLToken = (string)values["URLToken"];
 			dateCreated = (DateTime)values["DateCreated"];
 			rank = (int?)values["Rank"];
-			writeAccess = (short)values["WriteAccess"];
+			postWriteAccess = (short)values["PostWriteAccess"];
+			replyWriteAccess = (short)values["ReplyWriteAccess"];
 			readAccess = (short)values["ReadAccess"];
+			writeAccessRoleID = (long?)values["WriteAccessRoleID"];
+			readAccessRoleID = (long?)values["ReadAccessRoleID"];
+			moderatorRoleID = (long?)values["ModeratorRoleID"];
 			markupLevel = (short)values["MarkupLevel"];
 			showSignatures = (bool?)values["ShowSignatures"];
 			allowImagesInMessages = (bool)values["AllowImagesInMessages"];
@@ -523,17 +603,22 @@ namespace Sprocket.Web.Forums
 		#endregion
 
 		#region Custom
-		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string uRLToken, DateTime dateCreated, int? rank, WriteAccessType writeAccess, ReadAccessType readAccess, MarkupType markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, DisplayOrderType topicDisplayOrder, bool locked)
+		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string description, string uRLToken, DateTime dateCreated, int? rank, AccessType postWriteAccess, AccessType replyWriteAccess, AccessType readAccess, long? writeAccessRoleID, long? readAccessRoleID, long? moderatorRoleID, MarkupType markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, DisplayOrderType topicDisplayOrder, bool locked)
 		{
 			this.forumID = forumID;
 			this.forumCategoryID = forumCategoryID;
 			this.forumCode = forumCode;
 			this.name = name;
+			this.description = description;
 			this.uRLToken = uRLToken;
 			this.dateCreated = dateCreated;
 			this.rank = rank;
-			this.writeAccess = (short)writeAccess;
+			this.postWriteAccess = (short)postWriteAccess;
+			this.replyWriteAccess = (short)replyWriteAccess;
 			this.readAccess = (short)readAccess;
+			this.writeAccessRoleID = writeAccessRoleID;
+			this.readAccessRoleID = readAccessRoleID;
+			this.moderatorRoleID = moderatorRoleID;
 			this.markupLevel = (short)markupLevel;
 			this.showSignatures = showSignatures;
 			this.allowImagesInMessages = allowImagesInMessages;
@@ -544,27 +629,22 @@ namespace Sprocket.Web.Forums
 			this.locked = locked;
 		}
 
-		public enum WriteAccessType
+		public enum AccessType
 		{
-			AdminOnly = 0,
-			SpecifiedMembersOnly = 1,
-			MembersOnly = 2,
-			AllowAnonymous = 3
-		}
-
-		public enum ReadAccessType
-		{
-			AdminOnly = 0,
-			OnlyUsersWhoCanPost = 1,
-			AllowAnonymous = 2
+			Administrators = 0,
+			AllMembers = 1,
+			ActivatedMembers = 2,
+			RoleMembers = 3,
+			AllowAnonymous = 4
 		}
 
 		public enum MarkupType
 		{
 			None = 0,
 			BBCode = 1,
-			LimitedHTML = 2,
-			ExtendedHTML = 3
+			Textile = 2,
+			LimitedHTML = 3,
+			ExtendedHTML = 4
 		}
 
 		public enum DisplayOrderType
@@ -586,16 +666,22 @@ namespace Sprocket.Web.Forums
 			set { topicDisplayOrder = (short)value; }
 		}
 
-		public ReadAccessType Read
+		public AccessType Read
 		{
-			get { return (ReadAccessType)readAccess; }
+			get { return (AccessType)readAccess; }
 			set { readAccess = (short)value; }
 		}
 
-		public WriteAccessType Write
+		public AccessType WritePosts
 		{
-			get { return (WriteAccessType)readAccess; }
-			set { writeAccess = (short)value; }
+			get { return (AccessType)postWriteAccess; }
+			set { postWriteAccess = (short)value; }
+		}
+
+		public AccessType WriteReplies
+		{
+			get { return (AccessType)replyWriteAccess; }
+			set { replyWriteAccess = (short)value; }
 		}
 		#endregion
 
@@ -608,10 +694,12 @@ namespace Sprocket.Web.Forums
 				case "forumcategoryid":
 				case "forumcode":
 				case "name":
+				case "description":
 				case "urltoken":
 				case "datecreated":
 				case "rank":
-				case "writeaccess":
+				case "postwriteaccess":
+				case "replywriteaccess":
 				case "readaccess":
 				case "markuplevel":
 				case "showsignatures":
@@ -620,6 +708,9 @@ namespace Sprocket.Web.Forums
 				case "requiremoderation":
 				case "allowvoting":
 				case "topicdisplayorder":
+				case "writeaccessroleid":
+				case "readaccessroleid":
+				case "moderatorroleid":
 				case "locked":
 					return true;
 				default:
@@ -635,10 +726,12 @@ namespace Sprocket.Web.Forums
 				case "forumcategoryid": return ForumCategoryID;
 				case "forumcode": return ForumCode;
 				case "name": return Name;
+				case "description": return Description;
 				case "urltoken": return URLToken;
 				case "datecreated": return DateCreated;
 				case "rank": return Rank;
-				case "writeaccess": return WriteAccess;
+				case "postwriteaccess": return PostWriteAccess;
+				case "replywriteaccess": return ReplyWriteAccess;
 				case "readaccess": return ReadAccess;
 				case "markuplevel": return MarkupLevel;
 				case "showsignatures": return ShowSignatures;
@@ -648,6 +741,9 @@ namespace Sprocket.Web.Forums
 				case "allowvoting": return AllowVoting;
 				case "topicdisplayorder": return TopicDisplayOrder;
 				case "locked": return Locked;
+				case "writeaccessroleid": return WriteAccessRoleID;
+				case "readaccessroleid": return ReadAccessRoleID;
+				case "moderatorroleid": return ModeratorRoleID;
 				default:
 					throw new InstructionExecutionException("\"" + prop.Name + "\" is not a property of the forum object.", prop.PropertyToken);
 			}
@@ -886,7 +982,9 @@ namespace Sprocket.Web.Forums
 		protected long? authorUserID = null;
 		protected string authorName = null;
 		protected DateTime dateCreated = DateTime.MinValue;
-		protected string body = "";
+		protected short markupLevel = 0;
+		protected string bodySource = "";
+		protected string bodyOutput = "";
 		protected short moderationState = 0;
 		protected short markupType = 0;
 
@@ -940,12 +1038,30 @@ namespace Sprocket.Web.Forums
 		}
 
 		///<summary>
-		///Gets or sets the value for Body
+		///Gets or sets the value for MarkupLevel
 		///</summary>
-		public string Body
+		public short MarkupLevel
 		{
-			get { return body; }
-			set { body = value; }
+			get { return markupLevel; }
+			set { markupLevel = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for BodySource
+		///</summary>
+		public string BodySource
+		{
+			get { return bodySource; }
+			set { bodySource = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for BodyOutput
+		///</summary>
+		public string BodyOutput
+		{
+			get { return bodyOutput; }
+			set { bodyOutput = value; }
 		}
 
 		///<summary>
@@ -974,14 +1090,16 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, string body, short moderationState, short markupType)
+		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, short markupLevel, string bodySource, string bodyOutput, short moderationState, short markupType)
 		{
 			this.forumTopicMessageID = forumTopicMessageID;
 			this.forumTopicID = forumTopicID;
 			this.authorUserID = authorUserID;
 			this.authorName = authorName;
 			this.dateCreated = dateCreated;
-			this.body = body;
+			this.markupLevel = markupLevel;
+			this.bodySource = bodySource;
+			this.bodyOutput = bodyOutput;
 			this.moderationState = moderationState;
 			this.markupType = markupType;
 		}
@@ -993,7 +1111,9 @@ namespace Sprocket.Web.Forums
 			if (reader["AuthorUserID"] != DBNull.Value) authorUserID = (long?)reader["AuthorUserID"];
 			if (reader["AuthorName"] != DBNull.Value) authorName = (string)reader["AuthorName"];
 			if (reader["DateCreated"] != DBNull.Value) dateCreated = (DateTime)reader["DateCreated"];
-			if (reader["Body"] != DBNull.Value) body = (string)reader["Body"];
+			if (reader["MarkupLevel"] != DBNull.Value) markupLevel = (short)reader["MarkupLevel"];
+			if (reader["BodySource"] != DBNull.Value) bodySource = (string)reader["BodySource"];
+			if (reader["BodyOutput"] != DBNull.Value) bodyOutput = (string)reader["BodyOutput"];
 			if (reader["ModerationState"] != DBNull.Value) moderationState = (short)reader["ModerationState"];
 			if (reader["MarkupType"] != DBNull.Value) markupType = (short)reader["MarkupType"];
 		}
@@ -1009,7 +1129,9 @@ namespace Sprocket.Web.Forums
 			copy.authorUserID = authorUserID;
 			copy.authorName = authorName;
 			copy.dateCreated = dateCreated;
-			copy.body = body;
+			copy.markupLevel = markupLevel;
+			copy.bodySource = bodySource;
+			copy.bodyOutput = bodyOutput;
 			copy.moderationState = moderationState;
 			copy.markupType = markupType;
 			return copy;
@@ -1034,7 +1156,11 @@ namespace Sprocket.Web.Forums
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "DateCreated", dateCreated);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "Body", body);
+			JSON.EncodeNameValuePair(writer, "MarkupLevel", markupLevel);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "BodySource", bodySource);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "BodyOutput", bodyOutput);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "ModerationState", moderationState);
 			writer.Write(",");
@@ -1051,7 +1177,9 @@ namespace Sprocket.Web.Forums
 			authorUserID = (long?)values["AuthorUserID"];
 			authorName = (string)values["AuthorName"];
 			dateCreated = (DateTime)values["DateCreated"];
-			body = (string)values["Body"];
+			markupLevel = (short)values["MarkupLevel"];
+			bodySource = (string)values["BodySource"];
+			bodyOutput = (string)values["BodyOutput"];
 			moderationState = (short)values["ModerationState"];
 			markupType = (short)values["MarkupType"];
 		}

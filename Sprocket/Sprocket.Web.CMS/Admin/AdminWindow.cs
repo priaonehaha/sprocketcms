@@ -12,7 +12,7 @@ namespace Sprocket.Web.CMS.Admin
 	[ModuleTitle("AdminWindow")]
 	[ModuleDescription("Places a floating collapsible admin window on every screen if logged in with correct permissions")]
 	[ModuleDependency(typeof(WebEvents))]
-	public class AdminWindow : ISprocketModule
+	public class AdminWindow //: ISprocketModule
 	{
 		public static AdminWindow Instance
 		{

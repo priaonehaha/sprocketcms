@@ -132,6 +132,7 @@ namespace Sprocket.Web.CMS.Security
 					if (form.RecordID == null)
 					{
 						role = new Role();
+						role.RoleID = DatabaseManager.GetUniqueID();
 						role.RoleCode = role.RoleID.ToString(); // role codes are only used by system roles
 						role.ClientSpaceID = SecurityProvider.ClientSpaceID;
 					}
