@@ -38,10 +38,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Admin\Admin.cs" />
+    <Compile Include="Admin\Admin.new.cs" />
     <Compile Include="Admin\AdminInterfaceSections.cs" />
     <Compile Include="Admin\AdminWindow.cs" />
-    <Compile Include="Admin\Admin.old.cs" />
+    <Compile Include="Admin\Admin.cs" />
     <Compile Include="Admin\Interfaces.cs" />
     <Compile Include="Content\ContentManager.cs" />
     <Compile Include="Content\PagesAdminMenuItem.cs" />

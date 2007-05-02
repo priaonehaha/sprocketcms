@@ -6,11 +6,16 @@ CREATE PROCEDURE dbo.Forum_Store
 	@ForumCategoryID bigint,
 	@ForumCode nvarchar(50) = null,
 	@Name nvarchar(250),
+	@Description nvarchar(max),
 	@URLToken nvarchar(50) = null,
 	@DateCreated datetime,
 	@Rank int = null,
-	@WriteAccess smallint,
+	@PostWriteAccess smallint,
+	@ReplyWriteAccess smallint,
 	@ReadAccess smallint,
+	@WriteAccessRoleID bigint = null,
+	@ReadAccessRoleID bigint = null,
+	@ModeratorRoleID bigint = null,
 	@MarkupLevel smallint,
 	@ShowSignatures bit = null,
 	@AllowImagesInMessages bit,
@@ -26,9 +31,9 @@ BEGIN
 		IF @ForumID = 0 OR @ForumID IS NULL
 			EXEC GetUniqueID @ForumID OUTPUT
 		INSERT INTO Forum
-			(ForumID, ForumCategoryID, ForumCode, Name, URLToken, DateCreated, Rank, WriteAccess, ReadAccess, MarkupLevel, ShowSignatures, AllowImagesInMessages, AllowImagesInSignatures, RequireModeration, AllowVoting, TopicDisplayOrder, Locked)
+			(ForumID, ForumCategoryID, ForumCode, Name, Description, URLToken, DateCreated, Rank, PostWriteAccess, ReplyWriteAccess, ReadAccess, WriteAccessRoleID, ReadAccessRoleID, ModeratorRoleID, MarkupLevel, ShowSignatures, AllowImagesInMessages, AllowImagesInSignatures, RequireModeration, AllowVoting, TopicDisplayOrder, Locked)
 		VALUES
-			(@ForumID, @ForumCategoryID, @ForumCode, @Name, @URLToken, @DateCreated, @Rank, @WriteAccess, @ReadAccess, @MarkupLevel, @ShowSignatures, @AllowImagesInMessages, @AllowImagesInSignatures, @RequireModeration, @AllowVoting, @TopicDisplayOrder, @Locked)
+			(@ForumID, @ForumCategoryID, @ForumCode, @Name, @Description, @URLToken, @DateCreated, @Rank, @PostWriteAccess, @ReplyWriteAccess, @ReadAccess, @WriteAccessRoleID, @ReadAccessRoleID, @ModeratorRoleID, @MarkupLevel, @ShowSignatures, @AllowImagesInMessages, @AllowImagesInSignatures, @RequireModeration, @AllowVoting, @TopicDisplayOrder, @Locked)
 	END
 	ELSE
 	BEGIN
@@ -36,11 +41,16 @@ BEGIN
 			ForumCategoryID = @ForumCategoryID,
 			ForumCode = @ForumCode,
 			Name = @Name,
+			Description = @Description,
 			URLToken = @URLToken,
 			DateCreated = @DateCreated,
 			Rank = @Rank,
-			WriteAccess = @WriteAccess,
+			PostWriteAccess = @PostWriteAccess,
+			ReplyWriteAccess = @ReplyWriteAccess,
 			ReadAccess = @ReadAccess,
+			WriteAccessRoleID = @WriteAccessRoleID,
+			ReadAccessRoleID = @ReadAccessRoleID,
+			ModeratorRoleID = @ModeratorRoleID,
 			MarkupLevel = @MarkupLevel,
 			ShowSignatures = @ShowSignatures,
 			AllowImagesInMessages = @AllowImagesInMessages,
@@ -153,11 +163,11 @@ CREATE PROCEDURE dbo.ForumTopic_Store
 	@AuthorUserID bigint = null,
 	@AuthorName nvarchar(100) = null,
 	@Subject nvarchar(500),
+	@URLToken nvarchar(200) = null,
 	@DateCreated datetime,
 	@Sticky bit,
 	@ModerationState smallint,
-	@Locked bit,
-	@URLToken nvarchar(200) = null
+	@Locked bit
 AS
 BEGIN
 	IF NOT EXISTS (SELECT ForumTopicID FROM ForumTopic WHERE ForumTopicID = @ForumTopicID)
@@ -165,9 +175,9 @@ BEGIN
 		IF @ForumTopicID = 0 OR @ForumTopicID IS NULL
 			EXEC GetUniqueID @ForumTopicID OUTPUT
 		INSERT INTO ForumTopic
-			(ForumTopicID, ForumID, AuthorUserID, AuthorName, Subject, DateCreated, Sticky, ModerationState, Locked, URLToken)
+			(ForumTopicID, ForumID, AuthorUserID, AuthorName, Subject, URLToken, DateCreated, Sticky, ModerationState, Locked)
 		VALUES
-			(@ForumTopicID, @ForumID, @AuthorUserID, @AuthorName, @Subject, @DateCreated, @Sticky, @ModerationState, @Locked, @URLToken)
+			(@ForumTopicID, @ForumID, @AuthorUserID, @AuthorName, @Subject, @URLToken, @DateCreated, @Sticky, @ModerationState, @Locked)
 	END
 	ELSE
 	BEGIN
@@ -176,11 +186,11 @@ BEGIN
 			AuthorUserID = @AuthorUserID,
 			AuthorName = @AuthorName,
 			Subject = @Subject,
+			URLToken = @URLToken,
 			DateCreated = @DateCreated,
 			Sticky = @Sticky,
 			ModerationState = @ModerationState,
-			Locked = @Locked,
-			URLToken = @URLToken
+			Locked = @Locked
 		WHERE ForumTopicID = @ForumTopicID
 	END
 END
@@ -221,7 +231,9 @@ CREATE PROCEDURE dbo.ForumTopicMessage_Store
 	@AuthorUserID bigint = null,
 	@AuthorName nvarchar(100) = null,
 	@DateCreated datetime,
-	@Body nvarchar(max),
+	@MarkupLevel smallint,
+	@BodySource nvarchar(max),
+	@BodyOutput nvarchar(max),
 	@ModerationState smallint,
 	@MarkupType smallint
 AS
@@ -231,9 +243,9 @@ BEGIN
 		IF @ForumTopicMessageID = 0 OR @ForumTopicMessageID IS NULL
 			EXEC GetUniqueID @ForumTopicMessageID OUTPUT
 		INSERT INTO ForumTopicMessage
-			(ForumTopicMessageID, ForumTopicID, AuthorUserID, AuthorName, DateCreated, Body, ModerationState, MarkupType)
+			(ForumTopicMessageID, ForumTopicID, AuthorUserID, AuthorName, DateCreated, MarkupLevel, BodySource, BodyOutput, ModerationState, MarkupType)
 		VALUES
-			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @AuthorName, @DateCreated, @Body, @ModerationState, @MarkupType)
+			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @AuthorName, @DateCreated, @MarkupLevel, @BodySource, @BodyOutput, @ModerationState, @MarkupType)
 	END
 	ELSE
 	BEGIN
@@ -242,7 +254,9 @@ BEGIN
 			AuthorUserID = @AuthorUserID,
 			AuthorName = @AuthorName,
 			DateCreated = @DateCreated,
-			Body = @Body,
+			MarkupLevel = @MarkupLevel,
+			BodySource = @BodySource,
+			BodyOutput = @BodyOutput,
 			ModerationState = @ModerationState,
 			MarkupType = @MarkupType
 		WHERE ForumTopicMessageID = @ForumTopicMessageID

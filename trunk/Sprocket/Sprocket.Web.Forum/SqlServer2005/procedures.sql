@@ -61,3 +61,36 @@ BEGIN
 	 WHERE ForumCategoryID = @ForumCategoryID
   ORDER BY Rank
 END
+go
+
+IF OBJECT_ID(N'dbo.ForumCategory_ListForumsByCategoryCode') IS NOT NULL
+	DROP PROCEDURE ForumCategory_ListForumsByCategoryCode
+go
+CREATE PROCEDURE dbo.ForumCategory_ListForumsByCategoryCode
+	@CategoryCode nvarchar(50)
+AS
+BEGIN
+	DECLARE @ID bigint
+	SELECT @ID = ForumCategoryID
+	  FROM ForumCategory
+	 WHERE CategoryCode = @CategoryCode
+	 
+	SELECT *
+	  FROM Forum
+	 WHERE ForumCategoryID = @ID
+  ORDER BY Rank
+END
+go
+
+IF OBJECT_ID(N'dbo.ForumCategory_List') IS NOT NULL
+	DROP PROCEDURE ForumCategory_List
+go
+CREATE PROCEDURE dbo.ForumCategory_List
+	@InternalUseOnly bit = NULL
+AS
+BEGIN
+	SELECT *
+	  FROM ForumCategory
+	 WHERE @InternalUseOnly IS NULL OR InternalUseOnly = @InternalUseOnly
+  ORDER BY Rank
+END

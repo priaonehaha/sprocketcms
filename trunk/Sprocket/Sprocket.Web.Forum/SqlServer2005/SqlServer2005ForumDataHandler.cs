@@ -78,11 +78,16 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					cmd.Parameters.Add(NewSqlParameter("@ForumCategoryID", forum.ForumCategoryID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@ForumCode", forum.ForumCode, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@Name", forum.Name, SqlDbType.NVarChar));
+					cmd.Parameters.Add(NewSqlParameter("@Description", forum.Description, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@URLToken", forum.URLToken, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@DateCreated", forum.DateCreated, SqlDbType.DateTime));
 					cmd.Parameters.Add(NewSqlParameter("@Rank", forum.Rank, SqlDbType.Int));
-					cmd.Parameters.Add(NewSqlParameter("@WriteAccess", forum.WriteAccess, SqlDbType.SmallInt));
+					cmd.Parameters.Add(NewSqlParameter("@PostWriteAccess", forum.PostWriteAccess, SqlDbType.SmallInt));
+					cmd.Parameters.Add(NewSqlParameter("@ReplyWriteAccess", forum.ReplyWriteAccess, SqlDbType.SmallInt));
 					cmd.Parameters.Add(NewSqlParameter("@ReadAccess", forum.ReadAccess, SqlDbType.SmallInt));
+					cmd.Parameters.Add(NewSqlParameter("@WriteAccessRoleID", forum.WriteAccessRoleID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@ReadAccessRoleID", forum.ReadAccessRoleID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@ModeratorRoleID", forum.ModeratorRoleID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@MarkupLevel", forum.MarkupLevel, SqlDbType.SmallInt));
 					cmd.Parameters.Add(NewSqlParameter("@ShowSignatures", forum.ShowSignatures, SqlDbType.Bit));
 					cmd.Parameters.Add(NewSqlParameter("@AllowImagesInMessages", forum.AllowImagesInMessages, SqlDbType.Bit));
@@ -381,7 +386,9 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					cmd.Parameters.Add(NewSqlParameter("@AuthorUserID", forumTopicMessage.AuthorUserID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@AuthorName", forumTopicMessage.AuthorName, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@DateCreated", forumTopicMessage.DateCreated, SqlDbType.DateTime));
-					cmd.Parameters.Add(NewSqlParameter("@Body", forumTopicMessage.Body, SqlDbType.NVarChar));
+					cmd.Parameters.Add(NewSqlParameter("@MarkupLevel", forumTopicMessage.MarkupLevel, SqlDbType.SmallInt));
+					cmd.Parameters.Add(NewSqlParameter("@BodySource", forumTopicMessage.BodySource, SqlDbType.NVarChar));
+					cmd.Parameters.Add(NewSqlParameter("@BodyOutput", forumTopicMessage.BodyOutput, SqlDbType.NVarChar));
 					cmd.Parameters.Add(NewSqlParameter("@ModerationState", forumTopicMessage.ModerationState, SqlDbType.SmallInt));
 					cmd.Parameters.Add(NewSqlParameter("@MarkupType", forumTopicMessage.MarkupType, SqlDbType.SmallInt));
 					cmd.ExecuteNonQuery();

@@ -33,10 +33,15 @@
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
+    <Reference Include="Textile, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binary Dependencies\Textile.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities.cs" />
-    <Compile Include="Expressions\ForumExpression.cs" />
+    <Compile Include="Expressions\GetForumCategoryExpression.cs" />
+    <Compile Include="Expressions\GetForumExpression.cs" />
     <Compile Include="ForumHandler.cs" />
     <Compile Include="IDataHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

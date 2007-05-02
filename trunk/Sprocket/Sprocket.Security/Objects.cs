@@ -10,6 +10,7 @@ using Sprocket;
 using Sprocket.Data;
 using Sprocket.Mail;
 using Sprocket.Utility;
+using Sprocket.Web.CMS.Script;
 
 namespace Sprocket.Security
 {
@@ -278,7 +279,7 @@ namespace Sprocket.Security
 		#endregion
 	}
 
-	public class Role : IEntity
+	public class Role : IEntity, IPropertyEvaluatorExpression
 	{
 		private long roleID = 0, clientSpaceID = 0;
 		private string roleCode = "", name = "";
@@ -357,6 +358,48 @@ namespace Sprocket.Security
 		public static Role Select(long clientSpaceID, string roleCode)
 		{
 			return SecurityProvider.Instance.DataLayer.SelectRole(clientSpaceID, roleCode);
+		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "roleid":
+				case "rolecode":
+				case "name":
+				case "enabled":
+				case "hidden":
+				case "locked":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		{
+			switch (prop.Name)
+			{
+				case "roleid":
+					return RoleID;
+				case "rolecode":
+					return RoleCode;
+				case "name":
+					return name;
+				case "enabled":
+					return enabled;
+				case "hidden":
+					return hidden;
+				case "locked":
+					return locked;
+				default:
+					return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return name;
 		}
 	}
 
