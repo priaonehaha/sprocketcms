@@ -25,10 +25,10 @@ namespace Sprocket.Web.CMS.Script
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			// ensure that the variable has been set to some value first
-			if (!state.Variables.ContainsKey(variableToken.Value))
+			if(!state.HasVariable(variableToken.Value))
 				throw new InstructionExecutionException("I can't evaluate the word \"" + variableToken.Value + "\". Either it doesn't mean anything or you forgot to assign it a value.", variableToken);
 
-			return state.Variables[variableToken.Value];
+			return state.GetVariable(variableToken.Value);
 		}
 
 		public bool IsValidPropertyName(string propertyName)
@@ -38,7 +38,7 @@ namespace Sprocket.Web.CMS.Script
 
 		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
 		{
-			object o = state.Variables.ContainsKey(variableToken.Value) ? state.Variables[variableToken.Value] : null;
+			object o = state.HasVariable(variableToken.Value) ? state.GetVariable(variableToken.Value) : null;
 			if (o is IPropertyEvaluatorExpression)
 				return prop.EvaluateFor((IExpression)o, state);
 			else
@@ -47,7 +47,7 @@ namespace Sprocket.Web.CMS.Script
 
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
-			object o = state.Variables.ContainsKey(variableToken.Value) ? state.Variables[variableToken.Value] : null;
+			object o = state.HasVariable(variableToken.Value) ? state.GetVariable(variableToken.Value) : null;
 			if (o is IArgumentListEvaluatorExpression)
 				return ((IArgumentListEvaluatorExpression)o).Evaluate(contextToken, args, state);
 			else

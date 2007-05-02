@@ -119,7 +119,9 @@ namespace Sprocket.Web.CMS.Script
 		{
 			TokenReaderMethod method;
 			char ch = source[index];
-			if (char.IsDigit(ch) || ch == '.')
+			if (ch == '~')
+				method = ReadComment;
+			else if (char.IsDigit(ch) || ch == '.')
 				method = ReadNumber;
 			else if (char.IsLetter(ch) || ch == '_')
 				method = ReadWord;
@@ -138,6 +140,15 @@ namespace Sprocket.Web.CMS.Script
 			else
 				throw new TokeniserException("Unexpected character found", index, source);
 			return method(ref source, ref index);
+		}
+
+		private static Token ReadComment(ref string source, ref int index)
+		{
+			index++;
+			while (source[index++] != '~')
+				if(index == source.Length)
+					throw new TokeniserException("Script block ended before comment block ended", index, source);
+			return null;
 		}
 
 		private static Token ReadNumber(ref string source, ref int index)

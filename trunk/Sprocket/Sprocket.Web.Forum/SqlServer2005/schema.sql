@@ -54,10 +54,11 @@ BEGIN
 		AuthorName nvarchar(100) NULL, -- used if AuthorUserID is null
 
 		Subject nvarchar(500) NOT NULL,
+		URLToken nvarchar(200) NULL,
 		DateCreated datetime NOT NULL,
 		Sticky bit NOT NULL,
 		ModerationState smallint NOT NULL, -- 0: unreviewed, 1: approved, 2: flagged for review, 3: spam
-		Locked bit NOT NULL
+		Locked bit NOT NULL -- if locked and sorting by vote weight, the topic will be sorted to the end of the list
 	)
 	CREATE INDEX IX_ForumTopic ON ForumTopic(DateCreated,AuthorUserID,ForumID)
 END

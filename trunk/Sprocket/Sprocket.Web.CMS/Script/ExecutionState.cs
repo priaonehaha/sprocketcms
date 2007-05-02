@@ -120,5 +120,33 @@ namespace Sprocket.Web.CMS.Script
 		{
 			get { return variables; }
 		}
+
+		public bool HasVariable(string variableName)
+		{
+			ExecutionState state = this;
+			while (state != null)
+			{
+				if (state.Variables.ContainsKey(variableName))
+					return true;
+				if (object.ReferenceEquals(state.baseExecutionState, state))
+					return false;
+				state = state.baseExecutionState;
+			}
+			return false;
+		}
+
+		public object GetVariable(string variableName)
+		{
+			ExecutionState state = this;
+			while (state != null)
+			{
+				if (state.Variables.ContainsKey(variableName))
+					return state.Variables[variableName];
+				if (object.ReferenceEquals(state.baseExecutionState, state))
+					return null;
+				state = state.baseExecutionState;
+			}
+			return null;
+		}
 	}
 }

@@ -8,38 +8,71 @@ namespace Sprocket.Web.CMS.Script
 {
 	public class IfInstruction : IInstruction
 	{
-		private InstructionList whenTrue = null, whenFalse = null;
-		private IExpression expr = null;
-		private Token token;
+		private List<ExecutionPath> executionPaths = new List<ExecutionPath>();
 		public void Build(TokenList tokens)
 		{
-			token = tokens.Current;
+			Token token = tokens.Current;
 			// advance past the instruction token/symbol
 			tokens.Advance();
 
 			// build condition expression
-			expr = TokenParser.BuildExpression(tokens);
+			IExpression expr = TokenParser.BuildExpression(tokens);
 
 			// build the instruction list that will execute if the expression evaluates to true
-			whenTrue = new InstructionList();
-			whenTrue.AcceptELSEInPlaceOfEND = true;
-			whenTrue.Build(tokens);
+			InstructionList list = new InstructionList();
+			list.AcceptELSEInPlaceOfEND = true;
+			list.Build(tokens);
+			executionPaths.Add(new ExecutionPath(expr, list, token));
+
+			// if any elseif statements were used, build the execution paths for each one
+			while (list.Terminator == InstructionList.TerminatorType.ElseIf)
+			{
+				token = tokens.Previous;
+				expr = TokenParser.BuildExpression(tokens);
+				list = new InstructionList();
+				list.AcceptELSEInPlaceOfEND = true;
+				list.Build(tokens);
+				executionPaths.Add(new ExecutionPath(expr, list, token));
+			}
 
 			// if an else statement was used, build the instruction list that will execute if the expression evaluates to false
-			if (whenTrue.Terminator == InstructionList.TerminatorType.Else)
+			if (list.Terminator == InstructionList.TerminatorType.Else)
 			{
-				whenFalse = new InstructionList();
-				whenFalse.Build(tokens);
+				token = tokens.Previous;
+				list = new InstructionList();
+				list.AcceptELSEInPlaceOfEND = true;
+				list.Build(tokens);
+				executionPaths.Add(new ExecutionPath(null, list, token));
 			}
 		}
 
 		public void Execute(ExecutionState state)
 		{
-			object val = expr.Evaluate(state, token);
-			if (BooleanExpression.True.Equals(val))
-				whenTrue.Execute(state);
-			else if (whenFalse != null)
-				whenFalse.Execute(state);
+			foreach (ExecutionPath ep in executionPaths)
+			{
+				object o = true;
+				if (ep.Condition != null)
+					o = ep.Condition.Evaluate(state, ep.Token);
+				if (BooleanExpression.True.Equals(o))
+				{
+					ep.Instructions.Execute(state);
+					return;
+				}
+			}
+		}
+
+		private class ExecutionPath
+		{
+			public IExpression Condition;
+			public InstructionList Instructions;
+			public Token Token;
+
+			public ExecutionPath(IExpression condition, InstructionList instructions, Token token)
+			{
+				Condition = condition;
+				Instructions = instructions;
+				Token = token;
+			}
 		}
 	}
 
