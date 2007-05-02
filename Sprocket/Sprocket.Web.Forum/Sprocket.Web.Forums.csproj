@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities.cs" />
+    <Compile Include="Expressions\ForumExpression.cs" />
     <Compile Include="ForumHandler.cs" />
     <Compile Include="IDataHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -63,9 +64,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SqlServer2005\procedures.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Expressions\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

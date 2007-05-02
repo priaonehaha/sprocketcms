@@ -9,6 +9,8 @@ namespace Sprocket.Web.CMS.Script
 	{
 		public static object EvaluateProperty(object o, string propertyName, Token propertyNameToken)
 		{
+			if (o == null)
+				throw new InstructionExecutionException("The value here is null, which can't have a property.", propertyNameToken);
 			if (o is string)
 			{
 				switch (propertyName)

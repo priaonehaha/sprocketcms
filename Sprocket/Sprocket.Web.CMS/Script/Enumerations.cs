@@ -42,6 +42,10 @@ namespace Sprocket.Web.CMS.Script
 		/// <summary>
 		/// A set of characters that can be read as a number. e.g. 0.5, 1, .8, 1.0, 999.987
 		/// </summary>
-		Number
+		Number,
+		/// <summary>
+		/// A comment block
+		/// </summary>
+		Comment
 	}
 }

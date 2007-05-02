@@ -57,13 +57,15 @@ namespace Sprocket.Web.CMS.Script
 				// if we've reached a token indicating the end of this instruction block, advance past the ending token and return
 				if ((!isLoopBlock && Token.IsEnd(tokens.Current)) ||
 					(isLoopBlock && Token.IsLoop(tokens.Current)) ||
-					(acceptELSEInPlaceOfEND && Token.IsElse(tokens.Current)))
+					(acceptELSEInPlaceOfEND && (Token.IsElse(tokens.Current) || Token.IsElseIf(tokens.Current))))
 				{
 					// record the type of terminating token then advance past it
-					if (Token.IsElse(tokens.Current))
-						terminator = TerminatorType.Else;
-					else if (Token.IsLoop(tokens.Current))
-						terminator = TerminatorType.Loop;
+					switch (tokens.Current.Value)
+					{
+						case "else": terminator = TerminatorType.Else; break;
+						case "elseif": terminator = TerminatorType.ElseIf; break;
+						case "loop": terminator = TerminatorType.Loop; break;
+					}
 					tokens.Advance();
 					return;
 				}
@@ -90,6 +92,7 @@ namespace Sprocket.Web.CMS.Script
 		{
 			End,
 			Else,
+			ElseIf,
 			Loop
 		}
 

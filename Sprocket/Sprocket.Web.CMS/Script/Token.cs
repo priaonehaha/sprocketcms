@@ -60,6 +60,11 @@ namespace Sprocket.Web.CMS.Script
 			return token.value == "else";
 		}
 
+		public static bool IsElseIf(Token token)
+		{
+			return token.value == "elseif";
+		}
+
 		public static bool IsLoop(Token token)
 		{
 			return token.value == "loop";

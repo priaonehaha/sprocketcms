@@ -120,9 +120,8 @@ namespace Sprocket.Web.CMS.Admin
 				if (!result.Succeeded)
 					return;
 			}
-			string html = WebUtility.CacheTextFile("resources/admin/frames/admin-mode-button.htm");
-			//string html = ResourceLoader.LoadTextResource("Sprocket.Web.CMS.Admin.admin-mode-button.htm");
-			HttpContext.Current.Response.Write(string.Format(html, WebUtility.BasePath));
+			//string html = WebUtility.CacheTextFile("resources/admin/frames/admin-mode-button.htm");
+			//HttpContext.Current.Response.Write(string.Format(html, WebUtility.BasePath));
 		}
 	}
 }

@@ -286,6 +286,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					cmd.Parameters.Add(NewSqlParameter("@Sticky", forumTopic.Sticky, SqlDbType.Bit));
 					cmd.Parameters.Add(NewSqlParameter("@ModerationState", forumTopic.ModerationState, SqlDbType.SmallInt));
 					cmd.Parameters.Add(NewSqlParameter("@Locked", forumTopic.Locked, SqlDbType.Bit));
+					cmd.Parameters.Add(NewSqlParameter("@URLToken", forumTopic.URLToken, SqlDbType.NVarChar));
 					cmd.ExecuteNonQuery();
 					forumTopic.ForumTopicID = (long)prm.Value;
 					scope.Complete();

@@ -156,7 +156,8 @@ CREATE PROCEDURE dbo.ForumTopic_Store
 	@DateCreated datetime,
 	@Sticky bit,
 	@ModerationState smallint,
-	@Locked bit
+	@Locked bit,
+	@URLToken nvarchar(200) = null
 AS
 BEGIN
 	IF NOT EXISTS (SELECT ForumTopicID FROM ForumTopic WHERE ForumTopicID = @ForumTopicID)
@@ -164,9 +165,9 @@ BEGIN
 		IF @ForumTopicID = 0 OR @ForumTopicID IS NULL
 			EXEC GetUniqueID @ForumTopicID OUTPUT
 		INSERT INTO ForumTopic
-			(ForumTopicID, ForumID, AuthorUserID, AuthorName, Subject, DateCreated, Sticky, ModerationState, Locked)
+			(ForumTopicID, ForumID, AuthorUserID, AuthorName, Subject, DateCreated, Sticky, ModerationState, Locked, URLToken)
 		VALUES
-			(@ForumTopicID, @ForumID, @AuthorUserID, @AuthorName, @Subject, @DateCreated, @Sticky, @ModerationState, @Locked)
+			(@ForumTopicID, @ForumID, @AuthorUserID, @AuthorName, @Subject, @DateCreated, @Sticky, @ModerationState, @Locked, @URLToken)
 	END
 	ELSE
 	BEGIN
@@ -178,7 +179,8 @@ BEGIN
 			DateCreated = @DateCreated,
 			Sticky = @Sticky,
 			ModerationState = @ModerationState,
-			Locked = @Locked
+			Locked = @Locked,
+			URLToken = @URLToken
 		WHERE ForumTopicID = @ForumTopicID
 	END
 END
@@ -220,6 +222,7 @@ CREATE PROCEDURE dbo.ForumTopicMessage_Store
 	@AuthorName nvarchar(100) = null,
 	@DateCreated datetime,
 	@Body nvarchar(max),
+	@ModerationState smallint,
 	@MarkupType smallint
 AS
 BEGIN
@@ -228,9 +231,9 @@ BEGIN
 		IF @ForumTopicMessageID = 0 OR @ForumTopicMessageID IS NULL
 			EXEC GetUniqueID @ForumTopicMessageID OUTPUT
 		INSERT INTO ForumTopicMessage
-			(ForumTopicMessageID, ForumTopicID, AuthorUserID, AuthorName, DateCreated, Body, MarkupType)
+			(ForumTopicMessageID, ForumTopicID, AuthorUserID, AuthorName, DateCreated, Body, ModerationState, MarkupType)
 		VALUES
-			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @AuthorName, @DateCreated, @Body, @MarkupType)
+			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @AuthorName, @DateCreated, @Body, @ModerationState, @MarkupType)
 	END
 	ELSE
 	BEGIN
@@ -240,6 +243,7 @@ BEGIN
 			AuthorName = @AuthorName,
 			DateCreated = @DateCreated,
 			Body = @Body,
+			ModerationState = @ModerationState,
 			MarkupType = @MarkupType
 		WHERE ForumTopicMessageID = @ForumTopicMessageID
 	END

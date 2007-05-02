@@ -50,6 +50,7 @@ namespace Sprocket.Web.CMS.Script
 				instruction.Build(tokens);
 				hasError = true;
 				exception = ex;
+				return;
 			}
 
 			try

@@ -195,7 +195,7 @@ namespace Sprocket.Web.Forums
 		#endregion
 	}
 
-	public class Forum : IJSONEncoder, IJSONReader //, IVariableExpression, IArgumentListExpression
+	public class Forum : IJSONEncoder, IJSONReader, IPropertyEvaluatorExpression
 	{
 		#region Constructor, Fields, Properties, JSON Methods
 		#region Fields
@@ -599,94 +599,65 @@ namespace Sprocket.Web.Forums
 		}
 		#endregion
 
-		//#region Expression Methods
-		//private List<ExpressionArgument> args = new List<ExpressionArgument>();
-		//private Token expressionToken = null;
+		#region SprocketScript Extensions
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "forumid":
+				case "forumcategoryid":
+				case "forumcode":
+				case "name":
+				case "urltoken":
+				case "datecreated":
+				case "rank":
+				case "writeaccess":
+				case "readaccess":
+				case "markuplevel":
+				case "showsignatures":
+				case "allowimagesinmessages":
+				case "allowimagesinsignatures":
+				case "requiremoderation":
+				case "allowvoting":
+				case "topicdisplayorder":
+				case "locked":
+					return true;
+				default:
+					return false;
+			}
+		}
 
-		//public void SetArgumentList(List<ExpressionArgument> arguments, Token functionCallToken)
-		//{
-		//    args = arguments;
-		//}
+		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		{
+			switch (prop.Name)
+			{
+				case "forumid": return ForumID;
+				case "forumcategoryid": return ForumCategoryID;
+				case "forumcode": return ForumCode;
+				case "name": return Name;
+				case "urltoken": return URLToken;
+				case "datecreated": return DateCreated;
+				case "rank": return Rank;
+				case "writeaccess": return WriteAccess;
+				case "readaccess": return ReadAccess;
+				case "markuplevel": return MarkupLevel;
+				case "showsignatures": return ShowSignatures;
+				case "allowimagesinmessages": return AllowImagesInMessages;
+				case "allowimagesinsignatures": return AllowImagesInSignatures;
+				case "requiremoderation": return RequireModeration;
+				case "allowvoting": return AllowVoting;
+				case "topicdisplayorder": return TopicDisplayOrder;
+				case "locked": return Locked;
+				default:
+					throw new InstructionExecutionException("\"" + prop.Name + "\" is not a property of the forum object.", prop.PropertyToken);
+			}
+		}
 
-		//public object Evaluate(ExecutionState state, Token contextToken)
-		//{
-		//    if(args.Count == 1)
-		//        return LoadForum(state, expressionToken);
-		//    return this;
-		//}
-
-		//private Forum LoadForum(ExecutionState state, Token token)
-		//{
-		//    if (args.Count != 1)
-		//        throw new InstructionExecutionException("Could not load forum. An argument is required to specify which forum to load.", token);
-		//    object value = TokenParser.VerifyUnderlyingType(args[0].Expression.Evaluate(state));
-		//    if (value is decimal)
-		//        return ForumHandler.DataLayer.SelectForum(Convert.ToInt64(value));
-		//    else if (value is string)
-		//        return ForumHandler.DataLayer.SelectForumByCode((string)value);
-		//    else
-		//        throw new InstructionExecutionException("Could not load an instance of \"forum\" because the argument did not equate to the right kind of value.", args[0].Token);
-		//}
-
-		//public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		//{
-		//    this.expressionToken = expressionToken;
-		//}
-
-		//public object EvaluateVariableProperty(string propertyName, Token propertyToken, ExecutionState state)
-		//{
-		//    switch (propertyName)
-		//    {
-		//        case "forumid": return ForumID;
-		//        case "forumcategoryid": return ForumCategoryID;
-		//        case "forumcode": return ForumCode;
-		//        case "name": return Name;
-		//        case "urltoken": return URLToken;
-		//        case "datecreated": return DateCreated;
-		//        case "rank": return Rank;
-		//        case "writeaccess": return WriteAccess;
-		//        case "readaccess": return ReadAccess;
-		//        case "markuplevel": return MarkupLevel;
-		//        case "showsignatures": return ShowSignatures;
-		//        case "allowimagesinmessages": return AllowImagesInMessages;
-		//        case "allowimagesinsignatures": return AllowImagesInSignatures;
-		//        case "requiremoderation": return RequireModeration;
-		//        case "allowvoting": return AllowVoting;
-		//        case "topicdisplayorder": return TopicDisplayOrder;
-		//        case "locked": return Locked;
-		//        default:
-		//            throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of this variable.", propertyToken);
-		//    }
-		//}
-
-		//enum PropertyType
-		//{
-		//    None,
-		//    ForumID,
-		//    ForumCategoryID,
-		//    ForumCode,
-		//    Name,
-		//    URLToken,
-		//    DateCreated,
-		//    Rank,
-		//    WriteAccess,
-		//    ReadAccess,
-		//    MarkupLevel,
-		//    ShowSignatures,
-		//    AllowImagesInMessages,
-		//    AllowImagesInSignatures,
-		//    RequireModeration,
-		//    AllowVoting,
-		//    TopicDisplayOrder,
-		//    Locked
-		//}
-
-		//public class ForumExpressionCreator : IExpressionCreator
-		//{
-		//    public string Keyword { get { return "forum"; } }
-		//    public IExpression Create() { return new Forum(); }
-		//}
-		//#endregion
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return "[Forum: " + name + "]";
+		}
+		#endregion
 	}
 
 	public class ForumTopic : IJSONEncoder, IJSONReader
@@ -703,6 +674,7 @@ namespace Sprocket.Web.Forums
 		protected bool sticky = false;
 		protected short moderationState = 0;
 		protected bool locked = false;
+		protected string uRLToken = null;
 
 		#endregion
 
@@ -789,6 +761,15 @@ namespace Sprocket.Web.Forums
 			set { locked = value; }
 		}
 
+		///<summary>
+		///Gets or sets the value for URLToken
+		///</summary>
+		public string URLToken
+		{
+			get { return uRLToken; }
+			set { uRLToken = value; }
+		}
+
 		#endregion
 
 		#region Constructors
@@ -797,7 +778,7 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public ForumTopic(long forumTopicID, long forumID, long? authorUserID, string authorName, string subject, DateTime dateCreated, bool sticky, short moderationState, bool locked)
+		public ForumTopic(long forumTopicID, long forumID, long? authorUserID, string authorName, string subject, DateTime dateCreated, bool sticky, short moderationState, bool locked, string uRLToken)
 		{
 			this.forumTopicID = forumTopicID;
 			this.forumID = forumID;
@@ -808,6 +789,7 @@ namespace Sprocket.Web.Forums
 			this.sticky = sticky;
 			this.moderationState = moderationState;
 			this.locked = locked;
+			this.uRLToken = uRLToken;
 		}
 
 		public ForumTopic(IDataReader reader)
@@ -821,6 +803,7 @@ namespace Sprocket.Web.Forums
 			if (reader["Sticky"] != DBNull.Value) sticky = (bool)reader["Sticky"];
 			if (reader["ModerationState"] != DBNull.Value) moderationState = (short)reader["ModerationState"];
 			if (reader["Locked"] != DBNull.Value) locked = (bool)reader["Locked"];
+			if (reader["URLToken"] != DBNull.Value) uRLToken = (string)reader["URLToken"];
 		}
 
 		#endregion
@@ -838,6 +821,7 @@ namespace Sprocket.Web.Forums
 			copy.sticky = sticky;
 			copy.moderationState = moderationState;
 			copy.locked = locked;
+			copy.uRLToken = uRLToken;
 			return copy;
 		}
 		#endregion
@@ -867,6 +851,8 @@ namespace Sprocket.Web.Forums
 			JSON.EncodeNameValuePair(writer, "ModerationState", moderationState);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "Locked", locked);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "URLToken", uRLToken);
 			writer.Write("}");
 		}
 
@@ -883,6 +869,7 @@ namespace Sprocket.Web.Forums
 			sticky = (bool)values["Sticky"];
 			moderationState = (short)values["ModerationState"];
 			locked = (bool)values["Locked"];
+			uRLToken = (string)values["URLToken"];
 		}
 
 		#endregion

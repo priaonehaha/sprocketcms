@@ -102,6 +102,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			string descendentPath;
 			string[] sections;
 			GetDescendentPath(out descendentPath, out sections);
+				sections = new string[0];
 			return descendentPath;
 		}
 
@@ -119,6 +120,8 @@ namespace Sprocket.Web.CMS.Content.Expressions
 					descendentPath = SprocketPath.GetDescendentPath(ContentManager.RequestedPage.Path);
 					sections = descendentPath.Split('/');
 				}
+				if (descendentPath == "")
+					sections = new string[0];
 				CurrentRequest.Value["DescendentPathExpression.Evaluate.Sections"] = sections;
 				CurrentRequest.Value["DescendentPathExpression.Evaluate.Path"] = descendentPath;
 			}

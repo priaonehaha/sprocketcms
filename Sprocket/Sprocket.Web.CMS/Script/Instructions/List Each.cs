@@ -55,7 +55,7 @@ namespace Sprocket.Web.CMS.Script
 			else
 				throw new TokenParserException("This bit here should be something that will equate to a list of objects I can use in the loop that follows.", listToken);
 
-			if (state.Variables.ContainsKey(iteratorToken.Value))
+			if (state.HasVariable(iteratorToken.Value))
 				throw new InstructionExecutionException("\"" + iteratorToken.Value + "\" already equates to something else. You should use a different word.", iteratorToken);
 			foreach (object item in list)
 			{
