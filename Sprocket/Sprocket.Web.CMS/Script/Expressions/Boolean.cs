@@ -34,6 +34,11 @@ namespace Sprocket.Web.CMS.Script
 				return value == oValue;
 			}
 
+			public override int GetHashCode()
+			{
+				return base.GetHashCode();
+			}
+
 			public override string ToString()
 			{
 				return "{" + value.ToString() + "}";

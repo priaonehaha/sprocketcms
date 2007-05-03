@@ -13,7 +13,8 @@ CREATE PROCEDURE dbo.Forum_Store
 	@PostWriteAccess smallint,
 	@ReplyWriteAccess smallint,
 	@ReadAccess smallint,
-	@WriteAccessRoleID bigint = null,
+	@PostWriteAccessRoleID bigint = null,
+	@ReplyWriteAccessRoleID bigint = null,
 	@ReadAccessRoleID bigint = null,
 	@ModeratorRoleID bigint = null,
 	@MarkupLevel smallint,
@@ -31,9 +32,9 @@ BEGIN
 		IF @ForumID = 0 OR @ForumID IS NULL
 			EXEC GetUniqueID @ForumID OUTPUT
 		INSERT INTO Forum
-			(ForumID, ForumCategoryID, ForumCode, Name, Description, URLToken, DateCreated, Rank, PostWriteAccess, ReplyWriteAccess, ReadAccess, WriteAccessRoleID, ReadAccessRoleID, ModeratorRoleID, MarkupLevel, ShowSignatures, AllowImagesInMessages, AllowImagesInSignatures, RequireModeration, AllowVoting, TopicDisplayOrder, Locked)
+			(ForumID, ForumCategoryID, ForumCode, Name, Description, URLToken, DateCreated, Rank, PostWriteAccess, ReplyWriteAccess, ReadAccess, PostWriteAccessRoleID, ReplyWriteAccessRoleID, ReadAccessRoleID, ModeratorRoleID, MarkupLevel, ShowSignatures, AllowImagesInMessages, AllowImagesInSignatures, RequireModeration, AllowVoting, TopicDisplayOrder, Locked)
 		VALUES
-			(@ForumID, @ForumCategoryID, @ForumCode, @Name, @Description, @URLToken, @DateCreated, @Rank, @PostWriteAccess, @ReplyWriteAccess, @ReadAccess, @WriteAccessRoleID, @ReadAccessRoleID, @ModeratorRoleID, @MarkupLevel, @ShowSignatures, @AllowImagesInMessages, @AllowImagesInSignatures, @RequireModeration, @AllowVoting, @TopicDisplayOrder, @Locked)
+			(@ForumID, @ForumCategoryID, @ForumCode, @Name, @Description, @URLToken, @DateCreated, @Rank, @PostWriteAccess, @ReplyWriteAccess, @ReadAccess, @PostWriteAccessRoleID, @ReplyWriteAccessRoleID, @ReadAccessRoleID, @ModeratorRoleID, @MarkupLevel, @ShowSignatures, @AllowImagesInMessages, @AllowImagesInSignatures, @RequireModeration, @AllowVoting, @TopicDisplayOrder, @Locked)
 	END
 	ELSE
 	BEGIN
@@ -48,7 +49,8 @@ BEGIN
 			PostWriteAccess = @PostWriteAccess,
 			ReplyWriteAccess = @ReplyWriteAccess,
 			ReadAccess = @ReadAccess,
-			WriteAccessRoleID = @WriteAccessRoleID,
+			PostWriteAccessRoleID = @PostWriteAccessRoleID,
+			ReplyWriteAccessRoleID = @ReplyWriteAccessRoleID,
 			ReadAccessRoleID = @ReadAccessRoleID,
 			ModeratorRoleID = @ModeratorRoleID,
 			MarkupLevel = @MarkupLevel,

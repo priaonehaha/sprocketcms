@@ -50,14 +50,14 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				}
 			}
 
-			public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+			public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 			{
-				switch (prop.Name)
+				switch (propertyName)
 				{
 					case "length": return value.Length;
 					case "name": return name;
 					case "value": return value;
-					default: throw new InstructionExecutionException("\"" + prop.Name + "\" is not a property of this variable", prop.PropertyToken);
+					default: throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of this variable", token);
 				}
 			}
 

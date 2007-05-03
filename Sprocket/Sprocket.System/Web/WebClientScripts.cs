@@ -73,7 +73,6 @@ namespace Sprocket.Web
 
 					// get all the methods for the module
 					MethodInfo[] infos = module.Module.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance);
-					bool nameAdded = false;
 					foreach (MethodInfo info in infos)
 					{
 						// make sure the method has the appropriate attribute

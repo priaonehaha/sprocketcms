@@ -32,7 +32,8 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					string[] scripts = new string[]{
 						"Sprocket.Web.Forums.SqlServer2005.schema.sql",
 						"Sprocket.Web.Forums.SqlServer2005.Generated.Entity.Procedures.sql",
-						"Sprocket.Web.Forums.SqlServer2005.procedures.sql"
+						"Sprocket.Web.Forums.SqlServer2005.procedures.sql",
+						"Sprocket.Web.Forums.SqlServer2005.data.sql"
 					};
 					foreach (string sql in scripts)
 					{
@@ -85,7 +86,8 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					cmd.Parameters.Add(NewSqlParameter("@PostWriteAccess", forum.PostWriteAccess, SqlDbType.SmallInt));
 					cmd.Parameters.Add(NewSqlParameter("@ReplyWriteAccess", forum.ReplyWriteAccess, SqlDbType.SmallInt));
 					cmd.Parameters.Add(NewSqlParameter("@ReadAccess", forum.ReadAccess, SqlDbType.SmallInt));
-					cmd.Parameters.Add(NewSqlParameter("@WriteAccessRoleID", forum.WriteAccessRoleID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@PostWriteAccessRoleID", forum.PostWriteAccessRoleID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@ReplyWriteAccessRoleID", forum.ReplyWriteAccessRoleID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@ReadAccessRoleID", forum.ReadAccessRoleID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@ModeratorRoleID", forum.ModeratorRoleID, SqlDbType.BigInt));
 					cmd.Parameters.Add(NewSqlParameter("@MarkupLevel", forum.MarkupLevel, SqlDbType.SmallInt));
@@ -569,6 +571,26 @@ namespace Sprocket.Web.Forums.SqlServer2005
 					List<Forum> list = new List<Forum>();
 					while (reader.Read())
 						list.Add(new Forum(reader));
+					reader.Close();
+					return list;
+				}
+			}
+		}
+
+		public List<ForumSummary> ListForumSummary(string categoryCode)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("ForumCategory_ListForumSummary", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@CategoryCode", categoryCode));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					List<ForumSummary> list = new List<ForumSummary>();
+					while (reader.Read())
+						list.Add(new ForumSummary(reader));
 					reader.Close();
 					return list;
 				}

@@ -86,7 +86,7 @@ namespace Sprocket.Web.CMS.Script
 		/// <param name="prop">A property to evaluate</param>
 		/// <param name="state">The current execution state</param>
 		/// <returns>An object containing the evaluation result</returns>
-		object EvaluateProperty(ExpressionProperty prop, ExecutionState state);
+		object EvaluateProperty(string propertyName, Token token, ExecutionState state);
 	}
 
 	/// <summary>

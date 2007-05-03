@@ -62,9 +62,9 @@ namespace Sprocket.Web.CMS.Content
 			}
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
-			switch (prop.Name)
+			switch (propertyName)
 			{
 				case "name":
 					return name;

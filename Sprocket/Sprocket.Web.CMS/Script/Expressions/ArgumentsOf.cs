@@ -6,32 +6,25 @@ using System.IO;
 
 namespace Sprocket.Web.CMS.Script
 {
-	internal class ArgumentsOfExpression : IPropertyEvaluatorExpression
+	internal class ArgumentsOfExpression : IExpression
 	{
-		private IArgumentListEvaluatorExpression expr;
+		private IExpression expr;
 		private List<ExpressionArgument> args;
-		private Token precedingToken;
+		private Token token;
 
-		public ArgumentsOfExpression(IArgumentListEvaluatorExpression expr, List<ExpressionArgument> args, TokenList tokens, Token precedingToken)
+		public ArgumentsOfExpression(IExpression expr, Token token, List<ExpressionArgument> args)
 		{
-			this.args = args;
 			this.expr = expr;
-			this.precedingToken = precedingToken;
+			this.args = args;
+			this.token = token;
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			return ((IArgumentListEvaluatorExpression)expr).Evaluate(precedingToken, args, state);
-		}
-
-		public bool IsValidPropertyName(string propertyName)
-		{
-			return true;
-		}
-
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
-		{
-			return prop.EvaluateFor(expr, state);
+			if (expr is IArgumentListEvaluatorExpression)
+				return ((IArgumentListEvaluatorExpression)expr).Evaluate(token, args, state);
+			object o = expr.Evaluate(state, token);
+			return SystemTypeEvaluator.EvaluateArguments(state, o, args, token);
 		}
 	}
 }

@@ -55,7 +55,6 @@ namespace Sprocket
 		}
 
 		private ModuleHandler moduleHandler;
-		private static Core instance = null;
 		private static object syncInstance = new object();
 		private static Dictionary<int, Core> coreInstances = new Dictionary<int, Core>();
 		private int instanceKey = -1;

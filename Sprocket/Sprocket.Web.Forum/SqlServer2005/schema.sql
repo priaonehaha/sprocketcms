@@ -33,9 +33,11 @@ BEGIN
 		PostWriteAccess smallint NOT NULL, -- 0: admin only, 1: all members, 2: activated members, 3: specified role members, 4: everyone/anonymous
 		ReplyWriteAccess smallint NOT NULL, -- same as for WriteAccess
 		ReadAccess smallint NOT NULL, -- same as for WriteAccess
-		WriteAccessRoleID bigint NULL, -- ignored unless WriteAccess = 3
+		PostWriteAccessRoleID bigint NULL, -- ignored unless PostWriteAccess = 3
+		ReplyWriteAccessRoleID bigint NULL, -- ignored unless ReplyWriteAccess = 3
 		ReadAccessRoleID bigint NULL, -- ignored unless ReadAccess = 3
 		ModeratorRoleID bigint NULL,
+		
 		MarkupLevel smallint NOT NULL, -- 0: none, 1: bbcode, 2: textile, 3: limited HTML, 4: full HTML (moderators/admin always have access to full HTML)
 		ShowSignatures bit NULL,
 		AllowImagesInMessages bit NOT NULL,
@@ -115,8 +117,14 @@ BEGIN
 	IF (SELECT COUNT(*) FROM deleted) > 0
 	BEGIN
 		UPDATE Forum
-		SET WriteAccessRoleID = NULL
-		WHERE WriteAccessRoleID IN (SELECT RoleID FROM deleted)
+		SET PostWriteAccessRoleID = NULL
+		WHERE PostWriteAccessRoleID IN (SELECT RoleID FROM deleted)
+		UPDATE Forum
+		SET ReplyWriteAccessRoleID = NULL
+		WHERE ReplyWriteAccessRoleID IN (SELECT RoleID FROM deleted)
+		UPDATE Forum
+		SET ModeratorRoleID = NULL
+		WHERE ModeratorRoleID IN (SELECT RoleID FROM deleted)
 		UPDATE Forum
 		SET ReadAccessRoleID = NULL
 		WHERE ReadAccessRoleID IN (SELECT RoleID FROM deleted)

@@ -159,7 +159,6 @@ namespace Sprocket.Web.CMS.Content
 					script = BuildTemplateScript(xml.GetAttribute("Master"), embedStack, fileTimes);
 					foreach (XmlElement replace in xml.SelectNodes("Replace[@Section]"))
 					{
-						SprocketScript sectionScript;
 						string sectionName = replace.GetAttribute("Section");
 						if (replace.HasAttribute("File"))
 						{

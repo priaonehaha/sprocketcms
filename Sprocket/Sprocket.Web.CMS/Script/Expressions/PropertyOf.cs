@@ -8,30 +8,23 @@ namespace Sprocket.Web.CMS.Script
 {
 	internal class PropertyOfExpression : IExpression
 	{
-		private IPropertyEvaluatorExpression expr;
-		private ExpressionProperty property;
-		private Token token;
+		private IExpression expr;
+		private Token token; 
 
-		public PropertyOfExpression(IPropertyEvaluatorExpression expr, ExpressionProperty property, Token propertyNameToken)
+		public PropertyOfExpression(IExpression expr, Token token)
 		{
 			this.expr = expr;
-			this.property = property;
-			this.token = propertyNameToken;
+			this.token = token;
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (expr is ArgumentsOfExpression)
-			{
-				object o = ((ArgumentsOfExpression)expr).Evaluate(state, token);
-				if (o is IExpression)
-					return property.EvaluateFor((IExpression)o, state);
-				else
-					return SystemTypeEvaluator.EvaluateProperty(o, property.Name, property.PropertyToken);
-			}
-			if (!expr.IsValidPropertyName(property.Name))
-				throw new InstructionExecutionException("\"" + property.Name + "\" is not a valid property of this expression.", token);
-			return property.EvaluateFor(expr, state);
+			if (expr is IPropertyEvaluatorExpression)
+				return ((IPropertyEvaluatorExpression)expr).EvaluateProperty(token.Value, token, state);
+			object o = expr.Evaluate(state, token);
+			if(o is IPropertyEvaluatorExpression)
+				return ((IPropertyEvaluatorExpression)o).EvaluateProperty(token.Value, token, state);
+			return SystemTypeEvaluator.EvaluateProperty(o, token.Value, token);
 		}
 	}
 }
