@@ -33,14 +33,16 @@ namespace Sprocket.Web.CMS.Script
 			while (text is IExpression)
 			{
 				object eval = ((IExpression)text).Evaluate(state, token);
-				if(object.ReferenceEquals(eval, text))
-					throw new InstructionExecutionException("Can't evaluate expression. Infinite recursion detected in type " + eval.GetType().FullName, token);
-				text = eval;
+				if (object.ReferenceEquals(eval, text))
+					text = eval.ToString();
+				else
+					//throw new InstructionExecutionException("Can't evaluate expression. Infinite recursion detected in type " + eval.GetType().FullName, token);
+					text = eval;
 			}
 			if (text is IList)
 				state.Output.Write(RenderList((IList)text, state));
 			else if (text == null)
-				state.Output.Write("null");
+				state.Output.Write("");
 			else
 				state.Output.Write(text.ToString());
 		}
@@ -62,7 +64,7 @@ namespace Sprocket.Web.CMS.Script
 				if (val is IList)
 					sb.Append(RenderList((IList)val, state));
 				else if (val == null)
-					sb.Append("null");
+					sb.Append("");
 				else
 					sb.Append(val.ToString());
 			}

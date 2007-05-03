@@ -77,11 +77,14 @@ namespace Sprocket.Web.Forums
 
 		void SaveForumSettings()
 		{
+			if (!SecurityProvider.CurrentUser.HasPermission(ForumPermissionType.ForumCreator))
+				throw new Exception("You don't have permission to create, edit or delete forums.");
+
 			Forum forum;
 			ForumCategory cat;
 
 			long forumID = long.Parse(Request.Form["forumid"]);
-			string categoryCode = Request.Form["forumid"];
+			string categoryCode = Request.Form["categorycode"];
 
 			cat = DataLayer.SelectForumCategoryByCode(categoryCode);
 			if (cat == null)
@@ -109,6 +112,52 @@ namespace Sprocket.Web.Forums
 			forum.ForumCategoryID = cat.ForumCategoryID;
 			forum.TopicDisplayOrder = short.Parse(Request.Form["topic-display-order"]);
 			forum.MarkupLevel = short.Parse(Request.Form["markuplevel"]);
+
+			string postAccess = Request.Form["post-access"];
+			string replyAccess = Request.Form["reply-access"];
+			string readAccess = Request.Form["read-access"];
+
+			if (postAccess.StartsWith("_"))
+			{
+				forum.PostWriteAccess = short.Parse(postAccess.Substring(1));
+				forum.PostWriteAccessRoleID = null;
+			}
+			else
+			{
+				forum.PostNewTopics = Forum.AccessType.RoleMembers;
+				forum.PostWriteAccessRoleID = long.Parse(postAccess);
+			}
+
+			if (replyAccess.StartsWith("_"))
+			{
+				forum.ReplyWriteAccess = short.Parse(replyAccess.Substring(1));
+				forum.ReplyWriteAccessRoleID = null;
+			}
+			else
+			{
+				forum.WriteReplies = Forum.AccessType.RoleMembers;
+				forum.ReplyWriteAccessRoleID = long.Parse(replyAccess);
+			}
+
+			if (readAccess.StartsWith("_"))
+			{
+				forum.ReadAccess = short.Parse(readAccess.Substring(1));
+				forum.ReadAccessRoleID = null;
+			}
+			else
+			{
+				forum.Read = Forum.AccessType.RoleMembers;
+				forum.ReadAccessRoleID = long.Parse(readAccess);
+			}
+
+			forum.ModeratorRoleID = long.Parse(Request.Form["moderator-role"]);
+			forum.RequireModeration = Request.Form["requires-moderation"] == "1";
+			forum.AllowVoting = Request.Form["allow-voting"] == "1";
+			forum.AllowImagesInMessages = Request.Form["message-images"] == "1";
+			forum.ShowSignatures = Request.Form["show-signatures"] == "1";
+			forum.AllowImagesInSignatures = Request.Form["signature-images"] == "1";
+			forum.Locked = Request.Form["lock-forum"] == "1";
+			forum.DateCreated = SprocketDate.Now;
 
 			Result r = dataLayer.Store(forum);
 			if (!r.Succeeded)

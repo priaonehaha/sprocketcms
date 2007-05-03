@@ -41,6 +41,10 @@ namespace Sprocket.Web.CMS.Script
 			{
 				return "{not " + value + "}";
 			}
+			public override int GetHashCode()
+			{
+				return base.GetHashCode();
+			}
 		}
 	}
 	public class NotExpressionCreator : IExpressionCreator

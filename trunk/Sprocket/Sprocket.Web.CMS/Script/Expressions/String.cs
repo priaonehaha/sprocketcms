@@ -47,9 +47,9 @@ namespace Sprocket.Web.CMS.Script
 			}
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
-			switch (prop.Name)
+			switch (propertyName)
 			{
 				case "length": return text.Length;
 				default: return null;

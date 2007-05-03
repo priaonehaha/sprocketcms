@@ -21,14 +21,7 @@ namespace Sprocket.Web.Forums
 			object o = args[0].Expression.Evaluate(state, args[0].Token);
 			if(o == null)
 				throw new InstructionExecutionException("The specified argument equates to null. It needs to equate to the forum's category code.", args[0].Token);
-			Forum forum = ForumHandler.DataLayer.SelectForumCategoryByURLToken(o.ToString());
-			if (forum == null)
-			{
-				forum = ForumHandler.DataLayer.SelectForumCategoryByCode(o.ToString());
-				if (forum == null)
-					throw new InstructionExecutionException("The specified forum category code does not represent any existing forum category in the database.", args[0].Token);
-			}
-			return forum;
+			return ForumHandler.DataLayer.ListForumSummary(o.ToString());
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
@@ -45,7 +38,7 @@ namespace Sprocket.Web.Forums
 	}
 	public class GetForumsExpressionCreator : IExpressionCreator
 	{
-		public string Keyword { get { return "getforum"; } }
+		public string Keyword { get { return "getforums"; } }
 		public IExpression Create() { return new GetForumsExpression(); }
 	}
 }

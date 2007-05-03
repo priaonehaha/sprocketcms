@@ -192,9 +192,9 @@ namespace Sprocket.Web.CMS.Security
 			User user = User.Select(userID);
 			try
 			{
-				throw new Exception("not implemented yet.");
+				throw new NotImplementedException("not implemented yet.");
 				//user.SendPasswordReminder(WebUtility.CacheTextFile("resources/passwordreminder.email.txt"));
-				return new Result();
+				//return new Result();
 			}
 			catch(Exception ex)
 			{

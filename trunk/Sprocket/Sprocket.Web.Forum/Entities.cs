@@ -211,7 +211,8 @@ namespace Sprocket.Web.Forums
 		protected short postWriteAccess = 0;
 		protected short replyWriteAccess = 0;
 		protected short readAccess = 0;
-		protected long? writeAccessRoleID = null;
+		protected long? postWriteAccessRoleID = null;
+		protected long? replyWriteAccessRoleID = null;
 		protected long? readAccessRoleID = null;
 		protected long? moderatorRoleID = null;
 		protected short markupLevel = 0;
@@ -327,12 +328,21 @@ namespace Sprocket.Web.Forums
 		}
 
 		///<summary>
-		///Gets or sets the value for WriteAccessRoleID
+		///Gets or sets the value for PostWriteAccessRoleID
 		///</summary>
-		public long? WriteAccessRoleID
+		public long? PostWriteAccessRoleID
 		{
-			get { return writeAccessRoleID; }
-			set { writeAccessRoleID = value; }
+			get { return postWriteAccessRoleID; }
+			set { postWriteAccessRoleID = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ReplyWriteAccessRoleID
+		///</summary>
+		public long? ReplyWriteAccessRoleID
+		{
+			get { return replyWriteAccessRoleID; }
+			set { replyWriteAccessRoleID = value; }
 		}
 
 		///<summary>
@@ -433,7 +443,11 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string description, string uRLToken, DateTime dateCreated, int? rank, short postWriteAccess, short replyWriteAccess, short readAccess, long? writeAccessRoleID, long? readAccessRoleID, long? moderatorRoleID, short markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, short topicDisplayOrder, bool locked)
+		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string description,
+			string uRLToken, DateTime dateCreated, int? rank, short postWriteAccess, short replyWriteAccess,
+			short readAccess, long? postWriteAccessRoleID, long? replyWriteAccessRoleID, long? readAccessRoleID,
+			long? moderatorRoleID, short markupLevel, bool? showSignatures, bool allowImagesInMessages,
+			bool allowImagesInSignatures, bool requireModeration, bool allowVoting, short topicDisplayOrder, bool locked)
 		{
 			this.forumID = forumID;
 			this.forumCategoryID = forumCategoryID;
@@ -446,7 +460,8 @@ namespace Sprocket.Web.Forums
 			this.postWriteAccess = postWriteAccess;
 			this.replyWriteAccess = replyWriteAccess;
 			this.readAccess = readAccess;
-			this.writeAccessRoleID = writeAccessRoleID;
+			this.postWriteAccessRoleID = postWriteAccessRoleID;
+			this.replyWriteAccessRoleID = replyWriteAccessRoleID;
 			this.readAccessRoleID = readAccessRoleID;
 			this.moderatorRoleID = moderatorRoleID;
 			this.markupLevel = markupLevel;
@@ -472,7 +487,8 @@ namespace Sprocket.Web.Forums
 			if (reader["PostWriteAccess"] != DBNull.Value) postWriteAccess = (short)reader["PostWriteAccess"];
 			if (reader["ReplyWriteAccess"] != DBNull.Value) replyWriteAccess = (short)reader["ReplyWriteAccess"];
 			if (reader["ReadAccess"] != DBNull.Value) readAccess = (short)reader["ReadAccess"];
-			if (reader["WriteAccessRoleID"] != DBNull.Value) writeAccessRoleID = (long?)reader["WriteAccessRoleID"];
+			if (reader["PostWriteAccessRoleID"] != DBNull.Value) postWriteAccessRoleID = (long?)reader["PostWriteAccessRoleID"];
+			if (reader["ReplyWriteAccessRoleID"] != DBNull.Value) replyWriteAccessRoleID = (long?)reader["ReplyWriteAccessRoleID"];
 			if (reader["ReadAccessRoleID"] != DBNull.Value) readAccessRoleID = (long?)reader["ReadAccessRoleID"];
 			if (reader["ModeratorRoleID"] != DBNull.Value) moderatorRoleID = (long?)reader["ModeratorRoleID"];
 			if (reader["MarkupLevel"] != DBNull.Value) markupLevel = (short)reader["MarkupLevel"];
@@ -502,7 +518,8 @@ namespace Sprocket.Web.Forums
 			copy.postWriteAccess = postWriteAccess;
 			copy.replyWriteAccess = replyWriteAccess;
 			copy.readAccess = readAccess;
-			copy.writeAccessRoleID = writeAccessRoleID;
+			copy.postWriteAccessRoleID = postWriteAccessRoleID;
+			copy.replyWriteAccessRoleID = replyWriteAccessRoleID;
 			copy.readAccessRoleID = readAccessRoleID;
 			copy.moderatorRoleID = moderatorRoleID;
 			copy.markupLevel = markupLevel;
@@ -547,7 +564,9 @@ namespace Sprocket.Web.Forums
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "ReadAccess", readAccess);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "WriteAccessRoleID", writeAccessRoleID);
+			JSON.EncodeNameValuePair(writer, "PostWriteAccessRoleID", postWriteAccessRoleID);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ReplyWriteAccessRoleID", replyWriteAccessRoleID);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "ReadAccessRoleID", readAccessRoleID);
 			writer.Write(",");
@@ -586,7 +605,8 @@ namespace Sprocket.Web.Forums
 			postWriteAccess = (short)values["PostWriteAccess"];
 			replyWriteAccess = (short)values["ReplyWriteAccess"];
 			readAccess = (short)values["ReadAccess"];
-			writeAccessRoleID = (long?)values["WriteAccessRoleID"];
+			postWriteAccessRoleID = (long?)values["PostWriteAccessRoleID"];
+			replyWriteAccessRoleID = (long?)values["ReplyWriteAccessRoleID"];
 			readAccessRoleID = (long?)values["ReadAccessRoleID"];
 			moderatorRoleID = (long?)values["ModeratorRoleID"];
 			markupLevel = (short)values["MarkupLevel"];
@@ -603,7 +623,7 @@ namespace Sprocket.Web.Forums
 		#endregion
 
 		#region Custom
-		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string description, string uRLToken, DateTime dateCreated, int? rank, AccessType postWriteAccess, AccessType replyWriteAccess, AccessType readAccess, long? writeAccessRoleID, long? readAccessRoleID, long? moderatorRoleID, MarkupType markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, DisplayOrderType topicDisplayOrder, bool locked)
+		public Forum(long forumID, long forumCategoryID, string forumCode, string name, string description, string uRLToken, DateTime dateCreated, int? rank, AccessType postWriteAccess, AccessType replyWriteAccess, AccessType readAccess, long? postWriteAccessRoleID, long? replyWriteAccessRoleID, long? readAccessRoleID, long? moderatorRoleID, MarkupType markupLevel, bool? showSignatures, bool allowImagesInMessages, bool allowImagesInSignatures, bool requireModeration, bool allowVoting, DisplayOrderType topicDisplayOrder, bool locked)
 		{
 			this.forumID = forumID;
 			this.forumCategoryID = forumCategoryID;
@@ -616,7 +636,8 @@ namespace Sprocket.Web.Forums
 			this.postWriteAccess = (short)postWriteAccess;
 			this.replyWriteAccess = (short)replyWriteAccess;
 			this.readAccess = (short)readAccess;
-			this.writeAccessRoleID = writeAccessRoleID;
+			this.postWriteAccessRoleID = postWriteAccessRoleID;
+			this.replyWriteAccessRoleID = replyWriteAccessRoleID;
 			this.readAccessRoleID = readAccessRoleID;
 			this.moderatorRoleID = moderatorRoleID;
 			this.markupLevel = (short)markupLevel;
@@ -672,7 +693,7 @@ namespace Sprocket.Web.Forums
 			set { readAccess = (short)value; }
 		}
 
-		public AccessType WritePosts
+		public AccessType PostNewTopics
 		{
 			get { return (AccessType)postWriteAccess; }
 			set { postWriteAccess = (short)value; }
@@ -708,7 +729,8 @@ namespace Sprocket.Web.Forums
 				case "requiremoderation":
 				case "allowvoting":
 				case "topicdisplayorder":
-				case "writeaccessroleid":
+				case "postwriteaccessroleid":
+				case "replywriteaccessroleid":
 				case "readaccessroleid":
 				case "moderatorroleid":
 				case "locked":
@@ -718,9 +740,9 @@ namespace Sprocket.Web.Forums
 			}
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
-			switch (prop.Name)
+			switch (propertyName)
 			{
 				case "forumid": return ForumID;
 				case "forumcategoryid": return ForumCategoryID;
@@ -741,15 +763,21 @@ namespace Sprocket.Web.Forums
 				case "allowvoting": return AllowVoting;
 				case "topicdisplayorder": return TopicDisplayOrder;
 				case "locked": return Locked;
-				case "writeaccessroleid": return WriteAccessRoleID;
+				case "postwriteaccessroleid": return PostWriteAccessRoleID;
+				case "replywriteaccessroleid": return ReplyWriteAccessRoleID;
 				case "readaccessroleid": return ReadAccessRoleID;
 				case "moderatorroleid": return ModeratorRoleID;
 				default:
-					throw new InstructionExecutionException("\"" + prop.Name + "\" is not a property of the forum object.", prop.PropertyToken);
+					throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of the forum object.", token);
 			}
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return this;
+		}
+
+		public override string ToString()
 		{
 			return "[Forum: " + name + "]";
 		}
@@ -1186,5 +1214,96 @@ namespace Sprocket.Web.Forums
 
 		#endregion
 		#endregion
+	}
+
+	public class ForumSummary : IPropertyEvaluatorExpression
+	{
+		private int topicCount = 0, replyCount = 0;
+		private string authorUsername = null;
+		private DateTime? lastReplyTime = null;
+		private Forum forum;
+
+		public Forum Forum
+		{
+			get { return forum; }
+		}
+
+		public DateTime? LastReplyTime
+		{
+			get { return lastReplyTime; }
+		}
+
+		public string AuthorUsername
+		{
+			get { return authorUsername; }
+		}
+
+		public int TopicCount
+		{
+			get { return topicCount; }
+		}
+
+		public int ReplyCount
+		{
+			get { return replyCount; }
+		}
+
+		public ForumSummary(IDataReader reader)
+		{
+			if (reader["AuthorUsername"] != DBNull.Value) authorUsername = (string)reader["AuthorUsername"];
+			if (reader["TopicCount"] != DBNull.Value) topicCount = (int)reader["TopicCount"];
+			if (reader["ReplyCount"] != DBNull.Value) replyCount = (int)reader["ReplyCount"];
+			if (reader["LastReplyTime"] != DBNull.Value) lastReplyTime = (DateTime)reader["LastReplyTime"];
+			forum = new Forum(reader);
+		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "authorusername":
+				case "topiccount":
+				case "replycount":
+				case "lastreplytime":
+				case "forum":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "authorusername":
+					return authorUsername;
+				case "topiccount":
+					return topicCount;
+				case "replycount":
+					return replyCount;
+				case "lastreplytime":
+					return lastReplyTime;
+				case "forum":
+					return forum;
+				default:
+					return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return this;
+		}
+
+		public override string ToString()
+		{
+			return "[Forum Summary: " + forum.Name + "]";
+		}
+	}
+
+	public static class ForumPermissionType
+	{
+		public const string ForumCreator = "FORUM_CREATOR";
 	}
 }

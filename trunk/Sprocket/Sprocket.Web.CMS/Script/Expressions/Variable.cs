@@ -36,13 +36,13 @@ namespace Sprocket.Web.CMS.Script
 			return true;
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
 			object o = state.HasVariable(variableToken.Value) ? state.GetVariable(variableToken.Value) : null;
 			if (o is IPropertyEvaluatorExpression)
-				return prop.EvaluateFor((IExpression)o, state);
+				return ((IPropertyEvaluatorExpression)o).EvaluateProperty(propertyName, token, state);
 			else
-				return SystemTypeEvaluator.EvaluateProperty(o, prop.Name, prop.PropertyToken);
+				return SystemTypeEvaluator.EvaluateProperty(o, propertyName, token);
 		}
 
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)

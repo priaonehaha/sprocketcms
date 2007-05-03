@@ -14,11 +14,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			return new PageEntry().IsValidPropertyName(propertyName);
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
 			if (ContentManager.PageStack.Count == 0)
-				throw new InstructionExecutionException("I can't retrieve information for the current page because there is not a specific page entry defined for the current request. (definitions.xml)", prop.PropertyToken);
-			return ContentManager.PageStack.Peek().EvaluateProperty(prop, state);
+				throw new InstructionExecutionException("I can't retrieve information for the current page because there is not a specific page entry defined for the current request. (definitions.xml)", token);
+			return ContentManager.PageStack.Peek().EvaluateProperty(propertyName, token, state);
 		}
 
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)

@@ -130,26 +130,32 @@ namespace Sprocket.Web.CMS.Script
 					else // otherwise just advance to the next token
 						tokens.Advance();
 
-					// if the expression can take an argument list, supply it with the trailing argument list if it has been supplied
-					if (expr is IArgumentListEvaluatorExpression)
-					{
-						List<ExpressionArgument> args = BuildArgumentList(tokens);
-						if (args.Count > 0)
-							expr = new ArgumentsOfExpression((IArgumentListEvaluatorExpression)expr, args, tokens, token);
-					}
+					// chain together any properties and argument lists
+					expr = BuildDeepExpression(expr, tokens);
 
-					// if the expression can have properties, check for a property designator and if it exists, build a property chain
-					if (expr is IPropertyEvaluatorExpression)
-					{
-						ExpressionProperty ep = BuildPropertyExpression((IPropertyEvaluatorExpression)expr, tokens);
-						if (ep != null)
-						{
-							Token t = tokens.TokensFollowingCurrent >= 2 ? tokens.Peek(2) : null;
-							expr = new PropertyOfExpression((IPropertyEvaluatorExpression)expr, ep, t);
-						}
-					}
-					else if (tokens.Current.TokenType == TokenType.PropertyDesignator)
-						goto case TokenType.PropertyDesignator;
+					//// if the expression can take an argument list, supply it with the trailing argument list if it has been supplied
+					//if (expr is IArgumentListEvaluatorExpression)
+					//{
+					//    List<ExpressionArgument> args = BuildArgumentList(tokens);
+					//    if (args.Count > 0)
+					//        expr = new ArgumentsOfExpression((IArgumentListEvaluatorExpression)expr, args, tokens, token);
+					//}
+
+					//// if the expression can have properties, check for a property designator and if it exists, build a property chain
+					//if (expr is IPropertyEvaluatorExpression)
+					//{
+					//    ExpressionProperty ep = BuildExpressionProperty((IPropertyEvaluatorExpression)expr, tokens);
+					//    while (ep != null)
+					//    {
+					//        Token t = tokens.TokensFollowingCurrent >= 2 ? tokens.Peek(2) : null;
+					//        expr = new PropertyOfExpression((IPropertyEvaluatorExpression)expr, ep, t);
+					//        if (!(expr is IPropertyEvaluatorExpression))
+					//            break;
+
+					//    }
+					//}
+					//else if (tokens.Current.TokenType == TokenType.PropertyDesignator)
+					//    goto case TokenType.PropertyDesignator;
 					break;
 
 				case TokenType.PropertyDesignator:
@@ -179,66 +185,6 @@ namespace Sprocket.Web.CMS.Script
 			return expr;
 		}
 
-		public static ExpressionProperty BuildPropertyExpression(TokenList tokens)
-		{
-			if (tokens.Current.TokenType == TokenType.PropertyDesignator)
-			{
-				tokens.Advance(); // past the property designator
-
-				// read the property name token
-				Token propertyToken = tokens.Current;
-				if (propertyToken.TokenType != TokenType.Word)
-					throw new TokenParserException("This point in the script should be a word indicating a property of the preceding expression.", propertyToken);
-
-				return new ExpressionProperty(tokens);
-			}
-			else
-				return null;
-		}
-
-		public static ExpressionProperty BuildPropertyExpression(IPropertyEvaluatorExpression sourceExpression, TokenList tokens)
-		{
-			Token propertyToken = tokens.Next;
-			ExpressionProperty ep = BuildPropertyExpression(tokens);
-
-			// make sure the property name is acceptable for this type of expression
-			if (ep != null)
-				if (!sourceExpression.IsValidPropertyName(propertyToken.Value))
-					throw new TokenParserException("\"" + propertyToken.Value + "\" is not a valid property for this expression.", propertyToken);
-
-			return ep;
-		}
-
-		//public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex)
-		//{
-		//    Stack<int?> stack = new Stack<int?>();
-		//    return BuildSingularExpression(tokens, ref nextIndex, stack);
-		//}
-
-		//public static IExpression BuildSingularExpression(List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
-		//{
-		//    Token token = tokens[nextIndex];
-		//    IExpression expr;
-		//    switch (token.TokenType)
-		//    {
-		//        case TokenType.Number:
-		//            expr = new NumericExpression();
-		//            break;
-
-		//        case TokenType.QuotedString:
-		//        case TokenType.FreeText:
-		//            expr = new StringExpression();
-		//            break;
-
-		//        default:
-		//            expr = BuildExpression(tokens, ref nextIndex, precedenceStack);
-		//            break;
-		//    }
-
-		//    expr.PrepareExpression(token, tokens, ref nextIndex, precedenceStack);
-		//    return expr;
-		//}
-
 		public static IExpression BuildGroupedExpression(TokenList tokens)
 		{
 			// advance past the opening bracket
@@ -257,6 +203,39 @@ namespace Sprocket.Web.CMS.Script
 			//advance past the closing bracket
 			tokens.Advance();
 			return expr;
+		}
+
+		public static IExpression BuildDeepExpression(IExpression expr, TokenList tokens)
+		{
+			if (tokens.Current.TokenType == TokenType.GroupStart)
+			{
+				Token t = tokens.Current;
+				ArgumentsOfExpression ax = new ArgumentsOfExpression(expr, t, BuildArgumentList(tokens));
+				return BuildDeepExpression(ax, tokens);
+			}
+			else if (tokens.Current.TokenType == TokenType.PropertyDesignator)
+			{
+				tokens.Advance(); // past the property designator
+				if (tokens.Current.TokenType != TokenType.Word)
+					throw new TokenParserException("This bit should be a word naming which property of thing thing before it that you are trying to evaluate.", tokens.Current);
+				PropertyOfExpression px = new PropertyOfExpression(expr, tokens.Current);
+				tokens.Advance(); // past the property name
+				return BuildDeepExpression(px, tokens);
+			}
+			else
+				return expr;
+			// if args exist
+				// make a new argexpr
+				// set argexpr.args to the arg list
+				// set argexpr.expr to expr
+				// return BuildDeepExpression(argexpr, tokens)
+			// else if property designator exists
+				// make a new propexpr
+				// set propexpr.name to the name
+				// set propexpr.expr to expr
+				// return BuildDeepExpression(propexpr, tokens)
+			// else
+				// return expr
 		}
 
 		public static List<ExpressionArgument> BuildArgumentList(TokenList tokens)
@@ -314,12 +293,6 @@ namespace Sprocket.Web.CMS.Script
 			if (thanPrecedence == null) // previous check must come before this one or we'll get a default true even if the operator (e.g. "@") isn't defined as a standard binary expression
 				return true;
 			return binaryExpressionCreators[token.Value].Precedence < thanPrecedence.Value;
-		}
-
-		public static void AssertNotEndOfList(List<Token> list, int nextIndex)
-		{
-			if (list.Count <= nextIndex)
-				throw new TokenParserException("I seem to have come to the end of the script prematurely. Should something be here?", list[list.Count - 1]);
 		}
 
 		public static object VerifyUnderlyingType(object o)

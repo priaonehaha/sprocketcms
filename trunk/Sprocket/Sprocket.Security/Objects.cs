@@ -88,7 +88,7 @@ namespace Sprocket.Security
 		protected DateTime created = SprocketDate.Now;
 
 		private Dictionary<string, PermissionState> permissions = null;
-		private Dictionary<string, PermissionState> roles = null;
+		//private Dictionary<string, PermissionState> roles = null;
 		#endregion
 
 		#region Constructor
@@ -260,7 +260,20 @@ namespace Sprocket.Security
 
 		public bool HasPermission(string permissionTypeCode)
 		{
-			return SecurityProvider.Instance.DataLayer.DoesUserHavePermission(userID, permissionTypeCode);
+			if (permissions == null)
+			{
+				permissions = new Dictionary<string, PermissionState>();
+				List<PermissionTypeState> list = SecurityProvider.Instance.DataLayer.ListAllPermissionTypesAgainstUser(userID);
+				foreach (PermissionTypeState p in list)
+					permissions.Add(p.PermissionType.PermissionTypeCode, p.PermissionState);
+			}
+			if (permissions.ContainsKey(PermissionType.SuperUser))
+				if (permissions[PermissionType.SuperUser] != PermissionState.Disabled)
+					return true;
+			if(!permissions.ContainsKey(permissionTypeCode))
+				return false;
+			return permissions[permissionTypeCode] != PermissionState.Disabled;
+				//SecurityProvider.Instance.DataLayer.DoesUserHavePermission(userID, permissionTypeCode);
 		}
 
 		public bool HasRole(string roleCode)
@@ -376,9 +389,9 @@ namespace Sprocket.Security
 			}
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
-			switch (prop.Name)
+			switch (propertyName)
 			{
 				case "roleid":
 					return RoleID;

@@ -38,7 +38,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Admin\Admin.new.cs" />
     <Compile Include="Admin\AdminInterfaceSections.cs" />
     <Compile Include="Admin\AdminWindow.cs" />
     <Compile Include="Admin\Admin.cs" />
@@ -73,7 +72,6 @@
     <Compile Include="Script\DateAndTime.cs" />
     <Compile Include="Script\Expressions\BinaryExpressions.cs" />
     <Compile Include="Script\Expressions\Boolean.cs" />
-    <Compile Include="Script\ExpressionProperty.cs" />
     <Compile Include="Script\Expressions\Not.cs" />
     <Compile Include="Script\Expressions\String.cs" />
     <Compile Include="Script\Expressions\Numeric.cs" />

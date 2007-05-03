@@ -56,5 +56,6 @@ namespace Sprocket.Web.Forums
 		#endregion
 
 		List<Forum> ListForums(long forumCategoryID);
+		List<ForumSummary> ListForumSummary(string categoryCode);
 	}
 }

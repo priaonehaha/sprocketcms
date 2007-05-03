@@ -40,6 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities.cs" />
+    <Compile Include="Expressions\GetForumsExpression.cs" />
+    <Compile Include="Expressions\NewForumExpression.cs" />
+    <Compile Include="Expressions\UserCanCreateForumsExpression.cs" />
     <Compile Include="Expressions\GetForumCategoryExpression.cs" />
     <Compile Include="Expressions\GetForumExpression.cs" />
     <Compile Include="ForumHandler.cs" />
@@ -69,6 +72,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SqlServer2005\procedures.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SqlServer2005\data.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

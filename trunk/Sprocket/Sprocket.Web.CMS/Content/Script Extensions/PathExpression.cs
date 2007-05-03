@@ -15,7 +15,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			return propertyName == "length";
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
 			return WebUtility.BasePath.Length;
 		}
@@ -28,8 +28,6 @@ namespace Sprocket.Web.CMS.Content.Expressions
 
 	public class SprocketPathExpression : IArgumentListEvaluatorExpression, IPropertyEvaluatorExpression
 	{
-		IExpression expr = null;
-
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			return SprocketPath.Value;
@@ -72,9 +70,9 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
-			switch (prop.Name)
+			switch (propertyName)
 			{
 				case "sectioncount":
 					return SprocketPath.Sections.Length;
@@ -95,8 +93,6 @@ namespace Sprocket.Web.CMS.Content.Expressions
 
 	public class DescendentPathExpression : IArgumentListEvaluatorExpression, IPropertyEvaluatorExpression
 	{
-		IExpression expr = null;
-
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			string descendentPath;
@@ -172,12 +168,12 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 
-		public object EvaluateProperty(ExpressionProperty prop, ExecutionState state)
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
 			string descendentPath;
 			string[] sections;
 			GetDescendentPath(out descendentPath, out sections);
-			switch (prop.Name)
+			switch (propertyName)
 			{
 				case "sectioncount":
 					return sections.Length;

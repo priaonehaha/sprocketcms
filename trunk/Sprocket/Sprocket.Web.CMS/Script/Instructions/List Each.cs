@@ -44,16 +44,14 @@ namespace Sprocket.Web.CMS.Script
 		public void Execute(ExecutionState state)
 		{
 			IList list;
-			if (expr is VariableExpression)
+			if (expr is IListExpression)
+				list = ((IListExpression)expr).GetList(state);
+			else
 			{
 				list = expr.Evaluate(state, listToken) as IList;
 				if (list == null)
 					throw new InstructionExecutionException("\"" + listToken.Value + "\" doesn't contain a list of anything.", listToken);
 			}
-			else if (expr is IListExpression)
-				list = ((IListExpression)expr).GetList(state);
-			else
-				throw new TokenParserException("This bit here should be something that will equate to a list of objects I can use in the loop that follows.", listToken);
 
 			if (state.HasVariable(iteratorToken.Value))
 				throw new InstructionExecutionException("\"" + iteratorToken.Value + "\" already equates to something else. You should use a different word.", iteratorToken);

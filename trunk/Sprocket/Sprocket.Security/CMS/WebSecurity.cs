@@ -98,7 +98,6 @@ namespace Sprocket.Web.CMS.Security
 							}
 						}
 					}
-					break;
 
 				default:
 					switch (SprocketPath.Sections[0])

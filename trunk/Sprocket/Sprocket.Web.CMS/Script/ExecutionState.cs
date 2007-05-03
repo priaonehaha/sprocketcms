@@ -62,6 +62,10 @@ namespace Sprocket.Web.CMS.Script
 			{
 				return identificationString;
 			}
+			public override int GetHashCode()
+			{
+				return identificationString.GetHashCode();
+			}
 		}
 
 		private Stack<SprocketScript> executingScript = new Stack<SprocketScript>();
