@@ -61,3 +61,34 @@ Instead of typing in the HTML directly, you can specify which HTML file the temp
 {{{
 <Template Name="test_template" File="resources/html/template.htm" />
 }}}
+
+You may want to define a master template that, for example, defines a header, footer and sidebar. After doing this, you might want some child templates that reference the master template but specify the layout of the main content area. To do this, first define a SectionName in the master template using SprocketScript syntax. Then in the child template definition, specify (a) the master template and (b) the section(s) you want to override with values defined by the child template:
+
+{{{
+<Template Name="master_template">
+	<![CDATA[
+	<html>
+	<head>
+	<title>My Website - {? section "Title" }Home{? end }</title>
+	</head>
+	<body>
+		{? section "ContentArea" }
+		This is what appears if you only use the master template.
+		Note that it appears inside an overridable section and thus
+		will not appear if a child template specifies that something
+		alternate should appear here.
+		{? end }
+
+	<div>This is the footer</div>
+	</body>
+	</html>
+	]]>
+</Template>
+
+<Template Name="child_template" Master="master_template">
+	<Replace Section="ContentArea" File="resources/html/somefile.htm" />
+	<Replace Section="Title">
+		The SubPage!
+	</Replace>
+</Template>
+}}}
