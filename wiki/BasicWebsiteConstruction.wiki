@@ -38,4 +38,26 @@ A page is defined as a block of content that might be requestable directly via a
 
 A template refers to an HTML page that contains some amount of HTML and/or inline SprocketScript code that renders output to be displayed for a particular page.
 
-tbc...
+Templates are inheritable. That is, if you define certain areas in one template, you can define another template that uses the first template as the "master" template and overrides the areas you specify in that template with HTML of your choice.
+
+The most basic definition of a Template simply involves naming the template and specifying some HTML for it to use.
+
+{{{
+<Template Name="test_template">
+	This is the text for the template.
+</Template>
+}}}
+
+You can also use a CDATA section:
+
+{{{
+<Template Name="test_template">
+	<![CDATA[This is the <strong>text</strong> for the template.]]>
+</Template>
+}}}
+
+Instead of typing in the HTML directly, you can specify which HTML file the template should use. Note that the file reference is a SprocketPath:
+
+{{{
+<Template Name="test_template" File="resources/html/template.htm" />
+}}}
