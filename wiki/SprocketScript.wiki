@@ -1,0 +1,15 @@
+=SprocketScript=
+
+SprocketScript is a simple text-based scripting language used by the !CMS module(s) for adding flexibility and extensibility to templates and content. It is also worth mentioning that the language has been designed with the idea in mind that anyone who wants to develop extensions for Sprocket can easily add new instructions and expressions to the language to support their own classes and functionality.
+
+SprocketScript is completely optional, and only a single simple feature is required for making templates inherit from other templates. The more SprocketScript you use though, the more you can get out of the templating system, so it's worth learning at least the basics.
+
+== The Basics ==
+
+Anywhere in your templates and page content, you can embed SprocketScript syntax to cause the system to generate the content on the fly for your web page. SprocketScript is placed in blocks in your html code, starting with `{?` and ending with `}`. For example:
+
+{{{
+<p>Today's date is {? show currentdate }.</p>
+}}}
+
+to be continued...
