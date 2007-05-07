@@ -52,7 +52,7 @@ namespace Sprocket.Web.CMS.Script
 			switch (propertyName)
 			{
 				case "length": return text.Length;
-				default: return null;
+				default: return VariableExpression.InvalidProperty;
 			}
 		}
 	}

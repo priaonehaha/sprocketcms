@@ -20,7 +20,15 @@ namespace Sprocket.Web.CMS.Script
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
 			if (expr is IPropertyEvaluatorExpression)
-				return ((IPropertyEvaluatorExpression)expr).EvaluateProperty(token.Value, token, state);
+			{
+				if (!((IPropertyEvaluatorExpression)expr).IsValidPropertyName(token.Value))
+					throw new InstructionExecutionException("\"" + token.Value + "\" is not a valid property for this object. (Underlying type: " + expr.GetType().Name + ")", token);
+				object x = ((IPropertyEvaluatorExpression)expr).EvaluateProperty(token.Value, token, state);
+				if(x != null)
+					if(x.ToString() == VariableExpression.InvalidProperty)
+						throw new InstructionExecutionException("\"" + token.Value + "\" is not a valid property for this object. (Underlying type: " + expr.GetType().Name + ")", token);
+				return x;
+			}
 			object o = expr.Evaluate(state, token);
 			if(o is IPropertyEvaluatorExpression)
 				return ((IPropertyEvaluatorExpression)o).EvaluateProperty(token.Value, token, state);

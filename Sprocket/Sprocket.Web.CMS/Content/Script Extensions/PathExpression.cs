@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Sprocket.Web.CMS.Script;
-using Sprocket.Web.CMS.Script.Parser;
+
 
 namespace Sprocket.Web.CMS.Content.Expressions
 {
@@ -81,7 +81,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 					return SprocketPath.Value.Length;
 
 				default:
-					return null;
+					return VariableExpression.InvalidProperty;
 			}
 		}
 	}
@@ -182,7 +182,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 					return descendentPath.Length;
 
 				default:
-					return null;
+					return VariableExpression.InvalidProperty;
 			}
 		}
 	}

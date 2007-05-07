@@ -80,7 +80,6 @@ BEGIN
 		AuthorName nvarchar(100) NULL, -- used if AuthorUserID is null
 		DateCreated datetime NOT NULL,
 
-		MarkupLevel smallint NOT NULL, -- same as for Forum table.
 		BodySource nvarchar(max) NOT NULL, -- the text typed in by the user
 		BodyOutput nvarchar(max) NOT NULL, -- the reformatted text according to the specified markup type (textile, bbcode, etc)
 		ModerationState smallint NOT NULL, -- 0: unreviewed, 1: approved, 2: flagged for review, 3: spam

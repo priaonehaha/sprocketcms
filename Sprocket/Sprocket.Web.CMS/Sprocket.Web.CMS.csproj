@@ -69,7 +69,6 @@
     <Compile Include="Script\Token.cs" />
     <Compile Include="Script\ExpressionArgument.cs" />
     <Compile Include="Script\Exceptions.cs" />
-    <Compile Include="Script\DateAndTime.cs" />
     <Compile Include="Script\Expressions\BinaryExpressions.cs" />
     <Compile Include="Script\Expressions\Boolean.cs" />
     <Compile Include="Script\Expressions\Not.cs" />

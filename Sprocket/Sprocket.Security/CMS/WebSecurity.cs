@@ -31,7 +31,7 @@ namespace Sprocket.Web.CMS.Security
 			get
 			{
 				if (defaultClient == null)
-					defaultClient = SecurityProvider.Instance.DataLayer.SelectClientSpace(SecurityProvider.ClientSpaceID);
+					defaultClient = SecurityProvider.DataLayer.SelectClientSpace(SecurityProvider.ClientSpaceID);
 				return defaultClient;
 			}
 		}
@@ -83,7 +83,7 @@ namespace Sprocket.Web.CMS.Security
 								using (TransactionScope scope = new TransactionScope())
 								{
 									DatabaseManager.DatabaseEngine.PersistConnection();
-									List<User> users = SecurityProvider.Instance.DataLayer.FilterUsers(null, null, null, null, null, null, false, out k);
+									List<User> users = SecurityProvider.DataLayer.FilterUsers(null, null, null, null, null, null, false, out k);
 									foreach (User user in users)
 										SecurityProvider.RequestUserActivation(user.UserID, user.Email);
 									scope.Complete();
@@ -107,7 +107,7 @@ namespace Sprocket.Web.CMS.Security
 							{
 								string activationCode = SprocketPath.Sections[1];
 								long userID;
-								Result r = SecurityProvider.Instance.DataLayer.ActivateUser(activationCode, out userID);
+								Result r = SecurityProvider.DataLayer.ActivateUser(activationCode, out userID);
 								if (r.Succeeded)
 								{
 									User user = null;
@@ -118,7 +118,7 @@ namespace Sprocket.Web.CMS.Security
 											user.Activated = true;
 										}
 									if (user == null)
-										user = SecurityProvider.Instance.DataLayer.SelectUser(userID);
+										user = SecurityProvider.DataLayer.SelectUser(userID);
 
 									if (OnUserActivated != null)
 										OnUserActivated(user, handled);

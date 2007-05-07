@@ -41,6 +41,12 @@ namespace Sprocket.Web.CMS.Security
 				}
 		}
 
+		[AjaxMethod(RequiresAuthentication = true)]
+		public bool IsUsernameTaken(string oldUsername, string newUsername)
+		{
+			return SecurityProvider.DataLayer.IsUsernameTaken(SecurityProvider.ClientSpaceID, newUsername, SecurityProvider.CurrentUser.UserID);
+		}
+
 		#region User Editing and Filtering
 		public class UserFilterResults : IJSONEncoder
 		{
@@ -79,7 +85,7 @@ namespace Sprocket.Web.CMS.Security
 		public UserFilterResults FilterUsers(string username, string firstname, string surname, string email, int max)
 		{
 			int total;
-			List<User> users = SecurityProvider.Instance.DataLayer.FilterUsers(username, firstname, surname, email, max, SecurityProvider.CurrentUser.UserID, null, out total);
+			List<User> users = SecurityProvider.DataLayer.FilterUsers(username, firstname, surname, email, max, SecurityProvider.CurrentUser.UserID, null, out total);
 			UserFilterResults results = new UserFilterResults(total, users);
 			return results;
 		}
@@ -127,8 +133,8 @@ namespace Sprocket.Web.CMS.Security
 			{
 				block = new AjaxFormFieldBlock("Roles", "Assigned Roles");
 				block.Rank = 998;
-				List<RoleState> roleStates = SecurityProvider.Instance.DataLayer.ListAllRolesAgainstUser(userID == null ? 0 : userID.Value);
-				List<PermissionTypeState> permissions = SecurityProvider.Instance.DataLayer.ListAllPermissionTypesAgainstUser(userID == null ? 0 : userID.Value);
+				List<RoleState> roleStates = SecurityProvider.DataLayer.ListAllRolesAgainstUser(userID == null ? 0 : userID.Value);
+				List<PermissionTypeState> permissions = SecurityProvider.DataLayer.ListAllPermissionTypesAgainstUser(userID == null ? 0 : userID.Value);
 
 				//IDbCommand cmd = Database.Main.CreateCommand("ListRolePermissionStates", CommandType.StoredProcedure);
 				//Database.Main.AddParameter(cmd, "@UserID", userID);
@@ -182,7 +188,7 @@ namespace Sprocket.Web.CMS.Security
 			//    return new Result("You don't have permission to modify this user.");
 			if (user.Locked)
 				return new Result("This user cannot be deleted.");
-			return SecurityProvider.Instance.DataLayer.Delete(user);
+			return SecurityProvider.DataLayer.Delete(user);
 		}
 
 		[AjaxMethod(RequiresAuthentication = true)]
@@ -229,7 +235,7 @@ namespace Sprocket.Web.CMS.Security
 		[RequiresPermission(PermissionType.RoleAdministrator)]
 		public List<RoleItem> GetAccessibleRoles()
 		{
-			List<Role> roles = SecurityProvider.Instance.DataLayer.ListAccessibleRoles(SecurityProvider.CurrentUser.UserID);
+			List<Role> roles = SecurityProvider.DataLayer.ListAccessibleRoles(SecurityProvider.CurrentUser.UserID);
 			List<RoleItem> items = new List<RoleItem>();
 			foreach (Role role in roles)
 				if (!role.Locked && !role.Hidden)
@@ -267,14 +273,14 @@ namespace Sprocket.Web.CMS.Security
 			form.FieldBlocks.Add(block);
 
 			//List<Guid> roleDescendents = new List<Guid>();
-			//List<Role> roleDescendents = SecurityProvider.Instance.DataLayer.ListDescendentRoles(role.RoleID);
+			//List<Role> roleDescendents = SecurityProvider.DataLayer.ListDescendentRoles(role.RoleID);
 			//IDbCommand cmd = Database.Main.CreateCommand("ListDescendentRoles", CommandType.StoredProcedure);
 			//Database.Main.AddParameter(cmd, "@RoleID", role.RoleID);
 			//DataSet ds = Database.Main.GetDataSet(cmd);
 			//foreach (Role role in roleDescendents)
 			//    roleDescendents.Add((Guid)row["RoleID"]);
 
-			List<RoleState> roles = SecurityProvider.Instance.DataLayer.ListAllRolesAgainstRole(role.RoleID);
+			List<RoleState> roles = SecurityProvider.DataLayer.ListAllRolesAgainstRole(role.RoleID);
 			//cmd = Database.Main.CreateCommand("ListRoleToRoleAssignmentStates", CommandType.StoredProcedure);
 			//Database.Main.AddParameter(cmd, "@RoleID", role.RoleID);
 			//ds = Database.Main.GetDataSet(cmd);
@@ -297,7 +303,7 @@ namespace Sprocket.Web.CMS.Security
 
 			block = new AjaxFormFieldBlock("Permissions", "Permission Settings");
 			c  = 0;
-			foreach (PermissionTypeState pts in SecurityProvider.Instance.DataLayer.ListAllPermissionTypesAgainstRole(role.RoleID))
+			foreach (PermissionTypeState pts in SecurityProvider.DataLayer.ListAllPermissionTypesAgainstRole(role.RoleID))
 				//if (CurrentUser.HasPermission(row["PermissionTypeCode"].ToString()))
 				block.Add(new AjaxFormCheckboxField(
 					pts.PermissionType.Description, pts.PermissionType.PermissionTypeCode, pts.PermissionState == PermissionState.Specified,
@@ -330,7 +336,7 @@ namespace Sprocket.Web.CMS.Security
 				return new Result("You don't have permission to modify this role.");
 			if (role.Locked)
 				return new Result("This role cannot be deleted.");
-			return SecurityProvider.Instance.DataLayer.Delete(role);
+			return SecurityProvider.DataLayer.Delete(role);
 		}
 		#endregion
 	}

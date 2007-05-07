@@ -71,7 +71,7 @@ namespace Sprocket.Security
 
 		public static ClientSpace Select(long clientSpaceID)
 		{
-			return SecurityProvider.Instance.DataLayer.SelectClientSpace(clientSpaceID);
+			return SecurityProvider.DataLayer.SelectClientSpace(clientSpaceID);
 		}
 	}
 
@@ -248,12 +248,12 @@ namespace Sprocket.Security
 
 		public static User Select(long clientSpaceID, string username)
 		{
-			return SecurityProvider.Instance.DataLayer.SelectUser(clientSpaceID, username);
+			return SecurityProvider.DataLayer.SelectUser(clientSpaceID, username);
 		}
 
 		public static User Select(long userID)
 		{
-			return SecurityProvider.Instance.DataLayer.SelectUser(userID);
+			return SecurityProvider.DataLayer.SelectUser(userID);
 		}
 
 		#region Methods
@@ -263,7 +263,7 @@ namespace Sprocket.Security
 			if (permissions == null)
 			{
 				permissions = new Dictionary<string, PermissionState>();
-				List<PermissionTypeState> list = SecurityProvider.Instance.DataLayer.ListAllPermissionTypesAgainstUser(userID);
+				List<PermissionTypeState> list = SecurityProvider.DataLayer.ListAllPermissionTypesAgainstUser(userID);
 				foreach (PermissionTypeState p in list)
 					permissions.Add(p.PermissionType.PermissionTypeCode, p.PermissionState);
 			}
@@ -273,12 +273,12 @@ namespace Sprocket.Security
 			if(!permissions.ContainsKey(permissionTypeCode))
 				return false;
 			return permissions[permissionTypeCode] != PermissionState.Disabled;
-				//SecurityProvider.Instance.DataLayer.DoesUserHavePermission(userID, permissionTypeCode);
+				//SecurityProvider.DataLayer.DoesUserHavePermission(userID, permissionTypeCode);
 		}
 
 		public bool HasRole(string roleCode)
 		{
-			return SecurityProvider.Instance.DataLayer.IsUserInRole(userID, roleCode);
+			return SecurityProvider.DataLayer.IsUserInRole(userID, roleCode);
 		}
 
 		public MailAddress GetMailAddress(bool useFullName)
@@ -365,12 +365,12 @@ namespace Sprocket.Security
 
 		public static Role Select(long roleID)
 		{
-			return SecurityProvider.Instance.DataLayer.SelectRole(roleID);
+			return SecurityProvider.DataLayer.SelectRole(roleID);
 		}
 
 		public static Role Select(long clientSpaceID, string roleCode)
 		{
-			return SecurityProvider.Instance.DataLayer.SelectRole(clientSpaceID, roleCode);
+			return SecurityProvider.DataLayer.SelectRole(clientSpaceID, roleCode);
 		}
 
 		public bool IsValidPropertyName(string propertyName)
@@ -406,7 +406,7 @@ namespace Sprocket.Security
 				case "locked":
 					return locked;
 				default:
-					return null;
+					return VariableExpression.InvalidProperty;
 			}
 		}
 

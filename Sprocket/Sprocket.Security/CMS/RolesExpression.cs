@@ -10,7 +10,7 @@ namespace Sprocket.Security.CMS
 	{
 		public IList GetList(ExecutionState state)
 		{
-			return SecurityProvider.Instance.DataLayer.ListAccessibleRoles(SecurityProvider.CurrentUser.UserID);
+			return SecurityProvider.DataLayer.ListAccessibleRoles(SecurityProvider.CurrentUser.UserID);
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
