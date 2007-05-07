@@ -28,7 +28,7 @@ namespace Sprocket.Security
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
-			DatabaseSetup.Instance.Completed += new EmptyEventHandler(DatabaseSetup_Completed);
+			DatabaseSetup.Instance.Completed += new EmptyHandler(DatabaseSetup_Completed);
 			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
 			WebAuthentication.Instance.OnValidatingLogin += new WebAuthentication.LoginAuthenticationHandler(WebAuthentication_OnValidatingLogin);
 		}

@@ -44,7 +44,7 @@ namespace Sprocket
 		/// Fires after the OnCheckingSettings event fires and only if no
 		/// errors were found.
 		/// </summary>
-		public event EmptyEventHandler OnSettingsVerified;
+		public event EmptyHandler OnSettingsVerified;
 
 		/// <summary>
 		/// Gets the value from a key/value pair in the .config file
