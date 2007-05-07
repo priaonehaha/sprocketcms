@@ -1,0 +1,44 @@
+=Quick How-To Guide for Processing Forms in Sprocket=
+
+Because Sprocket is a significant sidestep from the traditional ASP.Net Page framework, processing of forms must be approached a little differently. Below I will give two different methods for processing form posts. One can be used from within the Page/Template framework, and the other is more generic.
+
+==Basic Forms Processing==
+
+Let's say you have the following form somewhere on a page in your website:
+{{{
+<form method="post" action="/submit-my-form/">
+	Your name: <input type="text" name="name" />
+	<input type="submit" />
+</form>
+}}}
+
+You should now make a generic module (or use one you've already created). Here is a basic module template:
+{{{
+using Sprocket;
+using Sprocket.Web;
+
+[ModuleDependency(typeof(WebEvents))]
+[ModuleTitle("My Request Handler")]
+[ModuleDescription("This is a basic module for handling requests")]
+public class MyRequestHandler : ISprocketModule
+{
+	public void AttachEventHandlers(ModuleRegistry registry)
+	{
+		WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
+	}
+
+	void WebEvents_OnLoadRequestedPath(HandleFlag handled)
+	{
+		switch (SprocketPath.Value)
+		{
+			case "submit-my-form":
+				ProcessYourForm();
+				break;
+
+			default:
+				return;
+		}
+		handled.Set(); // ensure that Sprocket considers the request handled
+	}
+}
+}}}
