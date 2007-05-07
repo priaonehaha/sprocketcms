@@ -7,7 +7,7 @@ using Sprocket;
 using Sprocket.Data;
 using Sprocket.Web;
 using Sprocket.Web.CMS.Script;
-using Sprocket.Web.CMS.Script.Parser;
+
 
 namespace Sprocket.Web.Forums
 {
@@ -998,6 +998,16 @@ namespace Sprocket.Web.Forums
 
 		#endregion
 		#endregion
+
+		#region Custom
+
+		public ForumModerationState Moderation
+		{
+			get { return (ForumModerationState)moderationState; }
+			set { moderationState = (short)value; }
+		}
+
+		#endregion
 	}
 
 	public class ForumTopicMessage : IJSONEncoder, IJSONReader
@@ -1010,7 +1020,6 @@ namespace Sprocket.Web.Forums
 		protected long? authorUserID = null;
 		protected string authorName = null;
 		protected DateTime dateCreated = DateTime.MinValue;
-		protected short markupLevel = 0;
 		protected string bodySource = "";
 		protected string bodyOutput = "";
 		protected short moderationState = 0;
@@ -1066,15 +1075,6 @@ namespace Sprocket.Web.Forums
 		}
 
 		///<summary>
-		///Gets or sets the value for MarkupLevel
-		///</summary>
-		public short MarkupLevel
-		{
-			get { return markupLevel; }
-			set { markupLevel = value; }
-		}
-
-		///<summary>
 		///Gets or sets the value for BodySource
 		///</summary>
 		public string BodySource
@@ -1118,14 +1118,13 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
-		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, short markupLevel, string bodySource, string bodyOutput, short moderationState, short markupType)
+		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, string bodySource, string bodyOutput, short moderationState, short markupType)
 		{
 			this.forumTopicMessageID = forumTopicMessageID;
 			this.forumTopicID = forumTopicID;
 			this.authorUserID = authorUserID;
 			this.authorName = authorName;
 			this.dateCreated = dateCreated;
-			this.markupLevel = markupLevel;
 			this.bodySource = bodySource;
 			this.bodyOutput = bodyOutput;
 			this.moderationState = moderationState;
@@ -1139,7 +1138,6 @@ namespace Sprocket.Web.Forums
 			if (reader["AuthorUserID"] != DBNull.Value) authorUserID = (long?)reader["AuthorUserID"];
 			if (reader["AuthorName"] != DBNull.Value) authorName = (string)reader["AuthorName"];
 			if (reader["DateCreated"] != DBNull.Value) dateCreated = (DateTime)reader["DateCreated"];
-			if (reader["MarkupLevel"] != DBNull.Value) markupLevel = (short)reader["MarkupLevel"];
 			if (reader["BodySource"] != DBNull.Value) bodySource = (string)reader["BodySource"];
 			if (reader["BodyOutput"] != DBNull.Value) bodyOutput = (string)reader["BodyOutput"];
 			if (reader["ModerationState"] != DBNull.Value) moderationState = (short)reader["ModerationState"];
@@ -1157,7 +1155,6 @@ namespace Sprocket.Web.Forums
 			copy.authorUserID = authorUserID;
 			copy.authorName = authorName;
 			copy.dateCreated = dateCreated;
-			copy.markupLevel = markupLevel;
 			copy.bodySource = bodySource;
 			copy.bodyOutput = bodyOutput;
 			copy.moderationState = moderationState;
@@ -1184,8 +1181,6 @@ namespace Sprocket.Web.Forums
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "DateCreated", dateCreated);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "MarkupLevel", markupLevel);
-			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "BodySource", bodySource);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "BodyOutput", bodyOutput);
@@ -1205,7 +1200,6 @@ namespace Sprocket.Web.Forums
 			authorUserID = (long?)values["AuthorUserID"];
 			authorName = (string)values["AuthorName"];
 			dateCreated = (DateTime)values["DateCreated"];
-			markupLevel = (short)values["MarkupLevel"];
 			bodySource = (string)values["BodySource"];
 			bodyOutput = (string)values["BodyOutput"];
 			moderationState = (short)values["ModerationState"];
@@ -1214,6 +1208,24 @@ namespace Sprocket.Web.Forums
 
 		#endregion
 		#endregion
+
+		#region Custom
+
+		public ForumModerationState Moderation
+		{
+			get { return (ForumModerationState)moderationState; }
+			set { moderationState = (short)value; }
+		}
+
+		#endregion
+	}
+
+	public enum ForumModerationState
+	{
+		Pending = 0,
+		Approved = 1,
+		FlaggedForReview = 2,
+		Spam = 3
 	}
 
 	public class ForumSummary : IPropertyEvaluatorExpression
@@ -1287,7 +1299,7 @@ namespace Sprocket.Web.Forums
 				case "forum":
 					return forum;
 				default:
-					return null;
+					return VariableExpression.InvalidProperty;
 			}
 		}
 

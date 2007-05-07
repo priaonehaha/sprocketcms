@@ -8,6 +8,7 @@ namespace Sprocket.Web.CMS.Script
 {
 	public class VariableExpression : IPropertyEvaluatorExpression, IArgumentListEvaluatorExpression, IFlexibleSyntaxExpression
 	{
+		public const string InvalidProperty = "___VariableExpression.InvalidProperty___(const|expr)";
 		private Token variableToken = null;
 
 		public Token VariableToken
@@ -40,7 +41,13 @@ namespace Sprocket.Web.CMS.Script
 		{
 			object o = state.HasVariable(variableToken.Value) ? state.GetVariable(variableToken.Value) : null;
 			if (o is IPropertyEvaluatorExpression)
-				return ((IPropertyEvaluatorExpression)o).EvaluateProperty(propertyName, token, state);
+			{
+				object val = ((IPropertyEvaluatorExpression)o).EvaluateProperty(propertyName, token, state);
+				if(val != null)
+					if (val.ToString() == VariableExpression.InvalidProperty)
+						throw new InstructionExecutionException("\"" + propertyName + "\" is not a valid property of this variable.", token);
+				return val;
+			}
 			else
 				return SystemTypeEvaluator.EvaluateProperty(o, propertyName, token);
 		}

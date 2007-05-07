@@ -5,7 +5,6 @@ using System.Web;
 
 using Sprocket.Utility;
 using Sprocket.Web.CMS.Script;
-using Sprocket.Web.CMS.Script.Parser;
 
 namespace Sprocket.Web.CMS.Admin
 {

@@ -55,7 +55,7 @@ namespace Sprocket.Web.CMS.Security
 			switch (form.FormName)
 			{
 				case "UserEditForm":
-					if (!SecurityProvider.Instance.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.UserAdministrator))
+					if (!SecurityProvider.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.UserAdministrator))
 						return;
 					AjaxFormSubmittedValues.Block block = form.Blocks["MainUserFields"];
 					string pw = block.Fields["Password"].Value;
@@ -73,7 +73,7 @@ namespace Sprocket.Web.CMS.Security
 							block.Fields["Surname"].Value,
 							block.Fields["Email"].Value,
 							enabled, false, false, 0);
-						Result result = SecurityProvider.Instance.DataLayer.Store(user);
+						Result result = SecurityProvider.DataLayer.Store(user);
 						if (!result.Succeeded)
 							throw new AjaxException(result.Message);
 						if (OnUserSaved != null)
@@ -92,7 +92,7 @@ namespace Sprocket.Web.CMS.Security
 						user.Surname = block.Fields["Surname"].Value;
 						user.Email = block.Fields["Email"].Value;
 						user.Enabled = enabled;
-						SecurityProvider.Instance.DataLayer.Store(user);
+						SecurityProvider.DataLayer.Store(user);
 						//user.Save();
 						if (OnUserSaved != null)
 							OnUserSaved(form, user);
@@ -116,14 +116,14 @@ namespace Sprocket.Web.CMS.Security
 										//sql.AppendFormat("exec AssignPermission '{0}', null, '{1}'\r\n", kvp.Value.Name.Replace("'", "''"), user.UserID);
 						//if (sql.Length == 0) return;
 
-						SecurityProvider.Instance.DataLayer.SetRolesAndPermissionsForUser(user.UserID, roleCodes, permissionTypeCodes);
+						SecurityProvider.DataLayer.SetRolesAndPermissionsForUser(user.UserID, roleCodes, permissionTypeCodes);
 						//user.RevokeRolesAndPermissions(); // revoke any pre-existing permissions/roles before we assign the new ones
 						//Database.Main.CreateCommand(sql.ToString(), CommandType.Text).ExecuteNonQuery();
 					}
 					break;
 
 				case "RoleEditForm":
-					if (!SecurityProvider.Instance.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.RoleAdministrator))
+					if (!SecurityProvider.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.RoleAdministrator))
 						return;
 					block = form.Blocks["RoleDetails"];
 					string name = block.Fields["Name"].Value;
@@ -144,7 +144,7 @@ namespace Sprocket.Web.CMS.Security
 					}
 					role.Name = name;
 					role.Enabled = enabled;
-					SecurityProvider.Instance.DataLayer.Store(role);
+					SecurityProvider.DataLayer.Store(role);
 					//((SecurityProvider)Core.Instance["SecurityProvider"]).SaveRole(role);
 
 					//sql = new StringBuilder();
@@ -161,7 +161,7 @@ namespace Sprocket.Web.CMS.Security
 									permissionTypeCodes.Add(kvp.Value.Name);
 									//sql.AppendFormat("exec AssignPermission '{0}', null, '{1}'\r\n", kvp.Value.Name.Replace("'", "''"), role.RoleID);
 
-					SecurityProvider.Instance.DataLayer.SetRolesAndPermissionsForRole(role.RoleID, roleCodes, permissionTypeCodes);
+					SecurityProvider.DataLayer.SetRolesAndPermissionsForRole(role.RoleID, roleCodes, permissionTypeCodes);
 					//role.RevokeRolesAndPermissions(); // revoke any pre-existing permissions/roles before we assign the new ones
 					//if (sql.Length == 0) return;
 					//Database.Main.CreateCommand(sql.ToString(), CommandType.Text).ExecuteNonQuery();
@@ -214,12 +214,12 @@ namespace Sprocket.Web.CMS.Security
 			switch (formArgs.FieldName)
 			{
 				case "Username":
-					if (SecurityProvider.Instance.DataLayer.IsUsernameTaken(SecurityProvider.ClientSpaceID, formArgs.FieldValue, formArgs.RecordID))
+					if (SecurityProvider.DataLayer.IsUsernameTaken(SecurityProvider.ClientSpaceID, formArgs.FieldValue, formArgs.RecordID))
 						msg = multilingual ? "{?form-error-username-already-exists?}" : "That username is already in use";
 					break;
 
 				case "Email":
-					if (SecurityProvider.Instance.DataLayer.IsEmailAddressTaken(SecurityProvider.ClientSpaceID, formArgs.FieldValue, formArgs.RecordID))
+					if (SecurityProvider.DataLayer.IsEmailAddressTaken(SecurityProvider.ClientSpaceID, formArgs.FieldValue, formArgs.RecordID))
 						msg = multilingual ? "{?form-error-emailaddress-already-exists?}" : "That email address is already in use";
 					else if(!StringUtilities.Validation.IsEmailAddress(formArgs.FieldValue))
 						msg = multilingual ? "{?form-error-emailaddress-invalid?}" : "That is not an email address";
@@ -241,7 +241,7 @@ namespace Sprocket.Web.CMS.Security
 					case "Username":
 						if (fld.Value.Trim().Length == 0)
 							fld.ErrorMessage = multilingual ? "{?form-error-require-username?}" : "A username is required";
-						else if (SecurityProvider.Instance.DataLayer.IsUsernameTaken(SecurityProvider.ClientSpaceID, fld.Value, userID))
+						else if (SecurityProvider.DataLayer.IsUsernameTaken(SecurityProvider.ClientSpaceID, fld.Value, userID))
 							fld.ErrorMessage = multilingual ? "{?form-error-username-already-exists?}" : "That username is already in use";
 						break;
 
@@ -272,7 +272,7 @@ namespace Sprocket.Web.CMS.Security
 							fld.ErrorMessage = multilingual ? "{?form-error-require-email?}" : "An email address is required";
 						else if (!StringUtilities.Validation.IsEmailAddress(fld.Value))
 							fld.ErrorMessage = multilingual ? "{?form-error-emailaddress-invalid?}" : "That is not an email address";
-						else if (SecurityProvider.Instance.DataLayer.IsEmailAddressTaken(SecurityProvider.ClientSpaceID, fld.Value, userID))
+						else if (SecurityProvider.DataLayer.IsEmailAddressTaken(SecurityProvider.ClientSpaceID, fld.Value, userID))
 							fld.ErrorMessage = multilingual ? "{?form-error-emailaddress-already-exists?}" : "That email address is already in use";
 						break;
 				}
@@ -303,7 +303,7 @@ namespace Sprocket.Web.CMS.Security
 					false, false, 0);
 				if (OnBeforeSaveUser != null)
 					OnBeforeSaveUser(form, user);
-				SecurityProvider.Instance.DataLayer.Store(user);
+				SecurityProvider.DataLayer.Store(user);
 				form.RecordID = user.UserID;
 			}
 			else
@@ -319,7 +319,7 @@ namespace Sprocket.Web.CMS.Security
 				user.Enabled = enabled == null ? (block.Fields["Enabled"].Value == "True") : enabled.Value;
 				if (OnBeforeSaveUser != null)
 					OnBeforeSaveUser(form, user);
-				SecurityProvider.Instance.DataLayer.Store(user);
+				SecurityProvider.DataLayer.Store(user);
 
 				/* we're not going to allow the user to change their username, so this code is commented out
 				if (myuserid == user.UserID && (pw != null || user.Username != myoldusername)) // changing username or password causes login cookie to become invalid

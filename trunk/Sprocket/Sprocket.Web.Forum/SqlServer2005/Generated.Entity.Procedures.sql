@@ -233,7 +233,6 @@ CREATE PROCEDURE dbo.ForumTopicMessage_Store
 	@AuthorUserID bigint = null,
 	@AuthorName nvarchar(100) = null,
 	@DateCreated datetime,
-	@MarkupLevel smallint,
 	@BodySource nvarchar(max),
 	@BodyOutput nvarchar(max),
 	@ModerationState smallint,
@@ -245,9 +244,9 @@ BEGIN
 		IF @ForumTopicMessageID = 0 OR @ForumTopicMessageID IS NULL
 			EXEC GetUniqueID @ForumTopicMessageID OUTPUT
 		INSERT INTO ForumTopicMessage
-			(ForumTopicMessageID, ForumTopicID, AuthorUserID, AuthorName, DateCreated, MarkupLevel, BodySource, BodyOutput, ModerationState, MarkupType)
+			(ForumTopicMessageID, ForumTopicID, AuthorUserID, AuthorName, DateCreated, BodySource, BodyOutput, ModerationState, MarkupType)
 		VALUES
-			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @AuthorName, @DateCreated, @MarkupLevel, @BodySource, @BodyOutput, @ModerationState, @MarkupType)
+			(@ForumTopicMessageID, @ForumTopicID, @AuthorUserID, @AuthorName, @DateCreated, @BodySource, @BodyOutput, @ModerationState, @MarkupType)
 	END
 	ELSE
 	BEGIN
@@ -256,7 +255,6 @@ BEGIN
 			AuthorUserID = @AuthorUserID,
 			AuthorName = @AuthorName,
 			DateCreated = @DateCreated,
-			MarkupLevel = @MarkupLevel,
 			BodySource = @BodySource,
 			BodyOutput = @BodyOutput,
 			ModerationState = @ModerationState,

@@ -57,9 +57,9 @@ namespace Sprocket.Security
 		}
 
 		ISecurityProviderDataLayer dataLayer = null;
-		public ISecurityProviderDataLayer DataLayer
+		public static ISecurityProviderDataLayer DataLayer
 		{
-			get { return dataLayer; }
+			get { return Instance.dataLayer; }
 		}
 
 		void Instance_OnDatabaseHandlerLoaded(IDatabaseHandler source)
@@ -137,10 +137,10 @@ namespace Sprocket.Security
 			}
 		}
 
-		public static string RequestUserActivation(long userID, string email)
+		public static string RequestUserActivation(long userID, string emailAddress)
 		{
 			string code = (Guid.NewGuid().ToString() + Guid.NewGuid()).Replace("-", "");
-			Result r = Instance.DataLayer.SetEmailChangeRequest(userID, email, code);
+			Result r = DataLayer.SetEmailChangeRequest(userID, emailAddress, code);
 			if (!r.Succeeded)
 				throw new Exception(r.Message);
 			return code;

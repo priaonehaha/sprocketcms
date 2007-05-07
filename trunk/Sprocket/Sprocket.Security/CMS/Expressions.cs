@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Sprocket.Web;
 using Sprocket.Web.CMS.Script;
-using Sprocket.Web.CMS.Script.Parser;
+
 
 namespace Sprocket.Security.CMS
 {
@@ -101,7 +101,7 @@ namespace Sprocket.Security.CMS
 				return "[not logged in]";
 			if (CurrentRequest.Value["EmailChangePendingExpression_Value"] != null)
 				return (bool)CurrentRequest.Value["EmailChangePendingExpression_Value"];
-			EmailChangeRequest ecr = SecurityProvider.Instance.DataLayer.SelectEmailChangeRequest(SecurityProvider.CurrentUser.UserID);
+			EmailChangeRequest ecr = SecurityProvider.DataLayer.SelectEmailChangeRequest(SecurityProvider.CurrentUser.UserID);
 			bool val;
 			if (ecr == null)
 				val = false;
@@ -121,6 +121,28 @@ namespace Sprocket.Security.CMS
 		public IExpression Create()
 		{
 			return new EmailChangePendingExpression();
+		}
+	}
+
+	class EmailAddressExpression : IExpression
+	{
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			if (!WebAuthentication.Instance.IsLoggedIn)
+				return "[not logged in]";
+			return SecurityProvider.CurrentUser.Email;
+		}
+	}
+	class EmailAddressExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "emailaddress"; }
+		}
+
+		public IExpression Create()
+		{
+			return new EmailAddressExpression();
 		}
 	}
 }

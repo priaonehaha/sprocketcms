@@ -69,7 +69,7 @@ namespace Sprocket.Web.CMS.Content
 				case "name":
 					return name;
 				default:
-					return null;
+					return VariableExpression.InvalidProperty;
 			}
 		}
 

@@ -136,7 +136,7 @@ namespace Sprocket.Web.CMS.Content
 				case "contentfile": return contentFile;
 				case "templatename": return template;
 				case "contenttype": return contentType;
-				default: return null;
+				default: return VariableExpression.InvalidProperty;
 			}
 		}
 
