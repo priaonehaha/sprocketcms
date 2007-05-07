@@ -185,6 +185,32 @@ namespace Sprocket.Web
 			if (OnRequestStateLoaded != null) // as always, let the other modules know where we are...
 				OnRequestStateLoaded();
 
+			if (HttpContext.Current.Request.Form.Count > 0)
+			{
+				foreach (FormPostAction action in formPostActions)
+				{
+					if (action.PostFromPath != null)
+						if (action.PostFromPath != SprocketPath.ExtractSprocketPath(HttpContext.Current.Request.UrlReferrer.ToString()))
+							continue;
+
+					if (action.PostToPath != null)
+						if (action.PostToPath.ToLower() != SprocketPath.Value)
+							continue;
+
+					if (action.FieldName != null)
+					{
+						string s = HttpContext.Current.Request.Form[action.FieldName];
+						if (s == null)
+							continue;
+						if (action.FieldValue != null)
+							if (s != action.FieldValue)
+								continue;
+					}
+
+					action.PostHandler();
+				}
+			}
+
 			// this is our flag so that request event handlers can let us know if they handled this request.
 			HandleFlag flag = new HandleFlag();
 
@@ -312,6 +338,88 @@ namespace Sprocket.Web
 		public static WebEvents Instance
 		{
 			get { return (WebEvents)Core.Instance[typeof(WebEvents)].Module; }
+		}
+
+		public void AddFormProcessor(string forSprocketPath, string fieldName, EmptyHandler postHandler)
+		{
+		}
+
+		private List<FormPostAction> formPostActions = new List<FormPostAction>();
+		public void AddFormProcessor(FormPostAction action)
+		{
+			formPostActions.Add(action);
+		}
+
+		/// <summary>
+		/// Specifies a delegate method to handle a form post action and the criteria under which the method will be called.
+		/// </summary>
+		public class FormPostAction
+		{
+			private string postToPath = null, postFromPath = null, fieldName = null, fieldValue = null;
+			private EmptyHandler postHandler = null;
+
+			/// <summary>
+			/// If not null, SprocketPath.Value must match this value before the method is called.
+			/// </summary>
+			public string PostToPath
+			{
+				get { return postToPath; }
+				set { postToPath = value; }
+			}
+
+			/// <summary>
+			/// If not null, the referring page must match this SprocketPath value before the method is called.
+			/// </summary>
+			public string PostFromPath
+			{
+				get { return postFromPath; }
+				set { postFromPath = value; }
+			}
+
+			/// <summary>
+			/// If not null, this is the name of the field that must be posted for the pst handler method to be called.
+			/// </summary>
+			public string FieldName
+			{
+				get { return fieldName; }
+				set { fieldName = value; }
+			}
+
+			/// <summary>
+			/// If not null, the value held by FieldName must match this before the post handler method is called.
+			/// </summary>
+			public string FieldValue
+			{
+				get { return fieldValue; }
+				set { fieldValue = value; }
+			}
+
+			/// <summary>
+			/// This is the method that will be called when a form is posted that matches the criteria held by the other fields in this class.
+			/// </summary>
+			public EmptyHandler PostHandler
+			{
+				get { return postHandler; }
+				set { postHandler = value; }
+			}
+
+			/// <summary>
+			/// Constructs a new FormPostAction object. postHandler is the only important argument. Any of the others can be set to null
+			/// to prevent them from being included as criteria for whether or not the postHandler method is called when a form is posted.
+			/// </summary>
+			/// <param name="postToPath">If not null, SprocketPath.Value must match this value before the method is called.</param>
+			/// <param name="postFromPath">If not null, the referring page must match this SprocketPath value before the method is called.</param>
+			/// <param name="fieldName">If not null, this is the name of the field that must be posted for the pst handler method to be called.</param>
+			/// <param name="fieldValue">If not null, the value held by FieldName must match this before the post handler method is called.</param>
+			/// <param name="postHandler">This is the method that will be called when a form is posted that matches the criteria held by the other fields in this class.</param>
+			public FormPostAction(string postToPath, string postFromPath, string fieldName, string fieldValue, EmptyHandler postHandler)
+			{
+				this.postToPath = postToPath;
+				this.postFromPath = postFromPath;
+				this.fieldName = fieldName;
+				this.fieldValue = fieldValue;
+				this.postHandler = postHandler;
+			}
 		}
 
 		#region ISprocketModule

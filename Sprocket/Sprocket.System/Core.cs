@@ -22,7 +22,7 @@ namespace Sprocket
 		/// <summary>
 		/// Called after all modules have been initialised
 		/// </summary>
-		public event EmptyEventHandler OnInitialiseComplete;
+		public event EmptyHandler OnInitialiseComplete;
 
 		internal Core()
 		{

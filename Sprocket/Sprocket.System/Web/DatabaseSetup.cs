@@ -14,7 +14,7 @@ namespace Sprocket.Web
 	[ModuleTitle("Database Setup Interface")]
 	public class DatabaseSetup : ISprocketModule
 	{
-		public event EmptyEventHandler Completed;
+		public event EmptyHandler Completed;
 		void Instance_OnLoadRequestedPath(HandleFlag handled)
 		{
 			if (handled.Handled) return;

@@ -8,7 +8,7 @@ namespace Sprocket
 	/// <summary>
 	/// Designed for events which require no data to be shared.
 	/// </summary>
-	public delegate void EmptyEventHandler();
+	public delegate void EmptyHandler();
 
 	/// <summary>
 	/// Designed for events that signify some interrupable process

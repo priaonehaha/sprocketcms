@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Web;
 
 namespace Sprocket.Web
 {
@@ -63,6 +64,11 @@ namespace Sprocket.Web
 			if (descendentPath.Substring(parentPath.Length, 1) != "/")
 				return "";
 			return descendentPath.Substring(parentPath.Length + 1);
+		}
+
+		public static string ExtractSprocketPath(string fullURL)
+		{
+			return HttpContext.Current.Request.Path.ToLower().Remove(0, HttpContext.Current.Request.ApplicationPath.Length).Trim('/');
 		}
 	}
 }
