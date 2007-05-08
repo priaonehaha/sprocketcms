@@ -13,7 +13,7 @@ An IIS wildcard mapping is required for ASP.Net requests. Basically, you must op
 Modify the connection string in the Web.config file so that it points at your SQL Server database. Feel free to make any other changes that blow your skirt up.
 
 === Step 5 ===
-Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for basic stored procedures and whatnot to be created.
+If you've set this up from the subversion repository, remember to build the solution first. If you've downloaded the release, then it has already been built for you. Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for basic stored procedures and whatnot to be created.
 
 === Step 6 ===
 Next point your browser at your the admin folder of your Sprocket location (e.g. http://localhost/Sprocket/admin) and hey presto, you're away! Initially there's nothing configured for the root location of Sprocket so you'll get a 404. Point it at /admin. (Yes I know there's not actually an admin folder, but don't worry about that, Sprocket will pretend it's there) Oh I almost forgot. The default username is admin and the password is password.
