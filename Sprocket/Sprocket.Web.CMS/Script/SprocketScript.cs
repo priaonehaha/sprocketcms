@@ -117,10 +117,13 @@ namespace Sprocket.Web.CMS.Script
 				writer.Write(Execute());
 		}
 
-		public string Execute()
+		public string Execute(params KeyValuePair<string,object>[] variables)
 		{
 			MemoryStream stream = new MemoryStream();
 			ExecutionState state = new ExecutionState(stream);
+			foreach (KeyValuePair<string, object> kvp in variables)
+				state.Variables.Add(kvp.Key, kvp.Value);
+
 			state.ScriptIdentifierStack.Push(identifier);
 			state.ExecutingScript.Push(this);
 			state.SectionOverrides = sectionOverrides;
