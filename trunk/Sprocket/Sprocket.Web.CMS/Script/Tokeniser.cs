@@ -198,7 +198,7 @@ namespace Sprocket.Web.CMS.Script
 				if (index == source.Length)
 					break;
 			}
-			return new Token(source.Substring(start, index - start), TokenType.Word, start);
+			return new Token(source.Substring(start, index - start).ToLower(), TokenType.Word, start);
 		}
 		private static Token ReadPropertyDesignator(ref string source, ref int index)
 		{

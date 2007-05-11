@@ -16,6 +16,12 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			foreach (ExpressionArgument arg in args)
 			{
 				object o = arg.Expression.Evaluate(state, arg.Token);
+				while (o is IExpression)
+				{
+					if (object.ReferenceEquals(o, arg.Expression))
+						break;
+					o = ((IExpression)o).Evaluate(state, arg.Token);
+				}
 				if (o == null)
 					sb.Append("null");
 				else
