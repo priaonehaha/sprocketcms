@@ -1,0 +1,8 @@
+= Expressions Available in SprocketScript =
+Below is a list of the various expressions currently available in SprocketScript. Please note that this may not be a complete list.
+
+|| *Expression Keyword* || *Description* || *Arguments* || *Properties* ||
+|| currentdate || Returns the current date || - || - ||
+|| formatdate || Formats the specified date according to a supplied .Net DateTimeFormat || One argument; the date to format || - ||
+|| howlongago || Returns a descriptive string expressing the supplied date as an amount of time passed. e.g. A date value that is 57 minutes ago would return "Almost an hour ago" || One argument; a date/time value || - ||
+|| htmlencode || Formats the specified string as an html string, i.e. encoding < and > as &lt; and &gt;, etc. || One or more arguments containg strings to format || - ||
