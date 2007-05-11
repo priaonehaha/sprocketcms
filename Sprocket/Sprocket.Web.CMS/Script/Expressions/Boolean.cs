@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Sprocket.Web.CMS.Script
 {
-	public class BooleanExpression : IExpression
+	public class BooleanExpression : IFlexibleSyntaxExpression
 	{
 		IExpression expr = null;
 		object o = null;
@@ -56,13 +56,14 @@ namespace Sprocket.Web.CMS.Script
 			get { return _false; }
 		}
 
-		public void PrepareExpression(Token expressionToken, List<Token> tokens, ref int nextIndex, Stack<int?> precedenceStack)
+		public void PrepareExpression(TokenList tokens, Stack<int?> precedenceStack)
 		{
-			Token token = expressionToken;
+			Token token = tokens.Current;
 			if (token.Value == "true")
 				o = true;
 			else
 				o = false;
+			tokens.Advance();
 		}
 
 		public BooleanExpression() { }

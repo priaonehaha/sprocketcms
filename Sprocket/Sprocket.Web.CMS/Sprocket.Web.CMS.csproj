@@ -45,6 +45,7 @@
     <Compile Include="Content\ContentManager.cs" />
     <Compile Include="Content\PagesAdminMenuItem.cs" />
     <Compile Include="Content\Script Extensions\AjaxScriptsExpression.cs" />
+    <Compile Include="Content\Script Extensions\FormValuesExpressions.cs" />
     <Compile Include="Content\Script Extensions\PageExpression.cs" />
     <Compile Include="Content\Script Extensions\PathExpression.cs" />
     <Compile Include="Content\PageEntry.cs" />
