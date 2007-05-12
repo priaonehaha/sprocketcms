@@ -1,8 +1,24 @@
 =Quick How-To Guide for Processing Forms in Sprocket=
 
-Because Sprocket is a significant sidestep from the traditional ASP.Net Page framework, processing of forms must be approached a little differently. Below I will give two different methods for processing form posts. One can be used from within the Page/Template framework, and the other is more generic.
+Because Sprocket is a significant sidestep from the traditional ASP.Net Page framework, processing of forms must be approached a little differently. Below I will give two different methods for processing form posts. _The Custom Way_ can be used if you have a deeper understanding of Sprocket and need to process things differently to normal. _The Proper Way_, though, uses a bunch of shortcuts designed to make your life easier when processing forms using Sprocket.
 
-==Basic Forms Processing==
+==Processing Forms the Proper Way==
+
+If you haven't already, get an overview of [BasicWebsiteConstruction basic website construction].
+
+The first thing you want to do is set up a page with a form on it and various fields. The steps to having a fully-working submittable form are generally:
+
+  # build the form HTML
+  # pre-populate the form values with either
+   # default values (e.g. for a new record) or
+   # pre-existing values (e.g. from an existing record)
+  # handle form submission, including:
+   * saving the form values if they were all valid, then redirecting to another page
+   * displaying the form page again if there were errors
+  # display error messages on the form if the form was submitted with any invalid field values
+  # display error styles if there are form field validation errors
+
+==Processing Forms the Custom Way==
 
 Let's say you have the following form somewhere on a page in your website:
 {{{
@@ -42,3 +58,4 @@ public class MyRequestHandler : ISprocketModule
 	}
 }
 }}}
+
