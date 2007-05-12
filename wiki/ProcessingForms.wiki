@@ -4,7 +4,7 @@ Because Sprocket is a significant sidestep from the traditional ASP.Net Page fra
 
 ==Processing Forms the Proper Way==
 
-If you haven't already, get an overview of [BasicWebsiteConstruction basic website construction].
+If you haven't already, get an overview of [BasicWebsiteConstruction basic website construction] and SprocketScript.
 
 The first thing you want to do is set up a page with a form on it and various fields. This method assumes that you're using the page/template system described in BasicWebsiteConstruction. The steps to having a fully-working submittable/processable form are generally:
 
@@ -26,6 +26,30 @@ Make sure you have a page with a specified code (`<Page Path="contact" Code="my-
 ...
 </form>
 }}}
+
+===2. Prepare the Form Field Values===
+
+How do we know which values the form should be displaying, and how do we get the values into the form HTML?
+
+In your website module that you've set up for your own website processing functionality (if you're not sure, just use the code below), you need to interrupt the page processing right before the page is served so that you can prepare the default form values. This is done using the static method !AddPagePreprocessor of the module !ContentManager. The first argument is the page code for your form page (Remember `<Page Code="my-contact-form"...`?). The second is a pointer to the method that will handle the form preparation.
+{{{
+using Sprocket;
+using Sprocket.Web;
+
+[ModuleTitle("My Module")]
+[ModuleDescription("This module does custom processing for my website")]
+[ModuleDependency(typeof(WebEvents))]
+class MyModule : ISprocketModule
+{
+	public void AttachEventHandlers(ModuleRegistry registry)
+	{
+		ContentManager.AddPagePreprocessor("my-contact-form", PrepareContactForm);
+	}
+
+	public void PrepareContactForm(PageEntry page)
+	{
+	}
+}
 
 ==Processing Forms the Custom Way==
 
