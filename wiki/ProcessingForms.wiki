@@ -79,6 +79,10 @@ Your Phone Number: <input type="text" name="phone" value="{?? formfield("phone",
 
 Notice the SprocketScript expression `formfield`. This takes two arguments. The first is the name of the field to check for a pre-existing value. The second is a value to use if no value has been previously specified. You have previously specified values for both fields in your !PrepareContactForm method, but if you hadn't, the "some default value" arguments above would have ended up as the values of the input fields.
 
+===3. Handle Form Submission===
+
+to be continued...
+
 ==Processing Forms the Custom Way==
 
 Let's say you have the following form somewhere on a page in your website:
