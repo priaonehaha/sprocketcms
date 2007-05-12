@@ -25,6 +25,48 @@ namespace MyProject
 
 Voila! You've just written the most basic Sprocket module possible. Make sure the class is referenced by your web project, along with all the other Sprocket projects, and your module will be automatically registered. To check it out, go to http://wherever-sprocket-runs-from/sysinfo/ and you'll see your module listed, plus you'll see it included in the module dependency diagram. It'll be all by itself at the top of the diagram, because so far it isn't dependent on anything else.
 
-So this is all great, but we should probably make the module do something. To learn how to use it to process forms, go check out FormProcessing. Here though, we'll learn how to make it serve up a bit of custom HTML.
+So this is all great, but we should probably make the module do something. To learn how to use it to process forms, go check out ProcessingForms. Here though, we'll learn how to make it serve up a bit of custom HTML.
 
 *FIRST read about SprocketPath! [SprocketPath SprocketPaths] are an integral concept in Sprocket and I'm about to make reference to them.*
+
+The first thing to do is to hook into the appropriate event handler. We're going to hook into !WebEvents.!OnLoadRequestedPath. This event basically says "ok i've done some pre-processing, i'm kinda hoping there is some content to serve now". It passes you a single object ("Handled") which you can use to specify whether or not you've taken care of this request. If you don't, Sprocket will continue on and quite possibly end up at a 404 page. Inside your event handler, you should do something, like for example writing something to the HTTP output stream, then set the Handled flag. Like so:
+
+{{{
+using Sprocket;
+using Sprocket.Web;
+
+namespace MyProject
+{
+	[ModuleTitle("My Module")]
+	[ModuleDescription("This is my module")]
+	public class MyModule : ISprocketModule
+	{
+		public void AttachEventHandlers(ModuleRegistry registry)
+		{
+			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(Instance_OnLoadRequestedPath);
+		}
+
+		void Instance_OnLoadRequestedPath(HandleFlag handled)
+		{
+			// make sure the SprocketPath is "hello" so that we only respond to the right request
+			if (SprocketPath.Value != "hello")
+				return;
+
+			HttpContext.Current.Response.Write("<h1>Hello, world!</h1>");
+			handled.Set();
+		}
+	}
+}
+}}}
+
+If you've installed Sprocket to a local virtual folder accessible via http://localhost/myproject/, you'll find you can now get your module to serve up a page by calling http://localhost/myproject/hello/
+
+Easy! Your first module is complete.
+
+Now just a quick bit of info for those not in the know about how ASP.Net works under the hood.
+
+Each time someone makes a request from your website, a new worker process (or an existing one already in the pool) is created and allocated exclusively to handle that request. That process has no job other than seeing this one request through to completion. When it is done, it is thrown back in the pool where it waits for another request, or is eventually discarded for memory reasons or because somebody invalidated it by, for example, changing the Web.Config file.
+
+Now here's the important stuff to remember. Your module is loaded into memory when the worker process is created, and it stays alive this whole time! This means any member variables you create and don't kill at the end of the request (see !WebEvents.!OnEndHttpRequest) are preserved for the next person who ends up with this worker process. So be sure to clean up when the request is finished.
+
+Also, all worker processes share access to static variables in memory, so be *very* careful about storing things in static variables if you don't know much about thread safety. Otherwise you are going to run into problems. If you need to have some global stuff accessible during the request, use the !CurrentRequest class (see Sprocket.Web.CurrentRequest). It's basically a little repository you can stash whatever you want in and have it automatically cleared at the end of the request.
