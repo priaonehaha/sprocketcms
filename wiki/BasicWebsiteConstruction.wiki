@@ -1,3 +1,4 @@
+#labels Featured
 =Basic Website Construction=
 
 The current version of Sprocket supports a simple yet versatile page/template model which is defined by a single definitions file, one or more HTML templates and any number of optional XML files to hold content.
