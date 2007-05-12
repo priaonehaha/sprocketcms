@@ -63,10 +63,12 @@ If you've installed Sprocket to a local virtual folder accessible via http://loc
 
 Easy! Your first module is complete.
 
-Now just a quick bit of info for those not in the know about how ASP.Net works under the hood.
+====Important Stuff to Remember====
+
+|| Just a quick bit of info for those not in the know about how ASP.Net works under the hood. ||
 
 Each time someone makes a request from your website, a new worker process (or an existing one already in the pool) is created and allocated exclusively to handle that request. That process has no job other than seeing this one request through to completion. When it is done, it is thrown back in the pool where it waits for another request, or is eventually discarded for memory reasons or because somebody invalidated it by, for example, changing the Web.Config file.
 
-Now here's the important stuff to remember. Your module is loaded into memory when the worker process is created, and it stays alive this whole time! This means any member variables you create and don't kill at the end of the request (see !WebEvents.!OnEndHttpRequest) are preserved for the next person who ends up with this worker process. So be sure to clean up when the request is finished.
+ Your module is loaded into memory when the worker process is created, and it stays alive this whole time! This means any member variables you create and don't kill at the end of the request (see !WebEvents.!OnEndHttpRequest) are preserved for the next person who ends up with this worker process. So be sure to clean up when the request is finished.
 
-Also, all worker processes share access to static variables in memory, so be *very* careful about storing things in static variables if you don't know much about thread safety. Otherwise you are going to run into problems. If you need to have some global stuff accessible during the request, use the !CurrentRequest class (see Sprocket.Web.CurrentRequest). It's basically a little repository you can stash whatever you want in and have it automatically cleared at the end of the request.
+Also, all worker processes share access to static variables in memory, so be *very* careful about storing things in static variables if you don't know much about thread safety. Otherwise you are going to run into problems. If you need to have some global stuff accessible during the request, use the !CurrentRequest class (see Sprocket.Web.!CurrentRequest). It's basically a little repository you can stash whatever you want in and have it automatically cleared at the end of the request.
