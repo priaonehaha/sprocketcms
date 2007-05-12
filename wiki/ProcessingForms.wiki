@@ -6,7 +6,7 @@ Because Sprocket is a significant sidestep from the traditional ASP.Net Page fra
 
 If you haven't already, get an overview of [BasicWebsiteConstruction basic website construction].
 
-The first thing you want to do is set up a page with a form on it and various fields. The steps to having a fully-working submittable form are generally:
+The first thing you want to do is set up a page with a form on it and various fields. This method assumes that you're using the page/template system described in BasicWebsiteConstruction. The steps to having a fully-working submittable/processable form are generally:
 
   # build the form HTML
   # pre-populate the form values with either
@@ -17,6 +17,15 @@ The first thing you want to do is set up a page with a form on it and various fi
    * displaying the form page again if there were errors
   # display error messages on the form if the form was submitted with any invalid field values
   # display error styles if there are form field validation errors
+
+===1. Build the Form HTML===
+
+Make sure you have a page with a specified code (`<Page Path="contact" Code="my-contact-form" />`). Build your form, being sure to set the form action to the whatever page address is going to process the form. For the purposes of this documentation, point the form action at the same page that is serving the form:
+{{{
+<form method="post" action="{? show basepath show page:path }/">
+...
+</form>
+}}}
 
 ==Processing Forms the Custom Way==
 
@@ -58,4 +67,3 @@ public class MyRequestHandler : ISprocketModule
 	}
 }
 }}}
-
