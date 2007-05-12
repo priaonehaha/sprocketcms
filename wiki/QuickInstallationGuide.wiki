@@ -1,3 +1,4 @@
+#labels Featured
 Since this is a very quick and dirty alpha release, here are the steps you need to get it working. Note that the whole admin interface looks a little bit better in Firefox than IE (although still works nicely in both). In times past I would have spent hours trying to get it to look perfect in both, but IE7 is nearly out, promising to eliminate most crappy CSS bugs and until then, as long as its passable in IE, use Firefox to administer your website, damnit! ;) Oh also, I have no idea how well it works in Safari seeing as I don't have access to a Mac. If you find Safari/Opera/CrapBrowser problems and wanna help out, let me know.
 
 === Step 1 ===
