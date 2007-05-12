@@ -1,5 +1,7 @@
 #labels Featured
-Since this is a very quick and dirty alpha release, here are the steps you need to get it working. Note that the whole admin interface looks a little bit better in Firefox than IE (although still works nicely in both). In times past I would have spent hours trying to get it to look perfect in both, but IE7 is nearly out, promising to eliminate most crappy CSS bugs and until then, as long as its passable in IE, use Firefox to administer your website, damnit! ;) Oh also, I have no idea how well it works in Safari seeing as I don't have access to a Mac. If you find Safari/Opera/CrapBrowser problems and wanna help out, let me know.
+= Quick Installation Guide=
+
+The following steps will get you up and running with Sprocket in no time at all.
 
 === Step 1 ===
 Make sure ASP.Net 2.0 and SQL Server 2000 (or better) is installed. You'll need to go and set up a SQL Server database of course and organise login details so you can fill in the connection string for Sprocket so it knows how to connect to the database.
@@ -17,7 +19,7 @@ Modify the connection string in the Web.config file so that it points at your SQ
 If you've set this up from the subversion repository, remember to build the solution first. If you've downloaded the release, then it has already been built for you. Point your browser at http://[where-you-installed-sprocket]/$dbsetup in order for basic stored procedures and whatnot to be created.
 
 === Step 6 ===
-Next point your browser at your the admin folder of your Sprocket location (e.g. http://localhost/Sprocket/admin) and hey presto, you're away! Initially there's nothing configured for the root location of Sprocket so you'll get a 404. Point it at /admin. (Yes I know there's not actually an admin folder, but don't worry about that, Sprocket will pretend it's there) Oh I almost forgot. The default username is admin and the password is password.
+Next point your browser at your the wherever you installed Sprocket (e.g. http://localhost/Sprocket/) and hey presto, you're away! If you follow the link to the admin area (which is incomplete), the default username is admin and the password is password.
 
 === Addendum ===
 The included sample website has a bit of extra info in, plus this wiki has a bunch of help. See BasicWebsiteConstruction for more info.
