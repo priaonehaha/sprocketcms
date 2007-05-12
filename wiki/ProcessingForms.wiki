@@ -35,6 +35,7 @@ In your website module that you've set up for your own website processing functi
 {{{
 using Sprocket;
 using Sprocket.Web;
+using Sprocket.Web.CMS.Content;
 
 [ModuleTitle("My Module")]
 [ModuleDescription("This module does custom processing for my website")]
@@ -50,6 +51,33 @@ class MyModule : ISprocketModule
 	{
 	}
 }
+}}}
+
+Now whenever your contact page is about to be served, the method !PrepareContactForm will be called first. Next let's prepare the actual form values. We use the static class FormValues, which is also used to set form errors when the form is submitted. The values you set here are only valid for the life of the current request and so are cleared every time a new page is requested. We call the method Set, which has the following arguments:
+
+`FormValues.Set(field_name, error_message, field_value, is_field_invalid);`
+
+{{{
+public void PrepareContactForm(PageEntry page)
+{
+	// make sure we only prepare these values if the form hasn't been submitted yet.
+	// this is like using ASP.Net's System.Web.UI.Page.IsPostback property.
+	if(Request.Form.Count == 0)
+	{
+		FormValues.Set("name", "", "anonymous", false);
+		FormValues.Set("phone", "", "don't wanna say", false);
+	}
+}
+}}}
+
+Now we need to go back to the HTML and use SprocketScript to get these values into the form. Above I've hard-coded certain values. What you'd normally do is only fill in the values if you're preloading from a database record or some other pre-existing data. As you'll see below, generic default values (generally used for forms that will become new records in the database) can be filled directly using SprocketScript.
+
+{{{
+Your Name: <input type="text" name="name" value="{?? formfield("name","some default value")}" />
+Your Phone Number: <input type="text" name="phone" value="{?? formfield("phone","some default value")}" />
+}}}
+
+Notice the SprocketScript expression `formfield`. This takes two arguments. The first is the name of the field to check for a pre-existing value. The second is a value to use if no value has been previously specified. You have previously specified values for both fields in your !PrepareContactForm method, but if you hadn't, the "some default value" arguments above would have ended up as the values of the input fields.
 
 ==Processing Forms the Custom Way==
 
