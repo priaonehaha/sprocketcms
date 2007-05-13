@@ -56,10 +56,10 @@ show somevariable
 ===Expression Syntax===
 
 *Standard mathematical expressions:*
-  * `+` add `{? if 2 + 2 > 10 show "impossible" else show "ok" }`
-  * `-` subtract `{? if 10 + 10 <= 5 show "impossible" else show "ok" }`
-  * `*` multiply `{? if 2 * 2 > 10 show "impossible" else show "ok" }`
-  * `/` divide `{? if 4 / 2 >= 10 show "impossible" else show "ok" }`
+  * `+` add `{? if 2 + 2 > 10 show "impossible" else show "ok"; }`
+  * `-` subtract `{? if 10 + 10 <= 5 show "impossible" else show "ok"; }`
+  * `*` multiply `{? if 2 * 2 > 10 show "impossible" else show "ok"; }`
+  * `/` divide `{? if 4 / 2 >= 10 show "impossible" else show "ok"; }`
 
 *True/false (logical) expressions:*
   * `=` equal to e.g. `{?? 10 = 10 }` -> "True"
