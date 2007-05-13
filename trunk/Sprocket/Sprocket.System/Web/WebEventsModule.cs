@@ -340,10 +340,6 @@ namespace Sprocket.Web
 			get { return (WebEvents)Core.Instance[typeof(WebEvents)].Module; }
 		}
 
-		public void AddFormProcessor(string forSprocketPath, string fieldName, EmptyHandler postHandler)
-		{
-		}
-
 		private List<FormPostAction> formPostActions = new List<FormPostAction>();
 		public void AddFormProcessor(FormPostAction action)
 		{

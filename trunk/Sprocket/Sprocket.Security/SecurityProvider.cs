@@ -48,7 +48,7 @@ namespace Sprocket.Security
 		{
 			get
 			{
-				if (!WebAuthentication.Instance.IsLoggedIn)
+				if (!WebAuthentication.IsLoggedIn)
 					return null;
 				if (CurrentRequest.Value["CurrentUser"] == null)
 					CurrentRequest.Value["CurrentUser"] = User.Select(ClientSpaceID, WebAuthentication.Instance.CurrentUsername);

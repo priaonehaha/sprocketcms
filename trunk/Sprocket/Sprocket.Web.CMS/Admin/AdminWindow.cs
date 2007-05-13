@@ -30,7 +30,7 @@ namespace Sprocket.Web.CMS.Admin
 			if (handled.Handled) return;
 			if (SprocketPath.Sections[0] == "admin")
 			{
-				if (!WebAuthentication.Instance.IsLoggedIn)
+				if (!WebAuthentication.IsLoggedIn)
 				{
 					HttpContext.Current.Response.Write("Access Denied.");
 					handled.Set();

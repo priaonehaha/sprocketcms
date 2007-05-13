@@ -11,7 +11,7 @@ namespace Sprocket.Security.CMS
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			return WebAuthentication.Instance.IsLoggedIn;
+			return WebAuthentication.IsLoggedIn;
 		}
 	}
 	class LoggedInExpressionCreator : IExpressionCreator
@@ -31,7 +31,7 @@ namespace Sprocket.Security.CMS
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (!WebAuthentication.Instance.IsLoggedIn)
+			if (!WebAuthentication.IsLoggedIn)
 				return "[not logged in]";
 			return SecurityProvider.CurrentUser.Username;
 		}
@@ -53,7 +53,7 @@ namespace Sprocket.Security.CMS
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (!WebAuthentication.Instance.IsLoggedIn)
+			if (!WebAuthentication.IsLoggedIn)
 				return "[not logged in]";
 			return SecurityProvider.CurrentUser.Activated;
 		}
@@ -75,7 +75,7 @@ namespace Sprocket.Security.CMS
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (!WebAuthentication.Instance.IsLoggedIn)
+			if (!WebAuthentication.IsLoggedIn)
 				return "[not logged in]";
 			return SecurityProvider.CurrentUser.UserID;
 		}
@@ -97,7 +97,7 @@ namespace Sprocket.Security.CMS
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (!WebAuthentication.Instance.IsLoggedIn)
+			if (!WebAuthentication.IsLoggedIn)
 				return "[not logged in]";
 			if (CurrentRequest.Value["EmailChangePendingExpression_Value"] != null)
 				return (bool)CurrentRequest.Value["EmailChangePendingExpression_Value"];
@@ -128,7 +128,7 @@ namespace Sprocket.Security.CMS
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (!WebAuthentication.Instance.IsLoggedIn)
+			if (!WebAuthentication.IsLoggedIn)
 				return "[not logged in]";
 			return SecurityProvider.CurrentUser.Email;
 		}

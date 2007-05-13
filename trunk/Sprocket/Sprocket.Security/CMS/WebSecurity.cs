@@ -65,7 +65,7 @@ namespace Sprocket.Web.CMS.Security
 				case "activate/fix":
 					{
 						bool failed = false;
-						if (!WebAuthentication.Instance.IsLoggedIn)
+						if (!WebAuthentication.IsLoggedIn)
 							failed = true;
 						else if(!SecurityProvider.CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
 							failed = true;
@@ -111,7 +111,7 @@ namespace Sprocket.Web.CMS.Security
 								if (r.Succeeded)
 								{
 									User user = null;
-									if (WebAuthentication.Instance.IsLoggedIn)
+									if (WebAuthentication.IsLoggedIn)
 										if (SecurityProvider.CurrentUser.UserID == userID)
 										{
 											user = SecurityProvider.CurrentUser;
@@ -147,7 +147,7 @@ namespace Sprocket.Web.CMS.Security
 
 		void AdminWindow_OnBeforeDisplayAdminWindowOverlay(Result result)
 		{
-			if(WebAuthentication.Instance.IsLoggedIn)
+			if(WebAuthentication.IsLoggedIn)
 				if(SecurityProvider.CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
 					return;
 			result.SetFailed("access denied");

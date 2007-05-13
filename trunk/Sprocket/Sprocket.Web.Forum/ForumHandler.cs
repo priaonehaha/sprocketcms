@@ -144,7 +144,7 @@ namespace Sprocket.Web.Forums
 			ForumTopic topic = new ForumTopic();
 			ForumTopicMessage msg = new ForumTopicMessage();
 
-			if (WebAuthentication.Instance.IsLoggedIn)
+			if (WebAuthentication.IsLoggedIn)
 			{
 				topic.AuthorUserID = SecurityProvider.CurrentUser.UserID;
 				msg.AuthorUserID = SecurityProvider.CurrentUser.UserID;
@@ -269,7 +269,7 @@ namespace Sprocket.Web.Forums
 
 		void CheckAuthentication(string notLoggedInURL)
 		{
-			if (!WebAuthentication.Instance.IsLoggedIn)
+			if (!WebAuthentication.IsLoggedIn)
 			{
 				if (notLoggedInURL == "" || notLoggedInURL == null)
 					Response.Redirect(notLoggedInURL);

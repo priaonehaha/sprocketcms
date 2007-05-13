@@ -32,11 +32,20 @@ namespace Sprocket.Web.CMS.Content
 			public ContentManager.TemplateRegistry Templates = null;
 			public ContentManager.PageRegistry Pages = null;
 			public Stack<PageEntry> PageStack = new Stack<PageEntry>();
+			public Dictionary<string, List<PagePreprocessorHandler>> PagePreProcessors = new Dictionary<string,List<PagePreprocessorHandler>>();
 		}
+		
 		private StateValues stateValues = new StateValues();
 		private static StateValues Values
 		{
 			get { return Instance.stateValues; }
+		}
+
+		public static void AddPagePreprocessor(string pageCode, PagePreprocessorHandler method)
+		{
+			if (!Values.PagePreProcessors.ContainsKey(pageCode))
+				Values.PagePreProcessors.Add(pageCode, new List<PagePreprocessorHandler>());
+			Values.PagePreProcessors[pageCode].Add(method);
 		}
 
 		public static XmlDocument DefinitionsXml
@@ -407,6 +416,9 @@ namespace Sprocket.Web.CMS.Content
 			if (page == null)
 				return;
 			requestedPage = page;
+			if (Values.PagePreProcessors.ContainsKey(page.PageCode))
+				foreach (PagePreprocessorHandler method in Values.PagePreProcessors[page.PageCode])
+					method(page);
 			if (OnBeforeRenderPage != null)
 				OnBeforeRenderPage(page);
 			string txt = page.Render();
@@ -432,4 +444,6 @@ namespace Sprocket.Web.CMS.Content
 
 		#endregion
 	}
+
+	public delegate void PagePreprocessorHandler(PageEntry page);
 }
