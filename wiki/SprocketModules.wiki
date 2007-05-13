@@ -1,3 +1,4 @@
+#labels Featured
 = How to Write Sprocket Modules =
 
 Sprocket modules are surprisingly easy to write. How complex they get really depends on you and how tricky you're trying to be. Anyone developing a website that has to process at least one form should probably be writing a simple module. (see ProcessingForms for more info)
