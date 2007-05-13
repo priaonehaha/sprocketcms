@@ -133,29 +133,6 @@ namespace Sprocket.Web.CMS.Script
 					// chain together any properties and argument lists
 					expr = BuildDeepExpression(expr, tokens);
 
-					//// if the expression can take an argument list, supply it with the trailing argument list if it has been supplied
-					//if (expr is IArgumentListEvaluatorExpression)
-					//{
-					//    List<ExpressionArgument> args = BuildArgumentList(tokens);
-					//    if (args.Count > 0)
-					//        expr = new ArgumentsOfExpression((IArgumentListEvaluatorExpression)expr, args, tokens, token);
-					//}
-
-					//// if the expression can have properties, check for a property designator and if it exists, build a property chain
-					//if (expr is IPropertyEvaluatorExpression)
-					//{
-					//    ExpressionProperty ep = BuildExpressionProperty((IPropertyEvaluatorExpression)expr, tokens);
-					//    while (ep != null)
-					//    {
-					//        Token t = tokens.TokensFollowingCurrent >= 2 ? tokens.Peek(2) : null;
-					//        expr = new PropertyOfExpression((IPropertyEvaluatorExpression)expr, ep, t);
-					//        if (!(expr is IPropertyEvaluatorExpression))
-					//            break;
-
-					//    }
-					//}
-					//else if (tokens.Current.TokenType == TokenType.PropertyDesignator)
-					//    goto case TokenType.PropertyDesignator;
 					break;
 
 				case TokenType.PropertyDesignator:
@@ -224,18 +201,6 @@ namespace Sprocket.Web.CMS.Script
 			}
 			else
 				return expr;
-			// if args exist
-				// make a new argexpr
-				// set argexpr.args to the arg list
-				// set argexpr.expr to expr
-				// return BuildDeepExpression(argexpr, tokens)
-			// else if property designator exists
-				// make a new propexpr
-				// set propexpr.name to the name
-				// set propexpr.expr to expr
-				// return BuildDeepExpression(propexpr, tokens)
-			// else
-				// return expr
 		}
 
 		public static List<ExpressionArgument> BuildArgumentList(TokenList tokens)
@@ -302,6 +267,21 @@ namespace Sprocket.Web.CMS.Script
 			if (o is int || o is short || o is long || o is float || o is double || o is ushort || o is ulong || o is uint)
 				return Convert.ToDecimal(o);
 			return o;
+		}
+
+		public static object ReduceFromExpression(ExecutionState state, Token contextToken, object o)
+		{
+			if(!(o is IExpression))
+				return o;
+			object k = (IExpression)o;
+			while (k is IExpression)
+			{
+				object m = ((IExpression)k).Evaluate(state, contextToken);
+				if (object.ReferenceEquals(m, k))
+					return m.ToString();
+				k = m;
+			}
+			return k;
 		}
 	}
 }

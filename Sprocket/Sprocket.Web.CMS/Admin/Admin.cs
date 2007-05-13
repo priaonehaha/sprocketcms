@@ -81,7 +81,7 @@ namespace Sprocket.Web.CMS.Admin
 							break;
 
 						default:
-							if (!auth.IsLoggedIn)
+							if (!WebAuthentication.IsLoggedIn)
 							{
 								GotoLoginScreen();
 								processed = true;

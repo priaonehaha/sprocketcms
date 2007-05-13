@@ -20,6 +20,7 @@ namespace Sprocket.Web.CMS.Content
 				return (Dictionary<string, FormFieldInfo>)CurrentRequest.Value[key];
 			}
 		}
+
 		public static void Set(string name, string message, string value, bool isError)
 		{
 			FormFieldInfo ed = new FormFieldInfo();

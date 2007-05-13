@@ -165,8 +165,7 @@ namespace Sprocket.Web
 				AjaxMethodAttribute attr = (AjaxMethodAttribute)ajaxMethodAttr;
 				if (attr.RequiresAuthentication)
 				{
-					WebAuthentication auth = WebAuthentication.Instance;
-					if (!auth.IsLoggedIn)
+					if (!WebAuthentication.IsLoggedIn)
 						throw new AjaxException("You're not currently logged in. Please refresh the page.");
 
 					if (OnAjaxRequestAuthenticationCheck != null)

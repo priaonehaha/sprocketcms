@@ -34,11 +34,11 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		{
 			throw new InstructionExecutionException("This expression requires at least one argument.", token);
 		}
-	
+
 		Token token;
 		public void PrepareExpression(TokenList tokens, Stack<int?> precedenceStack)
 		{
- 			token = tokens.Current;
+			token = tokens.Current;
 			tokens.Advance();
 		}
 
@@ -149,12 +149,12 @@ namespace Sprocket.Web.CMS.Content.Expressions
 	{
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
-			if(args.Count != 1)
+			if (args.Count != 1)
 				throw new InstructionExecutionException("how_long_ago expects exactly one argument specifying which date to evaluate.", contextToken);
 			object o = args[0].Expression.Evaluate(state, args[0].Token);
 			if (o is DateTime)
 				return StringUtilities.ApproxHowLongAgo(SprocketDate.Now, (DateTime)o);
-			throw new InstructionExecutionException("the argument being fed to how_long_ago turned out to evaluate to something other than a date. (Underlying type: "  + (o == null ? "null" : o.GetType().Name) + ")", contextToken);
+			throw new InstructionExecutionException("the argument being fed to how_long_ago turned out to evaluate to something other than a date. (Underlying type: " + (o == null ? "null" : o.GetType().Name) + ")", contextToken);
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
@@ -235,6 +235,39 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public IExpression Create()
 		{
 			return new CurrentDateExpression();
+		}
+	}
+
+	class MonthNameExpression : IArgumentListEvaluatorExpression
+	{
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 1)
+				throw new InstructionExecutionException("how_long_ago expects exactly one argument specifying which month number to evaluate.", contextToken);
+			object o = TokenParser.VerifyUnderlyingType(args[0].Expression.Evaluate(state, args[0].Token));
+			if (o is decimal)
+				if ((decimal)o > 12 || (decimal)o < 1)
+					throw new InstructionExecutionException("the argument being fed to monthname turned out to evaluate to " + o + ". Valid values are between 1 and 12.", args[0].Token);
+				else
+					return new DateTime(2001, Convert.ToInt32(o), 1).ToString("MMMM");
+			throw new InstructionExecutionException("the argument being fed to monthname turned out to evaluate to something other than an integer. (Underlying type: " + (o == null ? "null" : o.GetType().Name) + ")", args[0].Token);
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			throw new InstructionExecutionException("monthname expects an argument specifying a number between 1 and 12.", contextToken);
+		}
+	}
+	class MonthNameExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "monthname"; }
+		}
+
+		public IExpression Create()
+		{
+			return new MonthNameExpression();
 		}
 	}
 }

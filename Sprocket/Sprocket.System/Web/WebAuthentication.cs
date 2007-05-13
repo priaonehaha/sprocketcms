@@ -106,7 +106,7 @@ namespace Sprocket.Web
 			HttpContext.Current.Response.Cookies.Add(cookie);
 		}
 
-		public bool IsLoggedIn
+		public static bool IsLoggedIn
 		{
 			get
 			{
@@ -115,7 +115,7 @@ namespace Sprocket.Web
 					HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
 					if (cookie == null)
 						return false;
-					bool result = ValidateLogin(cookie["a"], cookie["b"]).Succeeded;
+					bool result = Instance.ValidateLogin(cookie["a"], cookie["b"]).Succeeded;
 					CurrentRequest.Value["CurrentUser_Authenticated"] = result;
 					return result;
 				}

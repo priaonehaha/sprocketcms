@@ -16,7 +16,7 @@ namespace Sprocket.Web.Forums
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (!WebAuthentication.Instance.IsLoggedIn)
+			if (!WebAuthentication.IsLoggedIn)
 				return false;
 			return SecurityProvider.CurrentUser.HasPermission(ForumPermissionType.ForumCreator);
 		}
