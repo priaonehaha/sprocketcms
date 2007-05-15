@@ -264,7 +264,7 @@ namespace Sprocket.Web.CMS.Script
 		{
 			if (o == null)
 				return new BooleanExpression.SoftBoolean(false);
-			if (o is int || o is short || o is long || o is float || o is double || o is ushort || o is ulong || o is uint)
+			if (o is int || o is short || o is long || o is float || o is double || o is ushort || o is ulong || o is uint || o is Enum)
 				return Convert.ToDecimal(o);
 			return o;
 		}

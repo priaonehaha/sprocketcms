@@ -29,8 +29,9 @@ namespace Sprocket.Web.CMS.Script
 
 			public override bool Equals(object o)
 			{
-				if (o == null) return !value;
-				bool oValue = !(o.Equals(0m) || o.Equals(null) || o.Equals("") || o.Equals(false));
+				object val = TokenParser.VerifyUnderlyingType(o);
+				if (val == null) return !value;
+				bool oValue = !(val.Equals(0m) || val.Equals(null) || val.Equals("") || val.Equals(false));
 				return value == oValue;
 			}
 

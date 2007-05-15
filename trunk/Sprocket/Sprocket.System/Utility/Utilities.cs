@@ -84,8 +84,19 @@ namespace Sprocket.Utility
 							else
 							{
 								if (ts.Days > 1)
-									return ts.Days.ToString() + " days ago";
-								return "Over " + ts.TotalHours.ToString("#") + " hours ago";
+								{
+									if(ts.Days < 7)
+										return ts.Days.ToString() + " days ago";
+									if (ts.Days < 9)
+										return "About a week ago";
+									if (ts.Days > 8 && ts.Days < 13)
+										return "Over a week ago";
+									if (ts.Days < 16)
+										return "About two weeks ago";
+									return occurranceDate.ToString("MMMM d, yyyy");
+								}
+								else
+									return "Over " + ts.TotalHours.ToString("#") + " hours ago";
 							}
 						}
 						else if (ts.TotalHours > 1 && ts.Minutes >= 55)
