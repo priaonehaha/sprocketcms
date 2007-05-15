@@ -20,7 +20,7 @@ BEGIN
 		EXEC GetUniqueID @perm2ID OUTPUT
 		EXEC GetUniqueID @perm3ID OUTPUT
 		EXEC GetUniqueID @perm4ID OUTPUT
-		SET @date = GETDATE()
+		SET @date = GETUTCDATE()
 
 		EXEC dbo.StoreClientSpace @ClientSpaceID, 'SprocketCMS', 1, @newUserID
 		EXEC dbo.StoreUser @newUserID, @ClientSpaceID, 'admin', @PasswordHash, 'System', 'Administrator', 'admin@localhost', 1, 0, 1, 0, 1, null, @date, null, 0
@@ -61,7 +61,7 @@ BEGIN
 	ELSE IF @IsValid = 1
 	BEGIN
 		DECLARE @dt DATETIME
-		SET @dt = GETDATE()
+		SET @dt = GETUTCDATE()
 		UPDATE Users
 		   SET LastAuthenticated = @dt
 		 WHERE Username = @Username

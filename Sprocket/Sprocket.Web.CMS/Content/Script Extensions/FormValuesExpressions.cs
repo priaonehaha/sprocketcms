@@ -21,7 +21,7 @@ namespace Sprocket.Web.CMS.Content
 			}
 		}
 
-		public static void Set(string name, string message, string value, bool isError)
+		public static void Set(string name, string message, object value, bool isError)
 		{
 			FormFieldInfo ed = new FormFieldInfo();
 			ed.Name = name;
@@ -70,7 +70,8 @@ namespace Sprocket.Web.CMS.Content
 
 		public class FormFieldInfo : IPropertyEvaluatorExpression
 		{
-			public string Name, Message, Value;
+			public string Name, Message;
+			public object Value;
 			public bool IsError = false;
 
 			public bool IsValidPropertyName(string propertyName)
@@ -111,7 +112,7 @@ namespace Sprocket.Web.CMS.Content
 		}
 	}
 
-	class FormFieldExpression : IArgumentListEvaluatorExpression
+	public class FormFieldExpression : IArgumentListEvaluatorExpression
 	{
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
@@ -121,7 +122,12 @@ namespace Sprocket.Web.CMS.Content
 			string fieldname = args[0].Expression.Evaluate(state,args[0].Token) as string;
 			if (FormValues.HasValue(fieldname))
 				return FormValues.Get(fieldname);
-			return args[1].Expression.Evaluate(state, args[1].Token);
+			FormValues.FormFieldInfo fld = new FormValues.FormFieldInfo();
+			fld.IsError = false;
+			fld.Message = "";
+			fld.Name = fieldname;
+			fld.Value = args[1].Expression.Evaluate(state, args[1].Token);
+			return fld;
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
@@ -143,7 +149,7 @@ namespace Sprocket.Web.CMS.Content
 		}
 	}
 
-	class IsFormErrorExpression : IArgumentListEvaluatorExpression
+	public class IsFormErrorExpression : IArgumentListEvaluatorExpression
 	{
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
@@ -174,7 +180,7 @@ namespace Sprocket.Web.CMS.Content
 		}
 	}
 
-	class FormErrorExpression : IArgumentListEvaluatorExpression
+	public class FormErrorExpression : IArgumentListEvaluatorExpression
 	{
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
@@ -205,7 +211,7 @@ namespace Sprocket.Web.CMS.Content
 		}
 	}
 
-	class CheckedAttributeExpression : IArgumentListEvaluatorExpression
+	public class CheckedAttributeExpression : IArgumentListEvaluatorExpression
 	{
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
@@ -213,7 +219,10 @@ namespace Sprocket.Web.CMS.Content
 				throw new InstructionExecutionException("CheckedAttribute requires two arguments; the name of the field and the default check state (true/false)", contextToken);
 			string fieldname = args[0].Expression.Evaluate(state, args[0].Token) as string;
 			if (FormValues.HasValue(fieldname))
-				return FormValues.Get(fieldname).Value == null ? "" : " checked";
+			{
+				object s = FormValues.Get(fieldname).Value;
+				return BooleanExpression.False.Equals(s) ? "" : " checked";
+			}
 			object o = args[1].Expression.Evaluate(state, args[1].Token);
 			return BooleanExpression.True.Equals(o) ? " checked" : "";
 		}
@@ -233,37 +242,6 @@ namespace Sprocket.Web.CMS.Content
 		public IExpression Create()
 		{
 			return new CheckedAttributeExpression();
-		}
-	}
-
-	class SelectedAttributeExpression : IArgumentListEvaluatorExpression
-	{
-		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
-		{
-			if (args.Count != 2)
-				throw new InstructionExecutionException("SelectedAttribute requires two arguments; the name of the field and the default selection state (true/false)", contextToken);
-			string fieldname = args[0].Expression.Evaluate(state, args[0].Token) as string;
-			if (FormValues.HasValue(fieldname))
-				return FormValues.Get(fieldname).Value == null ? "" : " selected";
-			object o = args[1].Expression.Evaluate(state, args[1].Token);
-			return BooleanExpression.True.Equals(o) ? " selected" : "";
-		}
-
-		public object Evaluate(ExecutionState state, Token contextToken)
-		{
-			throw new InstructionExecutionException("SelectedAttribute requires two arguments; the name of the field and the default selection state (true/false)", contextToken);
-		}
-	}
-	class SelectedAttributeExpressionCreator : IExpressionCreator
-	{
-		public string Keyword
-		{
-			get { return "selected"; }
-		}
-
-		public IExpression Create()
-		{
-			return new SelectedAttributeExpression();
 		}
 	}
 }

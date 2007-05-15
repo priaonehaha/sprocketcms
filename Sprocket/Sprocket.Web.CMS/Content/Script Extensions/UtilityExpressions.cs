@@ -218,6 +218,49 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		}
 	}
 
+	class FormatNumberExpression : IArgumentListEvaluatorExpression
+	{
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 2)
+				throw new InstructionExecutionException("\"formatnumber\" expects two arguments; one specifying which date to evaluate, then one specifying the format string.", contextToken);
+			object o = TokenParser.VerifyUnderlyingType(TokenParser.ReduceFromExpression(state, args[0].Token, args[0].Expression.Evaluate(state, args[0].Token)));
+			if (o is decimal)
+			{
+				object s = args[1].Expression.Evaluate(state, args[1].Token);
+				if (s is string)
+				{
+					try
+					{
+						return ((decimal)o).ToString((string)s);
+					}
+					catch (Exception ex)
+					{
+						throw new InstructionExecutionException("The number format you specified was not valid. Try Googling for \"custom .Net number formats\".", ex, args[1].Token);
+					}
+				}
+			}
+			throw new InstructionExecutionException("the first argument being fed to \"formatnumber\" turned out to evaluate to something other than a number. (Underlying type: " + (o == null ? "null" : o.GetType().Name) + ")", contextToken);
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			throw new InstructionExecutionException("\"formatnumber\" expects an argument specifying which date to evaluate.", contextToken);
+		}
+	}
+	class FormatNumberExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "formatnumber"; }
+		}
+
+		public IExpression Create()
+		{
+			return new FormatNumberExpression();
+		}
+	}
+
 	class CurrentDateExpression : IExpression
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
@@ -268,6 +311,62 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public IExpression Create()
 		{
 			return new MonthNameExpression();
+		}
+	}
+
+	class IsNullExpression : IArgumentListEvaluatorExpression
+	{
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 1)
+				throw new InstructionExecutionException("\"isnull\" expects exactly one argument specifying the value to check.", contextToken);
+			object o = TokenParser.ReduceFromExpression(state, args[0].Token, args[0].Expression.Evaluate(state, args[0].Token));
+			return o == null;
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			throw new InstructionExecutionException("\"isnull\" expects an argument specifying which value to check.", contextToken);
+		}
+	}
+	class IsNullExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "isnull"; }
+		}
+
+		public IExpression Create()
+		{
+			return new IsNullExpression();
+		}
+	}
+
+	class IsNumberExpression : IArgumentListEvaluatorExpression
+	{
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 1)
+				throw new InstructionExecutionException("\"isnumber\" expects exactly one argument specifying the value to check.", contextToken);
+			object o = TokenParser.VerifyUnderlyingType(TokenParser.ReduceFromExpression(state, args[0].Token, args[0].Expression.Evaluate(state, args[0].Token)));
+			return o is decimal;
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			throw new InstructionExecutionException("\"isnumber\" expects an argument specifying which value to check.", contextToken);
+		}
+	}
+	class IsNumberExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "isnumber"; }
+		}
+
+		public IExpression Create()
+		{
+			return new IsNumberExpression();
 		}
 	}
 }
