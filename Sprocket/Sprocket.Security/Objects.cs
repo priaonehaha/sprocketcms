@@ -260,6 +260,7 @@ namespace Sprocket.Security
 
 		public bool HasPermission(string permissionTypeCode)
 		{
+			if (deleted || !enabled) return false;
 			if (permissions == null)
 			{
 				permissions = new Dictionary<string, PermissionState>();

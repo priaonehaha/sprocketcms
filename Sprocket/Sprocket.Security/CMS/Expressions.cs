@@ -145,4 +145,37 @@ namespace Sprocket.Security.CMS
 			return new EmailAddressExpression();
 		}
 	}
+
+	class HasPermissionExpression : IArgumentListEvaluatorExpression
+	{
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 1)
+				throw new InstructionExecutionException("\"haspermission\" expects exactly one argument specifying the name of a permission.", contextToken);
+			object o = TokenParser.ReduceFromExpression(state, args[0].Token, args[0].Expression.Evaluate(state, args[0].Token));
+			string permission = o == null ? null : o.ToString();
+			if (permission == null)
+				throw new InstructionExecutionException("the argument didn't equate to a string naming a permission.", contextToken);
+			if (!WebAuthentication.IsLoggedIn)
+				return false;
+			return SecurityProvider.CurrentUser.HasPermission(permission);
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			throw new InstructionExecutionException("\"haspermission\" expects an argument specifying which name of a permission.", contextToken);
+		}
+	}
+	class HasPermissionExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "haspermission"; }
+		}
+
+		public IExpression Create()
+		{
+			return new HasPermissionExpression();
+		}
+	}
 }
