@@ -132,8 +132,13 @@ namespace Sprocket.Web.CMS.Script
 		public override int Precedence { get { return BinaryExpression.PrecedenceValues.EqualTo; } }
 		protected override object Evaluate(IExpression left, IExpression right, ExecutionState state)
 		{
-			object b = TokenParser.ReduceFromExpression(state, token, TokenParser.VerifyUnderlyingType(right.Evaluate(state, token)));
-			object a = TokenParser.ReduceFromExpression(state, token, TokenParser.VerifyUnderlyingType(left.Evaluate(state, token)));
+			object b = TokenParser.VerifyUnderlyingType(TokenParser.ReduceFromExpression(state, token, right.Evaluate(state, token)));
+			object a = TokenParser.VerifyUnderlyingType(TokenParser.ReduceFromExpression(state, token, left.Evaluate(state, token)));
+			if (a == null || b == null)
+				if (a == null || b == null)
+					return true;
+				else
+					return false;
 			if ((a is decimal && b is string) || (a is string && b is decimal))
 			{
 				decimal k , m;

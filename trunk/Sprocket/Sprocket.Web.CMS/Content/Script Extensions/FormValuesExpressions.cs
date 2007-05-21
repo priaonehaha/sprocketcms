@@ -109,6 +109,11 @@ namespace Sprocket.Web.CMS.Content
 			{
 				return Value;
 			}
+
+			public override bool Equals(object obj)
+			{
+				return obj == Value;
+			}
 		}
 	}
 
