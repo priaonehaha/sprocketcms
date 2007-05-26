@@ -50,36 +50,34 @@ namespace Sprocket.Data
 		long GetUniqueID();
 
 		/// <summary>
-		/// This should first check to see if a connection has been created and held
-		/// by PersistConnection(), and if so, return that. Otherwise, simply return
-		/// a new connection initialised and opened with the default ConnectionString.
+		/// This method needs to track every call made to it. A first call to this method
+		/// should persist the connection until an accompanying call to <c cref="ReleaseConnection" />
+		/// is made. A stack should be used to keep track of how many sources are using this
+		/// connection. Calls to <c cref="ReleaseConnection" /> should remove an item from the
+		/// stack and if the stack is then empty, close the connection and nullify the reference.
 		/// </summary>
+		/// <returns>An IDBConnection which is open and ready for use</returns>
 		IDbConnection GetConnection();
-		
-		/// <summary>
-		/// This will request that the database handler open and hold a reference to a
-		/// connection object which will be used in place of new connections in
-		/// subsequent queries. Use this to ensure that all queries in a
-		/// TransactionScope use the same connection object and don't escalate their
-		/// operation to MSDTC. PersistConnection() should be called immediately
-		/// after the TransactionScope using statement. An accompanying call to
-		/// ReleaseConnection should be made outside the TransactionScope closing
-		/// brace. PersistConnection should generally not be used inside a data layer
-		/// class, rather it is intended for for the purpose of linking multiple calls
-		/// to different unrelated data handler methods to a single transaction.
-		/// </summary>
-		void PersistConnection();
 
 		/// <summary>
-		/// This should remove any reference to a connection object created by
-		/// PersistConnection(), including closing and disposing the reference.
+		/// This method should create a new connection for independent use. Responsibility for
+		/// closing the connection and cleaning up resources is left to the caller.
+		/// </summary>
+		/// <returns>An IDBConnection which is open and ready for use</returns>
+		IDbConnection CreateConnection();
+
+		/// <summary>
+		/// This method should create a new connection for independent use. Responsibility for
+		/// closing the connection and cleaning up resources is left to the caller.
+		/// </summary>
+		/// <param name="connectionString">The connection string to use to open the connection</param>
+		/// <returns>An IDBConnection which is open and ready for use</returns>
+		IDbConnection CreateConnection(string connectionString);
+
+		/// <summary>
+		/// This should first remove an item from the stack. If the stack is then empty, the
+		/// connection should be closed and disposed of.
 		/// </summary>
 		void ReleaseConnection();
-
-		/// <summary>
-		/// This should close the specified connection if it was not created by PersistConnection().
-		/// </summary>
-		/// <param name="conn">The connection to close</param>
-		void ReleaseConnection(IDbConnection conn);
 	}
 }

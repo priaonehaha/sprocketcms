@@ -77,7 +77,7 @@
     <Reference Include="System.Data">
       <Name>System.Data</Name>
     </Reference>
-    <Reference Include="System.Data.SQLite, Version=1.0.35.1, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
+    <Reference Include="System.Data.SQLite, Version=1.0.41.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Binary Dependencies\System.Data.SQLite.DLL</HintPath>
     </Reference>
@@ -109,7 +109,9 @@
     <Compile Include="Web\AjaxException.cs" />
     <Compile Include="Web\AjaxHandler.cs" />
     <Compile Include="Web\AjaxJavaScript.cs" />
-    <Compile Include="Web\ContentCache.cs" />
+    <Compile Include="Web\Cache\ContentCache.cs" />
+    <Compile Include="Web\Cache\CacheItemInfo.cs" />
+    <Compile Include="Web\Cache\CacheManager.cs" />
     <Compile Include="Web\Controls\AjaxForm\AjaxForm.cs" />
     <Compile Include="Web\Controls\AjaxForm\AjaxFormField.cs" />
     <Compile Include="Web\Controls\MultiPageNav.cs" />
@@ -159,6 +161,30 @@
     <EmbeddedResource Include="Web\Controls\opacity.js" />
     <EmbeddedResource Include="Web\Controls\splitter.js" />
     <EmbeddedResource Include="Web\Controls\tabstrip.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-init.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-insert.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-delete.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-update.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-select.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-select-from-path.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-delete-partial-matches.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\Cache\cache-select-all.sql" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

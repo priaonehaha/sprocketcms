@@ -82,7 +82,7 @@ namespace Sprocket.Web.CMS.Security
 								int k;
 								using (TransactionScope scope = new TransactionScope())
 								{
-									DatabaseManager.DatabaseEngine.PersistConnection();
+									DatabaseManager.DatabaseEngine.GetConnection();
 									List<User> users = SecurityProvider.DataLayer.FilterUsers(null, null, null, null, null, null, false, out k);
 									foreach (User user in users)
 										SecurityProvider.RequestUserActivation(user.UserID, user.Email);

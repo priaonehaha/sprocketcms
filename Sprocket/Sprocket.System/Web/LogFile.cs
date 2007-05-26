@@ -33,6 +33,7 @@ namespace Sprocket.Web
 						writer.Write("\t");
 						writer.Write(str);
 					}
+					writer.Write(Environment.NewLine);
 					writer.Flush();
 					writer.Close();
 				}

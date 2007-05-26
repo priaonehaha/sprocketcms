@@ -9,6 +9,7 @@ using System.Drawing.Imaging;
 using Sprocket;
 using Sprocket.Security;
 using Sprocket.Web;
+using Sprocket.Web.Cache;
 using Sprocket.Data;
 using Sprocket.Utility;
 
@@ -17,6 +18,7 @@ namespace Sprocket.Web.FileManager
 	[ModuleDependency(typeof(WebEvents))]
 	[ModuleDependency(typeof(DatabaseManager))]
 	[ModuleDependency(typeof(SecurityProvider))]
+	[ModuleDependency(typeof(ContentCache))]
 	[ModuleTitle("File Manager")]
 	[ModuleDescription("Handles storage and transmission of physical files to and from the client")]
 	public class FileManager : ISprocketModule
@@ -61,9 +63,13 @@ namespace Sprocket.Web.FileManager
 				dataLayer.InitialiseDatabase(result);
 		}
 
-		public void TransmitImage(string filename)
+		public void TransmitRequestedImage()
 		{
-			SizingOptions options = SizingOptions.Parse(filename);
+			// note: if processing ever gets this far, we definitely don't have a cached version
+			// of this file, or the ContentCache would have served it up by now.
+
+			FileInfo info = new FileInfo(SprocketPath.Physical);
+			SizingOptions options = SizingOptions.Parse(info.Name);
 			HttpContext.Current.Response.ContentType = "image/jpeg";
 			if (WebUtility.RawQueryString == "nocache")
 			{
@@ -72,30 +78,17 @@ namespace Sprocket.Web.FileManager
 			}
 			else
 			{
-				if (!File.Exists(options.PhysicalPath))
-					ResizeImage(options);
-				HttpContext.Current.Response.TransmitFile(options.PhysicalPath);
+				MemoryStream stream = new MemoryStream();
+				ResizeImage(options, stream);
+				string path = ContentCache.Store("Sprocket.Web.FileManager.CachedImage." + options.SprocketFileID + "." + options.Filename, null, false, SprocketPath.Value, "image/jpeg", stream);
+				HttpContext.Current.Response.TransmitFile(path);
 			}
 		}
 
 		public void DeleteFile(SprocketFile file)
 		{
-			long f1 = file.SprocketFileID % 200 + 1;
-			long f2 = ((file.SprocketFileID - f1) / 200) % 200 + 1;
-			string path = WebUtility.MapPath(string.Format("datastore/filecache/{0}/{1}", f1, f2));
-			DirectoryInfo dir = new DirectoryInfo(path);
-			if (dir.Exists)
-			{
-				foreach (FileInfo f in dir.GetFiles("*.jpg", SearchOption.TopDirectoryOnly))
-					try { f.Delete(); }
-					catch { }
-			}
+			ContentCache.ClearMultiple("Sprocket.Web.FileManager.CachedImage." + file.SprocketFileID + ".%");
 			dataLayer.Delete(file);
-		}
-
-		public void ResizeImage(SizingOptions options)
-		{
-			ResizeImage(options, null);
 		}
 
 		public void ResizeImage(SizingOptions options, Stream outStream)
@@ -323,22 +316,9 @@ namespace Sprocket.Web.FileManager
 					// set the jpeg quality
 					prms.Param[0] = new EncoderParameter(Encoder.Quality, options.JpegQuality);
 
-					if (outStream != null)
-					{
-						finalImage.Save(outStream, encoder, prms);
-						if(outStream is MemoryStream)
-							outStream.Seek(0, SeekOrigin.Begin);
-					}
-					else
-					{
-						// make sure the cache directory exists
-						DirectoryInfo info = new FileInfo(options.PhysicalPath).Directory;
-						if (!info.Exists)
-							info.Create();
-
-						// save the image
-						finalImage.Save(options.PhysicalPath, encoder, prms);
-					}
+					finalImage.Save(outStream, encoder, prms);
+					if(outStream.CanSeek)
+						outStream.Seek(0, SeekOrigin.Begin);
 				}
 
 			}

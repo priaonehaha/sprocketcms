@@ -49,7 +49,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return;
 		}
@@ -109,7 +109,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -142,7 +142,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnForumDeleted != null)
 					OnForumDeleted(forum);
@@ -206,7 +206,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -239,7 +239,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnForumCategoryDeleted != null)
 					OnForumCategoryDeleted(forumCategory);
@@ -305,7 +305,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -338,7 +338,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnForumTopicDeleted != null)
 					OnForumTopicDeleted(forumTopic);
@@ -403,7 +403,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -436,7 +436,7 @@ namespace Sprocket.Web.Forums.SqlServer2005
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnForumTopicMessageDeleted != null)
 					OnForumTopicMessageDeleted(forumTopicMessage);

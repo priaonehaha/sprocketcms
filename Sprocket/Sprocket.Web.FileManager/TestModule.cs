@@ -111,7 +111,7 @@ namespace Sprocket.Web.FileManager
 				default:
 					if (SprocketPath.Value.EndsWith(".jpg") && SprocketPath.Value.StartsWith("test/image/"))
 					{
-						FileManager.Instance.TransmitImage(SprocketPath.Sections[SprocketPath.Sections.Length - 1]);
+						FileManager.Instance.TransmitRequestedImage();
 						break;
 					}
 					return;

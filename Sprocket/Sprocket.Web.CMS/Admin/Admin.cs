@@ -6,6 +6,7 @@ using System.IO;
 
 using Sprocket;
 using Sprocket.Web;
+using Sprocket.Web.Cache;
 using Sprocket.Utility;
 using Sprocket.Data;
 
@@ -141,7 +142,7 @@ namespace Sprocket.Web.CMS.Admin
 					break;
 
 				case "admin/clearcache":
-					ContentCache.ClearCache();
+					ContentCache.ClearMultiple("%");
 					admin.AddContentSection(new RankedString("<p style=\"color:green\" class=\"standalone-message\">The cache has been cleared.</p>", 1));
 					break;
 

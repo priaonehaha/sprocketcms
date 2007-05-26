@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Data.SQLite;
 using System.Transactions;
+
+using Sprocket.Web;
 
 namespace Sprocket.Data
 {
@@ -17,8 +20,25 @@ namespace Sprocket.Data
 			get
 			{
 				if (connectionString == null)
-					connectionString = "Data Source=" + PhysicalPath + ";UseUTF16Encoding=True;";
+					connectionString = CreateConnectionString("datastore/databases/main.s3db");
 				return connectionString;
+			}
+		}
+
+		public static string CreateConnectionString(string sprocketPath)
+		{
+			return "Data Source=" + WebUtility.MapPath(sprocketPath) + ";UseUTF16Encoding=True;";
+		}
+
+		public static void CheckFileExists(string connectionString)
+		{
+			string path = Regex.Match(connectionString, "Data Source=(?<path>[^;]+)").Groups["path"].Value;
+			if (!File.Exists(path))
+			{
+				FileInfo info = new FileInfo(path);
+				if (!info.Directory.Exists)
+					info.Directory.Create();
+				SQLiteConnection.CreateFile(path);
 			}
 		}
 
@@ -26,13 +46,7 @@ namespace Sprocket.Data
 		{
 			try
 			{
-				if (!File.Exists(PhysicalPath))
-				{
-					FileInfo info = new FileInfo(PhysicalPath);
-					if (!info.Directory.Exists)
-						info.Directory.Create();
-					SQLiteConnection.CreateFile(PhysicalPath);
-				}
+				CheckFileExists(ConnectionString);
 			}
 			catch (Exception ex)
 			{
@@ -44,17 +58,6 @@ namespace Sprocket.Data
 			if (OnInitialise != null)
 				OnInitialise(result);
 			return result;
-		}
-
-		private string physicalPath = null;
-		private string PhysicalPath
-		{
-			get
-			{
-				if (physicalPath == null)
-					physicalPath = Web.WebUtility.MapPath("datastore/databases/main.s3db");
-				return physicalPath;
-			}
 		}
 
 		public Result CheckConfiguration()
@@ -74,34 +77,51 @@ namespace Sprocket.Data
 			return -1;
 		}
 
-		#region IDatabaseHandler Members
-
-
+		private Stack<bool> stack = new Stack<bool>();
 		public IDbConnection GetConnection()
 		{
-			throw new Exception("The method or operation is not implemented.");
+			stack.Push(true);
+			if (stack.Count == 1)
+			{
+				SQLiteConnection conn = (SQLiteConnection)CreateConnection();
+				Conn = conn;
+				return conn;
+			}
+			else
+			{
+				return Conn as SQLiteConnection;
+			}
 		}
 
-		public void PersistConnection()
+		public IDbConnection CreateConnection()
 		{
-			throw new Exception("The method or operation is not implemented.");
+			return CreateConnection(ConnectionString);
 		}
 
-		public void ReleaseConnection(IDbConnection conn)
+		public IDbConnection CreateConnection(string connectionString)
 		{
-			throw new Exception("The method or operation is not implemented.");
+			CheckFileExists(connectionString);
+			SQLiteConnection conn = new SQLiteConnection(connectionString);
+			conn.Open();
+			return conn;
 		}
-
-		#endregion
-
-		#region IDatabaseHandler Members
-
 
 		public void ReleaseConnection()
 		{
-			throw new Exception("The method or operation is not implemented.");
+			stack.Pop();
+			if (stack.Count == 0)
+			{
+				SQLiteConnection conn = Conn as SQLiteConnection;
+				conn.Close();
+				conn.Dispose();
+				Conn = null;
+			}
 		}
 
-		#endregion
+		private SQLiteConnection Conn
+		{
+			get { return CurrentRequest.Value["PersistedSqlConnection.Sqlite3"] as SQLiteConnection; }
+			set { CurrentRequest.Value["PersistedSqlConnection.Sqlite3"] = value; }
+		}
 	}
 }
