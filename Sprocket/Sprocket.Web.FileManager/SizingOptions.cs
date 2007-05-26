@@ -21,7 +21,7 @@ namespace Sprocket.Web.FileManager
 		private string filename = "";
 		private long sprocketFileID = 0;
 		private Image image = null;
-		private long jpegQuality = 180;
+		private long jpegQuality = 85;
 
 		public enum Display
 		{
