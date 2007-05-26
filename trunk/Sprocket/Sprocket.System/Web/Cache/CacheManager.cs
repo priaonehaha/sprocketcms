@@ -317,8 +317,9 @@ namespace Sprocket.Web.Cache
 					DeleteFile(c.File);
 				}
 
-			lock (sprocketPathMemoryCache)
-				sprocketPathMemoryCache.Remove(info.SprocketPath);
+			if (info.SprocketPath != null)
+				lock (sprocketPathMemoryCache)
+					sprocketPathMemoryCache.Remove(info.SprocketPath);
 
 			lock (GetLockObject(info.IdentifierString))
 			{
@@ -376,8 +377,9 @@ namespace Sprocket.Web.Cache
 					DeleteFile(c.File);
 				}
 
-			lock (sprocketPathMemoryCache)
-				sprocketPathMemoryCache.Remove(info.SprocketPath);
+			if(info.SprocketPath != null)
+				lock (sprocketPathMemoryCache)
+					sprocketPathMemoryCache.Remove(info.SprocketPath);
 
 			lock (GetLockObject(info.IdentifierString))
 			{
