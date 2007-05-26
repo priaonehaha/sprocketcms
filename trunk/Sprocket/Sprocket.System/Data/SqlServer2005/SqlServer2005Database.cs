@@ -24,7 +24,6 @@ namespace Sprocket.Data
 			{
 				using (TransactionScope scope = new TransactionScope())
 				{
-					DatabaseManager.DatabaseEngine.PersistConnection();
 					SqlConnection conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					result = ExecuteScript(conn, ResourceLoader.LoadTextResource("Sprocket.Data.SqlServer2005.scripts.sql"));
 					if (result.Succeeded && OnInitialise != null)
@@ -117,56 +116,50 @@ namespace Sprocket.Data
 			}
 		}
 
+		private Stack<bool> stack = new Stack<bool>();
 		public IDbConnection GetConnection()
 		{
-			SqlConnection conn = Conn as SqlConnection;
-			if (conn == null)
-				conn = new SqlConnection(ConnectionString);
-			if (conn.State == ConnectionState.Closed)
-				conn.Open();
-			return conn;
-		}
-
-		private Stack<bool> persistenceStack = new Stack<bool>();
-		public void PersistConnection()
-		{
-			if (persistenceStack.Count == 0)
+			stack.Push(true);
+			if (stack.Count == 1)
 			{
-				SqlConnection conn = new SqlConnection(ConnectionString);
-				conn.Open();
+				SqlConnection conn = (SqlConnection)CreateConnection();
 				Conn = conn;
+				return conn;
 			}
-			persistenceStack.Push(true);
-		}
-
-		public void ReleaseConnection(IDbConnection conn)
-		{
-			if (conn != Conn && conn != null)
-				if (conn.State != ConnectionState.Closed)
-					conn.Close();
+			else
+			{
+				return Conn as SqlConnection;
+			}
 		}
 
 		public void ReleaseConnection()
 		{
-			if (persistenceStack.Count > 0)
-				persistenceStack.Pop();
-			if (persistenceStack.Count == 0)
+			stack.Pop();
+			if (stack.Count == 0)
 			{
 				SqlConnection conn = Conn as SqlConnection;
-				if (conn != null)
-				{
-					if (conn.State != ConnectionState.Closed)
-						conn.Close();
-					conn.Dispose();
-				}
+				conn.Close();
+				conn.Dispose();
 				Conn = null;
 			}
 		}
 
 		private SqlConnection Conn
 		{
-			get { return CurrentRequest.Value["PersistedSqlConnection"] as SqlConnection; }
-			set { CurrentRequest.Value["PersistedSqlConnection"] = value; }
+			get { return CurrentRequest.Value["PersistedSqlConnection.SqlServer2005"] as SqlConnection; }
+			set { CurrentRequest.Value["PersistedSqlConnection.SqlServer2005"] = value; }
+		}
+
+		public IDbConnection CreateConnection()
+		{
+			return CreateConnection(ConnectionString);
+		}
+
+		public IDbConnection CreateConnection(string connectionString)
+		{
+			SqlConnection conn = new SqlConnection(connectionString);
+			conn.Open();
+			return conn;
 		}
 	}
 }

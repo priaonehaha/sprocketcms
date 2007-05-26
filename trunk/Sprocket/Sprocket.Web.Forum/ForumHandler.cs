@@ -230,7 +230,7 @@ namespace Sprocket.Web.Forums
 			{
 				using (TransactionScope scope = new TransactionScope())
 				{
-					DatabaseManager.DatabaseEngine.PersistConnection();
+					DatabaseManager.DatabaseEngine.GetConnection();
 					DataLayer.Store(topic);
 					msg.ForumTopicID = topic.ForumTopicID;
 					DataLayer.Store(msg);

@@ -14,5 +14,10 @@ namespace Sprocket.Utility
 			byte[] enc = sha.ComputeHash(buf);
 			return HexEncoding.ToString(enc);
 		}
+
+		public static byte[] CalculateMD5Hash(string data)
+		{
+			return new MD5CryptoServiceProvider().ComputeHash(Encoding.Unicode.GetBytes(data));
+		}
 	}
 }

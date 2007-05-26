@@ -39,7 +39,7 @@ namespace Sprocket.Web.FileManager
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return;
 		}
@@ -83,7 +83,7 @@ namespace Sprocket.Web.FileManager
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -116,7 +116,7 @@ namespace Sprocket.Web.FileManager
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnSprocketFileDeleted != null)
 					OnSprocketFileDeleted(sprocketFile);

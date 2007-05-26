@@ -46,7 +46,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return;
 		}
@@ -77,7 +77,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -200,7 +200,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -234,7 +234,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -294,7 +294,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -344,7 +344,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -385,7 +385,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -423,7 +423,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -459,7 +459,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 			return result;
@@ -494,7 +494,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnUserDeleted != null)
 					OnUserDeleted(user);
@@ -531,7 +531,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnRoleDeleted != null)
 					OnRoleDeleted(role);
@@ -568,7 +568,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (OnPermissionTypeDeleted != null)
 					OnPermissionTypeDeleted(permissionType);
@@ -752,7 +752,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -772,7 +772,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -852,7 +852,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -873,7 +873,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -894,7 +894,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -915,7 +915,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -955,7 +955,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -975,7 +975,7 @@ namespace Sprocket.Security
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
 		}
@@ -1022,7 +1022,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 		}
 
@@ -1068,7 +1068,7 @@ namespace Sprocket.Security
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 		}
 

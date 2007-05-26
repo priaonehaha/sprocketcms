@@ -21,7 +21,6 @@ namespace Sprocket.Web.FileManager
 		private string filename = "";
 		private long sprocketFileID = 0;
 		private Image image = null;
-		private string physicalPath = "";
 		private long jpegQuality = 180;
 
 		public enum Display
@@ -81,7 +80,6 @@ namespace Sprocket.Web.FileManager
 			);
 			long f1 = sprocketFileID % 200 + 1;
 			long f2 = ((sprocketFileID - f1) / 200) % 200 + 1;
-			physicalPath = WebUtility.MapPath(string.Format("datastore/filecache/{0}/{1}/{2}", f1, f2, filename));
 		}
 
 		private SizingOptions() { }
@@ -267,11 +265,6 @@ namespace Sprocket.Web.FileManager
 		{
 			get { return image; }
 			set { image = value; }
-		}
-
-		public string PhysicalPath
-		{
-			get { return physicalPath; }
 		}
 
 		public string Filename

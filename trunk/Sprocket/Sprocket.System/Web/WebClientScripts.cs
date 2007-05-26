@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Sprocket;
+using Sprocket.Web.Cache;
 using Sprocket.Utility;
 
 namespace Sprocket.Web
@@ -195,11 +196,13 @@ namespace Sprocket.Web
 		{
 			if (!SprocketPath.Value.EndsWith(".js")) return;
 			FileInfo file = new FileInfo(SprocketPath.Physical);
+			TimeSpan maxCacheAge = new TimeSpan(24, 0, 0);
 			HttpContext.Current.Response.Cache.SetLastModified(file.LastWriteTime);
-			HttpContext.Current.Response.Cache.SetMaxAge(new TimeSpan(24, 0, 0));
+			HttpContext.Current.Response.Cache.SetMaxAge(maxCacheAge);
 			if (!CompressJavaScript) return;
 			bool rewrite = false;
-			if (!ContentCache.IsContentCached(SprocketPath.Value))
+			string cachedJS = ContentCache.RetrieveText(SprocketPath.Value);
+			if (cachedJS == null)
 				rewrite = true;
 			else if (!compressedJSFiles.ContainsKey(file.FullName))
 				rewrite = true;
@@ -214,7 +217,7 @@ namespace Sprocket.Web
 					{
 						string s = JavaScriptCondenser.Condense(reader.ReadToEnd());
 						HttpContext.Current.Response.Write(s);
-						ContentCache.CacheContent(SprocketPath.Value, s);
+						ContentCache.StoreText(SprocketPath.Value, maxCacheAge, true, s);
 						reader.Close();
 						compressedJSFiles[file.FullName] = file.LastWriteTime;
 					}
@@ -225,7 +228,7 @@ namespace Sprocket.Web
 				}
 			}
 			else
-				HttpContext.Current.Response.Write(ContentCache.ReadCache(SprocketPath.Value));
+				HttpContext.Current.Response.Write(cachedJS);
 			handled.Set();
 		}
 
