@@ -168,14 +168,14 @@ namespace Sprocket.Web.Cache
 		{
 			if (File.Exists(SprocketPath.Physical))
 				return; // the cache never deals with paths that directly map to actual physical files
-			DateTime dt = DateTime.Now;
+			//DateTime dt = DateTime.Now;
 			if (Transmit(SprocketPath.Value))
 			{
 				HttpContext.Current.Response.End();
 				handled.Set();
 			}
-			TimeSpan ts = DateTime.Now - dt;
-			LogFile.Append("writetimes.txt", ts.ToString() + " - " + SprocketPath.Value);
+			//TimeSpan ts = DateTime.Now - dt;
+			//LogFile.Append("writetimes.txt", ts.ToString() + " - " + SprocketPath.Value);
 		}
 
 		private const string appStateKey = "Sprocket.Web.Cache.CacheManager";

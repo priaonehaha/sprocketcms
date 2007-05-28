@@ -17,6 +17,7 @@ namespace Sprocket.Web.Forums
 	[ModuleDescription("Provides discussion forum functionality")]
 	//[AjaxMethodHandler("ForumHandler")]
 	[ModuleDependency(typeof(WebEvents))]
+	[ModuleDependency(typeof(SecurityProvider))]
 	[ModuleDependency(typeof(DatabaseManager))]
 	public class ForumHandler : ISprocketModule
 	{

@@ -208,13 +208,6 @@ namespace Sprocket.Web.FileManager
 		}
 
 		#endregion
-
-		public static string GetCachePath(long sprocketFileID, string filename)
-		{
-			long f1 = sprocketFileID % 200;
-			long f2 = ((sprocketFileID - f1) / 200) % 200;
-			return WebUtility.MapPath(string.Format("datastore/filecache/{0}/{1}/{2}", f1, f2, filename));
-		}
 	}
 }
 
