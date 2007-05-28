@@ -214,8 +214,9 @@ SprocketAjax = {
 	
 	// This is the default callback method used when none is specified.
 	DefaultCallback : function(response) {
-		if(response.__error)
-			alert(response.__error.replace(/\\r\\n/g,'\n'));
+		if(response)
+			if(response.__error)
+				alert(response.__error.replace(/\\r\\n/g,'\n'));
 	},
 	
 	WriteConsole : function(message) {

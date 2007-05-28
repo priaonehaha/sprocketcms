@@ -9,6 +9,7 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content
 {
+
 	[ModuleTitle("Content Manager")]
 	[ModuleDescription("The content management engine that handles content, pages and the templates they use")]
 	[ModuleDependency(typeof(WebEvents))]
