@@ -34,12 +34,14 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Binary Dependencies\System.Data.SQLite.DLL</HintPath>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CMS\Attributes.cs" />
+    <Compile Include="CMS\Captcha.cs" />
     <Compile Include="CMS\Expressions.cs" />
     <Compile Include="CMS\LoginForm.cs" />
     <Compile Include="CMS\RolesExpression.cs" />

@@ -583,5 +583,15 @@ namespace Sprocket.Security.SQLite
 		}
 
 		#endregion
+
+		#region ISecurityProviderDataLayer Members
+
+
+		public User SelectUserByEmail(long clientSpaceID, string email)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
 	}
 }
