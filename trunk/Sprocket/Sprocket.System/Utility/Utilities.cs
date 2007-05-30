@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Sprocket.Utility
 {
@@ -42,6 +43,27 @@ namespace Sprocket.Utility
 				}
 			}
 			return s;
+		}
+
+		public static string HexStringFromBytes(byte[] bytes)
+		{
+			StringBuilder sb = new StringBuilder();
+			foreach (byte b in bytes)
+			{
+				string s = b.ToString("x");
+				if (s.Length == 1)
+					sb.Append("0");
+				sb.Append(s);
+			}
+			return sb.ToString();
+		}
+
+		public static byte[] BytesFromHexString(string str)
+		{
+			byte[] bytes = new byte[str.Length / 2];
+			for (int i = 0; i < str.Length; i += 2)
+				bytes[i/2] = byte.Parse(str.Substring(i, 2), System.Globalization.NumberStyles.HexNumber);
+			return bytes;
 		}
 
 		public static string CommaJoin(List<string> values)

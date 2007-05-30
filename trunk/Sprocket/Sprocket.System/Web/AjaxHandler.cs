@@ -166,7 +166,7 @@ namespace Sprocket.Web
 				if (attr.RequiresAuthentication)
 				{
 					if (!WebAuthentication.IsLoggedIn)
-						throw new AjaxException("You're not currently logged in. Please refresh the page.");
+						throw new AjaxUserMessageException("You're not currently logged in. Please refresh the page.");
 
 					if (OnAjaxRequestAuthenticationCheck != null)
 					{
@@ -246,6 +246,8 @@ namespace Sprocket.Web
 			}
 			catch(Exception e)
 			{
+				if (!(e is AjaxUserMessageException) && SprocketSettings.GetBooleanValue("CatchExceptions"))
+					throw e;
 				responseData["__error"] = e;
 				responseData["__exceptionType"] = e.GetType().FullName;
 			}

@@ -385,12 +385,12 @@ namespace Sprocket.Web.CMS.Content
 		{
 			#region Map missing referenced files (e.g. images and css) to the same location as the content file
 
-			if (!SprocketPath.Value.Contains("."))
-			{
-				HttpContext.Current.Response.Write(ResourceLoader.LoadTextResource("Sprocket.Web.CMS.Content.404.htm"));
-				handled.Set();
-				return;
-			}
+			//if (!SprocketPath.Value.Contains("."))
+			//{
+			//    HttpContext.Current.Response.Write(ResourceLoader.LoadTextResource("Sprocket.Web.CMS.Content.404.htm"));
+			//    handled.Set();
+			//    return;
+			//}
 			string urlpath;
 			if (SprocketPath.Sections.Length == 1)
 				urlpath = "";
