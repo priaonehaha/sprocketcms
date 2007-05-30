@@ -255,9 +255,9 @@ namespace Sprocket.Web.CMS.Security
 			{
 				role = Role.Select(roleID.Value);
 				if (role == null)
-					throw new AjaxException("The requested role does not exist in the database.");
+					throw new AjaxUserMessageException("The requested role does not exist in the database.");
 				if (role.Locked)
-					throw new AjaxException("This is a system role and cannot be modified.");
+					throw new AjaxUserMessageException("This is a system role and cannot be modified.");
 			}
 
 			AjaxForm form = new AjaxForm("RoleEditForm");

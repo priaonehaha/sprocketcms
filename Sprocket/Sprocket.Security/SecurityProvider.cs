@@ -30,7 +30,7 @@ namespace Sprocket.Security
 			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
 			DatabaseSetup.Instance.Completed += new EmptyHandler(DatabaseSetup_Completed);
 			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
-			WebAuthentication.Instance.OnValidatingLogin += new WebAuthentication.LoginAuthenticationHandler(WebAuthentication_OnValidatingLogin);
+			WebAuthentication.Instance.Authenticate = ValidateLogin;
 		}
 
 		void DatabaseSetup_Completed()
@@ -38,10 +38,11 @@ namespace Sprocket.Security
 			VerifyClientSpaceID();
 		}
 
-		void WebAuthentication_OnValidatingLogin(string username, string passwordHash, Result result)
+		Result ValidateLogin(string username, string passwordHash)
 		{
 			if (!dataLayer.Authenticate(username, passwordHash))
-				result.SetFailed("Invalid username and/or password");
+				return new Result("Invalid username and/or password");
+			return new Result();
 		}
 
 		public static User CurrentUser

@@ -8,16 +8,17 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web
 {
+	public delegate Result LoginAuthenticationHandler(string username, string passwordHash);
+
 	[ModuleDependency(typeof(WebClientScripts))]
 	[ModuleDescription("Provides an interface for authenticating web requests.")]
 	[ModuleTitle("Web Authentication Manager")]
 	public class WebAuthentication : ISprocketModule
 	{
+		private const string cookieKey = "Sprocket_Auth_Key";
 		public delegate void AjaxAuthKeyStoredHandler(string username, Guid authKey);
 		public event AjaxAuthKeyStoredHandler OnAjaxAuthKeyStored;
-
-		public delegate void LoginAuthenticationHandler(string username, string passwordHash, Result result);
-		public event LoginAuthenticationHandler OnValidatingLogin;
+		public LoginAuthenticationHandler Authenticate = null;
 
 		private Hashtable usersByKey = new Hashtable();
 		private Hashtable keysByUser = new Hashtable();
@@ -78,8 +79,8 @@ namespace Sprocket.Web
 		public Result ValidateLogin(string username, string passwordHash)
 		{
 			Result result = new Result();
-			if (OnValidatingLogin != null)
-				OnValidatingLogin(username, passwordHash, result);
+			if (Authenticate != null)
+				return Authenticate(username, passwordHash);
 			return result;
 		}
 
@@ -90,18 +91,35 @@ namespace Sprocket.Web
 
 		public void WriteAuthenticationCookie(string username, string passwordHash, Guid ajaxGuid, int timeoutMinutes)
 		{
-			HttpCookie cookie = new HttpCookie("Sprocket_Persistent_Login");
+			string key = PassKeyFromPasswordHash(passwordHash);
+			HttpCookie cookie = new HttpCookie(cookieKey);
 			cookie.Values.Add("a", username);
-			cookie.Values.Add("b", passwordHash);
+			cookie.Values.Add("k", key);
 			cookie.Values.Add("c", Guid.NewGuid().ToString());
 			cookie.Expires = DateTime.Now.AddMinutes(timeoutMinutes);
 			#warning how is this affected by UTC?
 			HttpContext.Current.Response.Cookies.Add(cookie);
 		}
 
+		private string PasswordHashFromPassKey(string passKey)
+		{
+			string startIP = HttpContext.Current.Request.UserHostAddress;
+			startIP = startIP.Substring(0, startIP.LastIndexOf('.'));
+			string encKey = SprocketSettings.GetValue("EncryptionKeyWord");
+			return Crypto.RC2Decrypt(StringUtilities.BytesFromHexString(passKey), encKey, startIP);
+		}
+
+		private string PassKeyFromPasswordHash(string passwordHash)
+		{
+			string startIP = HttpContext.Current.Request.UserHostAddress;
+			startIP = startIP.Substring(0, startIP.LastIndexOf('.'));
+			string encKey = SprocketSettings.GetValue("EncryptionKeyWord");
+			return StringUtilities.HexStringFromBytes(Crypto.RC2Encrypt(passwordHash, encKey, startIP));
+		}
+
 		public void ClearAuthenticationCookie()
 		{
-			HttpCookie cookie = new HttpCookie("Sprocket_Persistent_Login");
+			HttpCookie cookie = new HttpCookie(cookieKey);
 			cookie.Expires = DateTime.Now.AddYears(-1);
 			HttpContext.Current.Response.Cookies.Add(cookie);
 		}
@@ -112,10 +130,12 @@ namespace Sprocket.Web
 			{
 				if (CurrentRequest.Value["CurrentUser_Authenticated"] == null)
 				{
-					HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
+					HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
 					if (cookie == null)
 						return false;
-					bool result = Instance.ValidateLogin(cookie["a"], cookie["b"]).Succeeded;
+					string passkey = Instance.PasswordHashFromPassKey(cookie["k"]);
+					
+					bool result = Instance.ValidateLogin(cookie["a"], passkey).Succeeded;
 					CurrentRequest.Value["CurrentUser_Authenticated"] = result;
 					return result;
 				}
@@ -175,7 +195,7 @@ namespace Sprocket.Web
 		{
 			get
 			{
-				HttpCookie cookie = HttpContext.Current.Request.Cookies["Sprocket_Persistent_Login"];
+				HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
 				if(cookie == null) return "";
 				return cookie["a"];
 			}
@@ -184,7 +204,7 @@ namespace Sprocket.Web
 		private void OnPreRenderJavaScript(JavaScriptCollection scripts)
 		{
 			HttpContext c = HttpContext.Current;
-			HttpCookie authcookie = c.Request.Cookies["Sprocket_Persistent_Login"];
+			HttpCookie authcookie = c.Request.Cookies[cookieKey];
 			if (authcookie == null) return;
 			scripts.SetKey(AuthKeyPlaceholder, authcookie["c"]);
 		}

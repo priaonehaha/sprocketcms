@@ -1,5 +1,6 @@
 using System;
 using System.Web;
+using System.Configuration;
 using System.Collections.Generic;
 using System.IO;
 
@@ -418,11 +419,8 @@ namespace Sprocket.Web
 			}
 		}
 
-		#region ISprocketModule
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 		}
-
-		#endregion
 	}
 }

@@ -134,10 +134,12 @@ namespace Sprocket.Mail
 			string authPassword = SprocketSettings.GetValue("MailServerPassword");
 
 			SmtpClient client = new SmtpClient();
+			client.EnableSsl = SprocketSettings.GetBooleanValue("MailServerSSL");
 			if (mailserver != null)
 				client.Host = mailserver;
 			else
 				client.Host = "localhost";
+			
 			if (port > 0) client.Port = port;
 			if (useAuthentication != null && authUsername != null && authPassword != null)
 				if (StringUtilities.MatchesAny(useAuthentication.ToLower(), "true", "yes", "1"))
