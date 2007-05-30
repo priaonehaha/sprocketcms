@@ -82,6 +82,13 @@ namespace Sprocket.Web.FileManager
 			long f2 = ((sprocketFileID - f1) / 200) % 200 + 1;
 		}
 
+		public void SetSize(int width, int height)
+		{
+			this.width = width;
+			this.height = height;
+			SetFilename();
+		}
+
 		private SizingOptions() { }
 		public SizingOptions(
 			int width, int height, int padding,
