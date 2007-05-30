@@ -643,6 +643,31 @@ namespace Sprocket.Security
 			}
 		}
 
+		public User SelectUserByEmail(long clientSpaceID, string email)
+		{
+			if (email == null || email == "")
+				return null;
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("ListUsers", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", clientSpaceID));
+					cmd.Parameters.Add(new SqlParameter("@Email", email));
+					cmd.Parameters.Add(new SqlParameter("@ExactMatches", true));
+					SqlDataReader reader = cmd.ExecuteReader();
+					User user = null;
+					if (reader.Read())
+						user = new User(reader);
+					reader.Close();
+					conn.Close();
+					return user;
+				}
+			}
+		}
+
 		public Role SelectRole(long clientSpaceID, string roleCode)
 		{
 			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
@@ -1225,6 +1250,7 @@ namespace Sprocket.Security
 					if (partSurname == "") partSurname = null;
 					SqlCommand cmd = new SqlCommand("ListUsers", conn);
 					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@ClientSpaceID", SecurityProvider.ClientSpaceID));
 					cmd.Parameters.Add(new SqlParameter("@Username", partUsername));
 					cmd.Parameters.Add(new SqlParameter("@FirstName", partFirstName));
 					cmd.Parameters.Add(new SqlParameter("@Surname", partSurname));

@@ -80,5 +80,6 @@ namespace Sprocket.Security
 		List<Role> ListDescendentRoles(long roleID);
 
 		List<User> FilterUsers(string partUsername, string partFirstName, string partSurname, string partEmail, int? maxResults, long? editableByUserID, bool? activated, out int totalMatches);
+		User SelectUserByEmail(long clientSpaceID, string email);
 	}
 }

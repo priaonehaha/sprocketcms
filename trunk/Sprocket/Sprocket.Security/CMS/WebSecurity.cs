@@ -36,8 +36,8 @@ namespace Sprocket.Web.CMS.Security
 			}
 		}
 
-		public RespondableEventHandler<User> OnUserActivated;
-		public RespondableEventHandler<Result> OnUserActivationError;
+		public event RespondableEventHandler<User> OnUserActivated;
+		public event RespondableEventHandler<Result> OnUserActivationError;
 
 		public static WebSecurity Instance
 		{
@@ -102,6 +102,10 @@ namespace Sprocket.Web.CMS.Security
 				default:
 					switch (SprocketPath.Sections[0])
 					{
+						case "_captcha":
+							RenderCAPTCHAImage();
+							break;
+
 						case "activate":
 							if (SprocketPath.Sections.Length == 2)
 							{

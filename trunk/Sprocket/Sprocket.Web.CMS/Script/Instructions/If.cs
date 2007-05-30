@@ -9,9 +9,11 @@ namespace Sprocket.Web.CMS.Script
 	public class IfInstruction : IInstruction
 	{
 		private List<ExecutionPath> executionPaths = new List<ExecutionPath>();
+		Token instructionToken;
 		public void Build(TokenList tokens)
 		{
-			Token token = tokens.Current;
+			instructionToken = tokens.Current;
+			Token token = instructionToken;
 			// advance past the instruction token/symbol
 			tokens.Advance();
 
@@ -52,7 +54,7 @@ namespace Sprocket.Web.CMS.Script
 			{
 				object o = true;
 				if (ep.Condition != null)
-					o = ep.Condition.Evaluate(state, ep.Token);
+					o = TokenParser.ReduceFromExpression(state, instructionToken, ep.Condition.Evaluate(state, ep.Token));
 				if (BooleanExpression.True.Equals(o))
 				{
 					ep.Instructions.Execute(state);
