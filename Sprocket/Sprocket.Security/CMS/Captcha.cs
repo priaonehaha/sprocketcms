@@ -25,6 +25,7 @@ namespace Sprocket.Web.CMS.Security
 			fmt.Alignment = StringAlignment.Center;
 			fmt.Trimming = StringTrimming.None;
 			fmt.FormatFlags = StringFormatFlags.NoWrap;
+			gfx.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 			gfx.DrawString(chars, new Font("Impact", 16f, FontStyle.Italic | FontStyle.Strikeout, GraphicsUnit.Point), Brushes.Black,
 				new Rectangle(0,0,bmp.Width,bmp.Height), fmt);
 			ImageCodecInfo[] encoders = ImageCodecInfo.GetImageEncoders();
