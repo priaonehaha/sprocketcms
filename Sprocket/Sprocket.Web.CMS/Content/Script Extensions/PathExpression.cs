@@ -26,7 +26,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public IExpression Create() { return new BasePathExpression(); }
 	}
 
-	public class SprocketPathExpression : IArgumentListEvaluatorExpression, IPropertyEvaluatorExpression
+	public class SprocketPathExpression : IArgumentListEvaluatorExpression, IPropertyEvaluatorExpression, IListExpression
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
@@ -83,6 +83,13 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				default:
 					return VariableExpression.InvalidProperty;
 			}
+		}
+
+		public System.Collections.IList GetList(ExecutionState state)
+		{
+			List<string> list = new List<string>();
+			list.AddRange(SprocketPath.Sections);
+			return list;
 		}
 	}
 	public class SprocketPathExpressionCreator : IExpressionCreator
@@ -186,7 +193,6 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			}
 		}
 	}
-
 	public class DescendentPathExpressionCreator : IExpressionCreator
 	{
 		public string Keyword { get { return "descendentpath"; } }
