@@ -30,12 +30,10 @@ namespace Sprocket.Web.CMS.Script
 			}
 			public override bool Equals(object obj)
 			{
-				if (value is bool)
-					if ((bool)value)
-						return BooleanExpression.False.Equals(obj);
-					else
-						return BooleanExpression.True.Equals(obj);
-				return !object.Equals(obj, value);
+				if (BooleanExpression.True.Equals(value))
+					return BooleanExpression.False.Equals(obj);
+				else
+					return BooleanExpression.True.Equals(obj);
 			}
 			public override string ToString()
 			{
