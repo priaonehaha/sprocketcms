@@ -72,17 +72,20 @@ namespace Sprocket.Data
 
 		public long GetUniqueID()
 		{
-			using (SqlConnection conn = new SqlConnection(connectionString))
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				conn.Open();
-				SqlCommand cmd = new SqlCommand("GetUniqueID", conn);
-				SqlParameter prm = new SqlParameter("@ID", SqlDbType.BigInt);
-				prm.Direction = ParameterDirection.Output;
-				cmd.Parameters.Add(prm);
-				cmd.CommandType = CommandType.StoredProcedure;
-				cmd.ExecuteNonQuery();
-				conn.Close();
-				return (long)prm.Value;
+				using (SqlConnection conn = new SqlConnection(connectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("GetUniqueID", conn);
+					SqlParameter prm = new SqlParameter("@ID", SqlDbType.BigInt);
+					prm.Direction = ParameterDirection.Output;
+					cmd.Parameters.Add(prm);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.ExecuteNonQuery();
+					conn.Close();
+					return (long)prm.Value;
+				}
 			}
 		}
 
@@ -134,14 +137,14 @@ namespace Sprocket.Data
 
 		public void ReleaseConnection()
 		{
-			stack.Pop();
-			if (stack.Count == 0)
+			if (stack.Count == 1)
 			{
 				SqlConnection conn = Conn as SqlConnection;
 				conn.Close();
 				conn.Dispose();
 				Conn = null;
 			}
+			stack.Pop();
 		}
 
 		private SqlConnection Conn

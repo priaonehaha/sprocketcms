@@ -179,7 +179,7 @@ namespace ClassGenerator
 			this.Server.Name = "Server";
 			this.Server.Size = new System.Drawing.Size(481, 20);
 			this.Server.TabIndex = 2;
-			this.Server.Text = "SNOWMAN\\SQL2005";
+			this.Server.Text = "SNOWMAN";
 			// 
 			// Password
 			// 
