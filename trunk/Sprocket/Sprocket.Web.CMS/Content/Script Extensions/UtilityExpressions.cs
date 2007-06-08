@@ -197,6 +197,8 @@ namespace Sprocket.Web.CMS.Content.Expressions
 					}
 				}
 			}
+			else if (o == null)
+				return null;
 			throw new InstructionExecutionException("the first argument being fed to \"formatdate\" turned out to evaluate to something other than a date. (Underlying type: " + (o == null ? "null" : o.GetType().Name) + ")", contextToken);
 		}
 

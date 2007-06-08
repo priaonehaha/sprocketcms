@@ -10,11 +10,12 @@ using System.Xml;
 
 using Sprocket;
 using Sprocket.Web;
+using Sprocket.Web.CMS.Script;
 using Sprocket.Data;
 
 namespace Sprocket.Web.FileManager
 {
-	public class SprocketFile
+	public class SprocketFile : IPropertyEvaluatorExpression
 	{
 		#region Fields
 
@@ -205,6 +206,51 @@ namespace Sprocket.Web.FileManager
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "DataLength", dataLength);
 			writer.Write("}");
+		}
+
+		#endregion
+
+		#region IPropertyEvaluatorExpression Members
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "sprocketfileid":
+				case "clientspaceid":
+				case "filedata":
+				case "filetypeextension":
+				case "originalfilename":
+				case "contenttype":
+				case "title":
+				case "description":
+				case "uploaddate":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "sprocketfileid": return SprocketFileID;
+				case "clientspaceid": return ClientSpaceID;
+				case "filedata": return FileData;
+				case "filetypeextension": return FileTypeExtension;
+				case "originalfilename": return OriginalFileName;
+				case "contenttype": return ContentType;
+				case "title": return Title;
+				case "description": return Description;
+				case "uploaddate": return UploadDate;
+				default: return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return "[SprocketFile:" + SprocketFileID + "]";
 		}
 
 		#endregion
