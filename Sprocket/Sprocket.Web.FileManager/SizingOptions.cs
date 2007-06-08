@@ -207,6 +207,8 @@ namespace Sprocket.Web.FileManager
 
 		public static SizingOptions Parse(string filename)
 		{
+			if (filename == null)
+				return null;
 			SizingOptions o = new SizingOptions();
 			string[] arr = filename.Split('.');
 			string[] dim = arr[0].Split('_');

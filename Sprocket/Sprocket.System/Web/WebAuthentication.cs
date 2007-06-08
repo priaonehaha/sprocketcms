@@ -172,6 +172,7 @@ namespace Sprocket.Web
 		public void QuickLogin(string username, string password, bool persistLogin)
 		{
 			WriteAuthenticationCookie(username, Crypto.EncryptOneWay(password), StoreAjaxAuthKey(username), persistLogin ? 525600 : 60);
+			CurrentRequest.Value["CurrentUser_Authenticated"] = true;
 		}
 
 		public Guid StoreAjaxAuthKey(string username)

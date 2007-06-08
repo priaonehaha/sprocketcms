@@ -75,7 +75,7 @@ namespace Sprocket.Security
 		}
 	}
 
-	public class User : IEntity
+	public class User : IEntity, IPropertyEvaluatorExpression
 	{
 		#region Fields
 		protected long userID = 0, clientSpaceID = 0;
@@ -288,6 +288,65 @@ namespace Sprocket.Security
 				return new MailAddress(email, FullName);
 			else
 				return new MailAddress(email, username);
+		}
+
+		#endregion
+
+		#region IPropertyEvaluatorExpression Members
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "userid":
+				case "clientspaceid":
+				case "username":
+				case "passwordhash":
+				case "firstname":
+				case "surname":
+				case "email":
+				case "enabled":
+				case "hidden":
+				case "locked":
+				case "deleted":
+				case "activated":
+				case "activationremindersent":
+				case "created":
+				case "lastauthenticated":
+				case "localtimeoffsethours":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "userid": return UserID;
+				case "clientspaceid": return ClientSpaceID;
+				case "username": return Username;
+				case "passwordhash": return PasswordHash;
+				case "firstname": return FirstName;
+				case "surname": return Surname;
+				case "email": return Email;
+				case "enabled": return Enabled;
+				case "hidden": return Hidden;
+				case "locked": return Locked;
+				case "deleted": return Deleted;
+				case "activated": return Activated;
+				case "activationremindersent": return ActivationReminderSent;
+				case "created": return Created;
+				case "lastauthenticated": return LastAuthenticated;
+				case "localtimeoffsethours": return LocalTimeOffsetHours;
+				default: return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return "[User: " + username + "]";
 		}
 
 		#endregion

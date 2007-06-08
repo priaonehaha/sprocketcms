@@ -351,7 +351,7 @@ namespace Sprocket.Web.Cache
 					}
 
 					lock (memoryCache)
-						memoryCache.Add(info.IdentifierString, info);
+						memoryCache[info.IdentifierString] = info;
 					file.Refresh();
 					diskSpace += file.Length;
 				}
@@ -395,7 +395,7 @@ namespace Sprocket.Web.Cache
 					File.WriteAllText(info.PhysicalPath, text, Encoding.Unicode);
 
 					lock (memoryCache)
-						memoryCache.Add(info.IdentifierString, info);
+						memoryCache[info.IdentifierString] = info;
 					file.Refresh();
 					diskSpace += file.Length;
 				}
