@@ -17,7 +17,7 @@ namespace Sprocket
 		/// this will generally be called right before the application is closed. For web
 		/// applications, this is called during the HttpApplication's EndRequest event.
 		/// </summary>
-		public event EmptyHandler OnSessionShutDown;
+		public event EmptyHandler OnRequestShutDown;
 
 		/// <summary>
 		/// This event is a general notifier to inform the system that an exception has been
@@ -37,8 +37,8 @@ namespace Sprocket
 		/// </summary>
 		public void NotifySessionEnding()
 		{
-			if (OnSessionShutDown != null)
-				OnSessionShutDown();
+			if (OnRequestShutDown != null)
+				OnRequestShutDown();
 		}
 
 		/// <summary>

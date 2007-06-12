@@ -123,5 +123,9 @@ namespace Sprocket.Data
 			get { return CurrentRequest.Value["PersistedSqlConnection.Sqlite3"] as SQLiteConnection; }
 			set { CurrentRequest.Value["PersistedSqlConnection.Sqlite3"] = value; }
 		}
+
+		public void ForceCloseConnection()
+		{
+		}
 	}
 }

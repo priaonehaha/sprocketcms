@@ -346,7 +346,7 @@ BEGIN
 	INSERT INTO Users
 		(UserID, ClientID, Username, PasswordHash, FirstName, Surname, Email, Enabled, Hidden, Locked, Deleted, Activated, ActivationReminderSent, Created)
 	VALUES
-		(@UserID, @ClientID, @Username, @PasswordHash, @FirstName, @Surname, @Email, @Enabled, @Hidden, @Locked, 0, @Activated, @ActivationReminderSent, getdate())
+		(@UserID, @ClientID, @Username, @PasswordHash, @FirstName, @Surname, @Email, @Enabled, @Hidden, @Locked, 0, @Activated, @ActivationReminderSent, GETUTCDATE())
 END
 
 go

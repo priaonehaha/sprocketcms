@@ -166,7 +166,7 @@ namespace Sprocket.Web
 				if (attr.RequiresAuthentication)
 				{
 					if (!WebAuthentication.IsLoggedIn)
-						throw new AjaxUserMessageException("You're not currently logged in. Please refresh the page.");
+						AjaxRequestHandler.AbortAjaxCall("You're not currently logged in. Please refresh the page.");
 
 					if (OnAjaxRequestAuthenticationCheck != null)
 					{
@@ -247,7 +247,11 @@ namespace Sprocket.Web
 			catch(Exception e)
 			{
 				if (!(e is AjaxUserMessageException) && SprocketSettings.GetBooleanValue("CatchExceptions"))
+				{
+					if (e.InnerException != null)
+						throw e.InnerException;
 					throw e;
+				}
 				responseData["__error"] = e;
 				responseData["__exceptionType"] = e.GetType().FullName;
 			}
@@ -255,6 +259,16 @@ namespace Sprocket.Web
 				responseData["Data"] = null;
 			//responseData["__timeStamp"] = pageTimeStamp.Ticks;
 			context.Response.Write(JSON.Encode(responseData));
+		}
+
+		public static void AbortAjaxCall(string reason)
+		{
+			Dictionary<string, object> responseData = new Dictionary<string, object>();
+			responseData["__error"] = reason;
+			responseData["__exceptionType"] = typeof(AjaxUserMessageException).FullName;
+			responseData["Data"] = null;
+			HttpContext.Current.Response.Write(JSON.Encode(responseData));
+			HttpContext.Current.Response.End();
 		}
 	}
 }
