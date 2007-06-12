@@ -152,6 +152,8 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			if (args.Count != 1)
 				throw new InstructionExecutionException("how_long_ago expects exactly one argument specifying which date to evaluate.", contextToken);
 			object o = args[0].Expression.Evaluate(state, args[0].Token);
+			if (o == null)
+				return "Never";
 			if (o is DateTime)
 				return StringUtilities.ApproxHowLongAgo(SprocketDate.Now, (DateTime)o);
 			throw new InstructionExecutionException("the argument being fed to how_long_ago turned out to evaluate to something other than a date. (Underlying type: " + (o == null ? "null" : o.GetType().Name) + ")", contextToken);

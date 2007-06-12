@@ -83,8 +83,10 @@ namespace Sprocket.Web.Cache
 				if (File.Exists(info.PhysicalPath))
 				{
 					if (info.SprocketPath != null)
-						sprocketPathMemoryCache.Add(info.SprocketPath, info);
-					memoryCache.Add(info.IdentifierString, info);
+						lock (sprocketPathMemoryCache)
+							sprocketPathMemoryCache[info.SprocketPath] = info;
+					lock (memoryCache)
+						memoryCache[info.IdentifierString] = info;
 					diskSpace += info.File.Length;
 				}
 			}
@@ -293,7 +295,7 @@ namespace Sprocket.Web.Cache
 
 				// put the item into the memory cache
 				lock (memoryCache)
-					memoryCache.Add(identifier, info);
+					memoryCache[identifier] = info;
 				diskSpace += info.File.Length;
 			}
 
@@ -355,6 +357,10 @@ namespace Sprocket.Web.Cache
 					file.Refresh();
 					diskSpace += file.Length;
 				}
+				catch (IOException)
+				{
+					return;
+				}
 				catch
 				{
 					DeleteFile(info.File);
@@ -377,7 +383,7 @@ namespace Sprocket.Web.Cache
 					DeleteFile(c.File);
 				}
 
-			if(info.SprocketPath != null)
+			if (info.SprocketPath != null)
 				lock (sprocketPathMemoryCache)
 					sprocketPathMemoryCache.Remove(info.SprocketPath);
 
@@ -464,7 +470,7 @@ namespace Sprocket.Web.Cache
 				if (info == null)
 					return false;
 				lock (sprocketPathMemoryCache)
-					sprocketPathMemoryCache.Add(sprocketPath, info);
+					sprocketPathMemoryCache[sprocketPath] = info;
 			}
 			if (!File.Exists(info.PhysicalPath))
 			{

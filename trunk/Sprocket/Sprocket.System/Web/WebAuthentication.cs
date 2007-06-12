@@ -133,6 +133,8 @@ namespace Sprocket.Web
 					HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
 					if (cookie == null)
 						return false;
+					if (cookie.Value == "")
+						return false;
 					string passkey = Instance.PasswordHashFromPassKey(cookie["k"]);
 					
 					bool result = Instance.ValidateLogin(cookie["a"], passkey).Succeeded;

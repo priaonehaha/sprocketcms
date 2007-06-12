@@ -39,6 +39,12 @@ namespace Sprocket.Data
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Core_OnInitialise);
+			SystemEvents.Instance.OnRequestShutDown += new EmptyHandler(Instance_OnRequestShutDown);
+		}
+
+		void Instance_OnRequestShutDown()
+		{
+			DatabaseEngine.ForceCloseConnection();
 		}
 
 		void Core_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)

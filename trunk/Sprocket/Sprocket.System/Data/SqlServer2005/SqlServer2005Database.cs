@@ -122,6 +122,8 @@ namespace Sprocket.Data
 		private Stack<bool> stack = new Stack<bool>();
 		public IDbConnection GetConnection()
 		{
+			if (stack == null)
+				stack = new Stack<bool>();
 			stack.Push(true);
 			if (stack.Count == 1)
 			{
@@ -131,7 +133,17 @@ namespace Sprocket.Data
 			}
 			else
 			{
-				return Conn as SqlConnection;
+				SqlConnection c = Conn as SqlConnection;
+
+				if (c != null)
+				{
+					if (c.State == ConnectionState.Open)
+						return Conn as SqlConnection;
+					c.Dispose();
+					Conn = null;
+				}
+				stack = null;
+				return GetConnection();
 			}
 		}
 
@@ -140,11 +152,28 @@ namespace Sprocket.Data
 			if (stack.Count == 1)
 			{
 				SqlConnection conn = Conn as SqlConnection;
-				conn.Close();
-				conn.Dispose();
-				Conn = null;
+				if (conn != null)
+				{
+					conn.Close();
+					conn.Dispose();
+					Conn = null;
+				}
 			}
-			stack.Pop();
+			if(stack.Count > 0)
+				stack.Pop();
+		}
+
+		public void ForceCloseConnection()
+		{
+			SqlConnection c = Conn as SqlConnection;
+			if (c != null)
+			{
+				if (c.State == ConnectionState.Open)
+					c.Close();
+				c.Dispose();
+				Conn = null;
+				stack = null;
+			}
 		}
 
 		private SqlConnection Conn

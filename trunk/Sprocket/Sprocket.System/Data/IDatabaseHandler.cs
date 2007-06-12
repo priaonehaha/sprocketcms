@@ -79,5 +79,11 @@ namespace Sprocket.Data
 		/// connection should be closed and disposed of.
 		/// </summary>
 		void ReleaseConnection();
+
+		/// <summary>
+		/// This will be called at the end of every request to ensure that database connections are always
+		/// closed despite any errors that may have occurred.
+		/// </summary>
+		void ForceCloseConnection();
 	}
 }

@@ -195,6 +195,7 @@ namespace Sprocket.Web.CMS.Content
 						}
 					}
 				}
+
 				else if (xml.HasAttribute("File"))
 				{
 					//	return new SprocketScript("[The template \"" + name + "\" is lacking a Master or File attribute]", "Template: " + name, "Template: " + name);

@@ -99,16 +99,16 @@ namespace Sprocket.Utility
 						}
 						else if (ts.TotalHours < 2 && ts.Minutes >= 55)
 							return "Nearly 2 hours ago";
-						else if (ts.TotalHours > 1 && ts.Minutes < 55)
+						else if (ts.TotalHours > 1)
 						{
-							if (ts.Minutes < 5)
+							if (ts.Days < 1 && ts.Minutes < 5)
 								return "About " + ts.TotalHours.ToString("#") + " hours ago";
 							else
 							{
 								if (ts.Days > 1)
 								{
 									if(ts.Days < 7)
-										return ts.Days.ToString() + " days ago";
+										return "About " + ts.Days + " days ago";
 									if (ts.Days < 9)
 										return "About a week ago";
 									if (ts.Days > 8 && ts.Days < 13)
