@@ -290,6 +290,13 @@ namespace Sprocket.Security
 				return new MailAddress(email, username);
 		}
 
+		public DateTime? FixDate(DateTime? dt)
+		{
+			if (!dt.HasValue)
+				return null;
+			return dt.Value.AddHours(LocalTimeOffsetHours);
+		}
+
 		#endregion
 
 		#region IPropertyEvaluatorExpression Members

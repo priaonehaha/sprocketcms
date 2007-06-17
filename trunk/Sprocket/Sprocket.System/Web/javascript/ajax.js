@@ -199,7 +199,8 @@ SprocketAjax = {
 			ModuleName : moduleName,
 			AuthKey : this.AuthKey,
 			MethodArgs : preparedArgs,
-			LoadTimeStamp : SprocketAjax.LoadTimeStamp
+			LoadTimeStamp : SprocketAjax.LoadTimeStamp,
+			SourceURL : location.href
 		}
 		
 		// send the data asyncronously to the server and return control to calling object

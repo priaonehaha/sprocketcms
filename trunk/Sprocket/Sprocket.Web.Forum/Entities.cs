@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Web;
 
 using Sprocket;
 using Sprocket.Data;
@@ -1010,7 +1011,7 @@ namespace Sprocket.Web.Forums
 		#endregion
 	}
 
-	public class ForumTopicMessage : IJSONEncoder, IJSONReader
+	public class ForumTopicMessage : IJSONEncoder, IJSONReader, IPropertyEvaluatorExpression
 	{
 		#region Constructor, Fields, Properties, JSON Methods
 		#region Fields
@@ -1118,6 +1119,19 @@ namespace Sprocket.Web.Forums
 		{
 		}
 
+		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, string bodySource, ForumModerationState moderationState, Forum.MarkupType markupType)
+		{
+			this.forumTopicMessageID = forumTopicMessageID;
+			this.forumTopicID = forumTopicID;
+			this.authorUserID = authorUserID;
+			this.authorName = authorName;
+			this.dateCreated = dateCreated;
+			this.bodySource = bodySource;
+			this.moderationState = (short)moderationState;
+			this.markupType = (short)markupType;
+			SetMessage(bodySource, markupType);
+		}
+
 		public ForumTopicMessage(long forumTopicMessageID, long forumTopicID, long? authorUserID, string authorName, DateTime dateCreated, string bodySource, string bodyOutput, short moderationState, short markupType)
 		{
 			this.forumTopicMessageID = forumTopicMessageID;
@@ -1218,6 +1232,69 @@ namespace Sprocket.Web.Forums
 		}
 
 		#endregion
+
+		#region IPropertyEvaluatorExpression Members
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "forumtopicmessageid":
+				case "forumtopicid":
+				case "authoruserid":
+				case "authorname":
+				case "datecreated":
+				case "bodysource":
+				case "bodyoutput":
+				case "moderationstate":
+				case "markuptype":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "forumtopicmessageid": return ForumTopicMessageID;
+				case "forumtopicid": return ForumTopicID;
+				case "authoruserid": return AuthorUserID;
+				case "authorname": return AuthorName;
+				case "datecreated": return DateCreated;
+				case "bodysource": return BodySource;
+				case "bodyoutput": return BodyOutput;
+				case "moderationstate": return ModerationState;
+				case "markuptype": return MarkupType;
+				default: return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return "[ForumTopicMessage: " + ForumTopicMessageID + "]";
+		}
+
+		#endregion
+
+		public void SetMessage(string text, Forum.MarkupType markupType)
+		{
+			bodySource = text;
+			switch (markupType)
+			{
+				case Forum.MarkupType.None:
+					bodyOutput = HttpUtility.HtmlEncode(text)
+						.Replace(Environment.NewLine, "<br/>")
+						.Replace("\n", "<br/>")
+						;
+					break;
+
+				default:
+					bodyOutput = text;
+					break;
+			}
+		}
 	}
 
 	public enum ForumModerationState

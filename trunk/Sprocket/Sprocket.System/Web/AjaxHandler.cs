@@ -147,6 +147,9 @@ namespace Sprocket.Web
 				if (data["AuthKey"].ToString() != WebAuthentication.AuthKeyPlaceholder)
 					authKey = new Guid(data["AuthKey"].ToString());
 
+				// extract the source URL
+				SprocketPath.Parse(data["SourceURL"].ToString());
+
 				// extract the arguments
 				List<object> parsedArguments = (List<object>)data["MethodArgs"];
 

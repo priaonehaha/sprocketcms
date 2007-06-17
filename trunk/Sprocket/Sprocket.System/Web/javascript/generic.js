@@ -49,7 +49,7 @@ function htmlEncode(str) {
 }
 
 function trim(str) {
-	return str.replace(/^\s*((\S|(\S\s+\S))+)\s*$/, '$1');
+	return str.replace(/^\s*((\S|(\S\s+\S))*)\s*$/, '$1');
 }
 
 function queryString(arg) {

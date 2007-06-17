@@ -57,5 +57,7 @@ namespace Sprocket.Web.Forums
 
 		List<Forum> ListForums(long forumCategoryID);
 		List<ForumSummary> ListForumSummary(string categoryCode);
+		List<ForumTopicMessage> ListForumTopicMessages(long forumTopicID, int recordsPerPage, int pageNumber, bool lastMessageFirst,
+			bool hideUnmoderatedMessages, out int totalMessages);
 	}
 }

@@ -290,8 +290,13 @@ namespace Sprocket.Web.CMS.Content
 				if (requestPaths.ContainsKey(sprocketPath))
 					return requestPaths[sprocketPath];
 				foreach (PageEntry page in flexiblePaths)
-					if (SprocketPath.IsCurrentPathDescendentOf(page.Path))
-						return page;
+				{
+					if(!File.Exists(SprocketPath.Physical))
+						if (page.Path == "")
+							return page;
+						else if (SprocketPath.IsCurrentPathDescendentOf(page.Path))
+							return page;
+				}
 				return null;
 			}
 

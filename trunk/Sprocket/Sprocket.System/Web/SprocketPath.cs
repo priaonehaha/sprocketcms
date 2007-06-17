@@ -13,6 +13,18 @@ namespace Sprocket.Web
 			internal set { CurrentRequest.Value["Sprocket.Web.SprocketPath.Value"] = value; }
 		}
 
+		public static string RawURL
+		{
+			get { return (string)CurrentRequest.Value["Sprocket.Web.SprocketPath.RawURL"]; }
+			internal set { CurrentRequest.Value["Sprocket.Web.SprocketPath.RawURL"] = value; }
+		}
+
+		public static string RawQueryString
+		{
+			get { return (string)CurrentRequest.Value["Sprocket.Web.SprocketPath.RawQueryString"]; }
+			internal set { CurrentRequest.Value["Sprocket.Web.SprocketPath.RawQueryString"] = value; }
+		}
+
 		public static string[] Sections
 		{
 			get { return (string[])CurrentRequest.Value["Sprocket.Web.SprocketPath.PathSections"]; }
@@ -31,6 +43,21 @@ namespace Sprocket.Web
 				}
 				return s;
 			}
+		}
+
+		internal static void Parse(Uri uri)
+		{
+			HttpRequest Request = HttpContext.Current.Request;
+
+			RawQueryString = uri.Query.Length > 0 ? uri.Query.Substring(1) : "";
+			Value = uri.AbsolutePath.ToLower().Substring(Request.ApplicationPath.Length).Trim('/');
+			Sections = Value.Split('/');
+			RawURL = uri.OriginalString;
+		}
+
+		internal static void Parse(string rawURL)
+		{
+			Parse(new Uri(rawURL));
 		}
 
 		public static bool IsPathDescendentOf(string descendentPath, string parentPath)
