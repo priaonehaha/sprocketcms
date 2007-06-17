@@ -100,33 +100,36 @@ namespace Sprocket.Web
 		/// <param name="e"></param>
 		internal void FireBeginRequest(object sender, EventArgs e)
 		{
-			// The SprocketPath refers to the bit after the application base path and before the
-			// querystring, minus any leading and trailing forward-slashes. (/) For example if the
-			// full URL is "http://www.sprocketcms.com/myapp/admin/users/?edit" and the subdirectory
-			// "myapp" is a virtual directory (IIS application) then the SprocketPath would be
-			// "admin/users".
-			string sprocketPath = null;
-			string appPath = HttpContext.Current.Request.Path.ToLower();
-
-			// check to see if there's a trailing slash and if there isn't, redirect to stick a trailing
-			// slash onto the path. This is to keep pathing consistent because otherwise relative paths
-			// (such as to images and css files) aren't pathed as expected. We DON'T do this if a form
-			// has been posted however, because otherwise we lose the contents of the posted form. It is
-			// assumed that if you forget to post to a path with a trailing slash, that once you finish
-			// processing the form that you'll redirect off to a secondary page anyway, which means
-			// sticking a slash on the end of this URL is unnecessary anyway.
-			if (!appPath.EndsWith("/") && !appPath.Contains(".") && HttpContext.Current.Request.Form.Count == 0)
+			if (!AjaxRequestHandler.IsAjaxRequest)
 			{
-				HttpContext.Current.Response.Redirect(appPath + "/");
-				HttpContext.Current.Response.End();
-				return;
+				// The SprocketPath refers to the bit after the application base path and before the
+				// querystring, minus any leading and trailing forward-slashes. (/) For example if the
+				// full URL is "http://www.sprocketcms.com/myapp/admin/users/?edit" and the subdirectory
+				// "myapp" is a virtual directory (IIS application) then the SprocketPath would be
+				// "admin/users".
+				string sprocketPath = null;
+				string appPath = HttpContext.Current.Request.Path.ToLower();
+
+				// check to see if there's a trailing slash and if there isn't, redirect to stick a trailing
+				// slash onto the path. This is to keep pathing consistent because otherwise relative paths
+				// (such as to images and css files) aren't pathed as expected. We DON'T do this if a form
+				// has been posted however, because otherwise we lose the contents of the posted form. It is
+				// assumed that if you forget to post to a path with a trailing slash, that once you finish
+				// processing the form that you'll redirect off to a secondary page anyway, which means
+				// sticking a slash on the end of this URL is unnecessary anyway.
+				if (!appPath.EndsWith("/") && !appPath.Contains(".") && HttpContext.Current.Request.Form.Count == 0)
+				{
+					HttpContext.Current.Response.Redirect(appPath + "/");
+					HttpContext.Current.Response.End();
+					return;
+				}
+
+				// changes (e.g.) "http://www.sprocketcms.com/myapp/admin/users/?edit" into "admin/users"
+				SprocketPath.Parse(HttpContext.Current.Request.Url);
+				//sprocketPath = appPath.Remove(0, HttpContext.Current.Request.ApplicationPath.Length).Trim('/');
+				//SprocketPath.Value = sprocketPath;
+				//SprocketPath.Sections = SprocketPath.Value.Split('/');
 			}
-
-			// changes (e.g.) "http://www.sprocketcms.com/myapp/admin/users/?edit" into "admin/users"
-			sprocketPath = appPath.Remove(0, HttpContext.Current.Request.ApplicationPath.Length).Trim('/');
-			SprocketPath.Value = sprocketPath;
-			SprocketPath.Sections = SprocketPath.Value.Split('/');
-
 			HandleFlag handled = new HandleFlag();
 
 			if(OnBeginHttpRequest != null)

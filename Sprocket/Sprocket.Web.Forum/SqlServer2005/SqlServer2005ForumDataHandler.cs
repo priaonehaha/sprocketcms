@@ -595,5 +595,34 @@ namespace Sprocket.Web.Forums.SqlServer2005
 				}
 			}
 		}
+
+		public List<ForumTopicMessage> ListForumTopicMessages(long forumTopicID, int recordsPerPage, int pageNumber, bool lastMessageFirst, bool hideUnmoderatedMessages, out int totalMessages)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("ForumTopic_ListForumTopicMessages", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(NewSqlParameter("@ForumTopicID", forumTopicID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@RecordsPerPage", recordsPerPage, SqlDbType.Int));
+					cmd.Parameters.Add(NewSqlParameter("@PageNumber", pageNumber, SqlDbType.Int));
+					cmd.Parameters.Add(NewSqlParameter("@ReverseOrder", lastMessageFirst, SqlDbType.Bit));
+					cmd.Parameters.Add(NewSqlParameter("@HideUnmoderatedMessages", hideUnmoderatedMessages, SqlDbType.Bit));
+					SqlParameter prm = new SqlParameter("@Total", SqlDbType.Int);
+					prm.Direction = ParameterDirection.Output;
+					prm.Value = DBNull.Value;
+					cmd.Parameters.Add(prm);
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					List<ForumTopicMessage> list = new List<ForumTopicMessage>();
+					while (reader.Read())
+						list.Add(new ForumTopicMessage(reader));
+					reader.Close();
+					totalMessages = (int)prm.Value;
+					return list;
+				}
+			}
+		}
 	}
 }

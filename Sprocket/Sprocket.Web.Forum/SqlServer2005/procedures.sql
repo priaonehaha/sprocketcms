@@ -142,5 +142,54 @@ BEGIN
 	 WHERE f.ForumCategoryID = @ID
   ORDER BY f.Rank
 END
+go
 
+IF OBJECT_ID(N'dbo.ForumTopic_ListForumTopicMessages') IS NOT NULL
+	DROP PROCEDURE ForumTopic_ListForumTopicMessages
+go
+CREATE PROCEDURE dbo.ForumTopic_ListForumTopicMessages
+	@ForumTopicID bigint,
+	@RecordsPerPage int,
+	@PageNumber int,
+	@ReverseOrder bit,
+	@HideUnmoderatedMessages bit,
+	@Total int=NULL OUTPUT
+AS
+BEGIN
+	IF @HideUnmoderatedMessages IS NULL
+		SET @HideUnmoderatedMessages = 0
+	IF @HideUnmoderatedMessages IS NULL
+		SET @HideUnmoderatedMessages = 0
+	
+	SELECT @Total = COUNT(*)
+	  FROM ForumTopicMessage
+	 WHERE ForumTopicID = @ForumTopicID AND (@HideUnmoderatedMessages = 0 OR ModerationState IN (1,2))
+	 
+	DECLARE @n1 int, @n2 int
+	IF @RecordsPerPage > 0
+	BEGIN
+		SET @n1 = (@PageNumber-1) * @RecordsPerPage + 1
+		SET @n2 = @n1 + @RecordsPerPage - 1;
+	END
+	ELSE
+	BEGIN
+		SET @n1 = 1
+		SET @n2 = @Total
+	END;
 
+	WITH msgs AS
+	(
+		SELECT *,
+				ROW_NUMBER() OVER (ORDER BY msg.DateCreated ASC) AS [RowIndex],
+				ROW_NUMBER() OVER (ORDER BY msg.DateCreated DESC) AS [ReverseRowIndex]
+		  FROM ForumTopicMessage msg
+		 WHERE (@HideUnmoderatedMessages = 0 OR msg.ModerationState IN (1,2))
+	)
+	SELECT ForumTopicMessageID, ForumTopicID, AuthorUserID,
+			CASE WHEN AuthorUserID IS NOT NULL THEN (SELECT u.Username FROM Users u WHERE u.UserID = AuthorUserID) ELSE AuthorName END as [AuthorName],
+		   DateCreated, BodySource, BodyOutput, ModerationState, MarkupType
+	  FROM msgs
+	 WHERE (@ReverseOrder = 0 AND RowIndex BETWEEN @n1 AND @n2)
+		OR (@ReverseOrder = 1 AND ReverseRowIndex BETWEEN @n1 AND @n2)
+  ORDER BY CASE WHEN @ReverseOrder = 0 THEN RowIndex ELSE ReverseRowIndex END
+END
