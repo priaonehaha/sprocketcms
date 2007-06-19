@@ -36,13 +36,14 @@ namespace Sprocket.Web.CMS.Content.Expressions
 
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			if (ContentManager.PageStack.Count == 0)
-				throw new InstructionExecutionException("I can't retrieve information for the current page because there is not a specific page entry defined for the current request. (definitions.xml)", contextToken);
-			Token t = state.SourceToken;
-			state.SourceToken = contextToken.Next;
-			string s = ContentManager.PageStack.Peek().Render(state);
-			state.SourceToken = t;
-			return s;
+			throw new InstructionExecutionException("Can't render this page expression by itself because to do so would cause infinite recursion.", contextToken);
+			//if (ContentManager.PageStack.Count == 0)
+			//    throw new InstructionExecutionException("I can't retrieve information for the current page because there is not a specific page entry defined for the current request. (definitions.xml)", contextToken);
+			//Token t = state.SourceToken;
+			//state.SourceToken = contextToken.Next;
+			//string s = ContentManager.PageStack.Peek().Render(state);
+			//state.SourceToken = t;
+			//return s;
 		}
 	}
 	public class PageExpressionCreator : IExpressionCreator

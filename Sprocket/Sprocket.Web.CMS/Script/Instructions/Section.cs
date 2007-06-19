@@ -76,13 +76,17 @@ namespace Sprocket.Web.CMS.Script
 		public void Execute(ExecutionState state)
 		{
 			if (name != null)
-				if (state.SectionOverrides.ContainsKey(name))
+				if (state.ExecutingScript.Count > 0)
 				{
-					Token prevToken = state.SourceToken;
-					state.SourceToken = instructionListToken;
-					state.SectionOverrides[name].ExecuteInParentContext(state);
-					state.SourceToken = prevToken;
-					return;
+					Dictionary<string, SprocketScript> overrides = state.ExecutingScript.Peek().SectionOverrides;
+					if (overrides.ContainsKey(name))
+					{
+						Token prevToken = state.SourceToken;
+						state.SourceToken = instructionListToken;
+						overrides[name].Execute(state);
+						state.SourceToken = prevToken;
+						return;
+					}
 				}
 			foreach (IInstruction instruction in list)
 				instruction.Execute(state);
