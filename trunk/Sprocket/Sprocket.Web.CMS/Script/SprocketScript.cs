@@ -19,7 +19,7 @@ namespace Sprocket.Web.CMS.Script
 		{
 			get { return exception; }
 		}
-		
+
 		public bool HasParseError
 		{
 			get { return hasError; }
@@ -106,33 +106,79 @@ namespace Sprocket.Web.CMS.Script
 		}
 
 		private Dictionary<string, SprocketScript> sectionOverrides = new Dictionary<string, SprocketScript>();
-		public void OverrideSection(string sectionName, SprocketScript script)
+		public Dictionary<string, SprocketScript> SectionOverrides
 		{
-			sectionOverrides[sectionName] = script;
+			get { return sectionOverrides; }
 		}
 
-		public void Execute(Stream stream)
+		private Dictionary<string, SprocketScript> oldOverrides = null;
+		internal void SetOverrides(Dictionary<string, SprocketScript> overrides)
 		{
-			using (StreamWriter writer = new StreamWriter(stream))
-				writer.Write(Execute());
+			oldOverrides = sectionOverrides;
+			sectionOverrides = overrides;
 		}
 
-		public string Execute(params KeyValuePair<string,object>[] variables)
+		internal void RestoreOverrides()
 		{
-			MemoryStream stream = new MemoryStream();
-			ExecutionState state = new ExecutionState(stream);
-			foreach (KeyValuePair<string, object> kvp in variables)
-				state.Variables.Add(kvp.Key, kvp.Value);
+			sectionOverrides = oldOverrides;
+			oldOverrides = null;
+		}
+
+		/// <summary>
+		/// Executes the script in its own output branch in order to keep the generated content temporarily separate
+		/// from the existing output stream.
+		/// </summary>
+		/// <param name="state">The current execution state</param>
+		/// <returns>the rendered script</returns>
+		public string ExecuteIsolated(ExecutionState state)
+		{
+			state.BranchOutput();
+			string output;
+			try { Execute(state); }
+			finally { output = state.ReadAndRemoveBranch(); }
+			return output;
+		}
+
+		public void Execute(ExecutionState state)
+		{
+			if (state.ScriptIdentifierStack.Contains(identifier))
+				throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", state.SourceToken);
+			if (hasError)
+			{
+				instruction.Execute(state);
+				return;
+			}
 
 			state.ScriptIdentifierStack.Push(identifier);
 			state.ExecutingScript.Push(this);
-			state.SectionOverrides = sectionOverrides;
 			try
 			{
 				instruction.Execute(state);
-				stream.Seek(0, SeekOrigin.Begin);
-				using (StreamReader reader = new StreamReader(stream))
-					return reader.ReadToEnd();
+			}
+			catch (InstructionExecutionException ex)
+			{
+				state.ErrorHTML = GetErrorHTML(ex.Message, ex.Token, state);
+			}
+			catch (InstructionExecutionParseErrorException ex)
+			{
+				state.ErrorHTML = ex.ToString();
+			}
+			finally
+			{
+				state.ExecutingScript.Pop();
+				state.ScriptIdentifierStack.Pop();
+			}
+		}
+
+		public string Execute(params KeyValuePair<string, object>[] variables)
+		{
+			ExecutionState state = new ExecutionState();
+			foreach (KeyValuePair<string, object> kvp in variables)
+				state.Variables.Add(kvp.Key, kvp.Value);
+			Execute(state);
+			try
+			{
+				return state.ReadAndRemoveBranch();
 			}
 			catch (InstructionExecutionException ex)
 			{
@@ -144,53 +190,56 @@ namespace Sprocket.Web.CMS.Script
 			}
 		}
 
-		public string ExecuteToResolveExpression(ExecutionState baseState)
-		{
-			if (baseState.BaseExecutionState.ScriptIdentifierStack.Contains(identifier))
-				throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", baseState.SourceToken);
-			if (hasError)
-				throw new InstructionExecutionParseErrorException(Execute());
+		#region old
 
-			MemoryStream stream = new MemoryStream();
-			ExecutionState state = new ExecutionState(stream, baseState);
-			baseState.ScriptIdentifierStack.Push(identifier);
-			baseState.ExecutingScript.Push(this);
-			state.SectionOverrides = sectionOverrides;
+		//public string ExecuteToResolveExpression(ExecutionState baseState)
+		//{
+		//    if (baseState.BaseExecutionState.ScriptIdentifierStack.Contains(identifier))
+		//        throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", baseState.SourceToken);
+		//    if (hasError)
+		//        throw new InstructionExecutionParseErrorException(Execute());
 
-			instruction.Execute(state);
+		//    MemoryStream stream = new MemoryStream();
+		//    ExecutionState state = new ExecutionState(stream, baseState);
+		//    baseState.ScriptIdentifierStack.Push(identifier);
+		//    baseState.ExecutingScript.Push(this);
+		//    state.SectionOverrides = sectionOverrides;
 
-			baseState.ScriptIdentifierStack.Pop();
-			baseState.ExecutingScript.Pop();
+		//    instruction.Execute(state);
 
-			stream.Seek(0, SeekOrigin.Begin);
-			using (StreamReader reader = new StreamReader(stream))
-				return reader.ReadToEnd();
-		}
+		//    baseState.ScriptIdentifierStack.Pop();
+		//    baseState.ExecutingScript.Pop();
 
-		/// <summary>
-		/// Executes the script as a branch of execution of another script, maintaining the
-		/// existing execution state. This is used exclusively for allowing certain named
-		/// script sections (InstructionList objects) to execute a secondary script instead
-		/// of their standard child instructions.
-		/// </summary>
-		/// <param name="state">The state in which to continue execution</param>
-		internal void ExecuteInParentContext(ExecutionState state)
-		{
-			if (state.BaseExecutionState.ScriptIdentifierStack.Contains(identifier))
-				throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", state.SourceToken);
-			if (hasError)
-				throw new InstructionExecutionParseErrorException(Execute());
+		//    stream.Seek(0, SeekOrigin.Begin);
+		//    using (StreamReader reader = new StreamReader(stream))
+		//        return reader.ReadToEnd();
+		//}
 
-			state.BaseExecutionState.ScriptIdentifierStack.Push(identifier);
-			state.BaseExecutionState.ExecutingScript.Push(this);
-			
-			Dictionary<string, SprocketScript> preservedOverrides = state.SectionOverrides;
-			state.SectionOverrides = sectionOverrides;
-			instruction.Execute(state);
-			state.SectionOverrides = preservedOverrides;
+		///// <summary>
+		///// Executes the script as a branch of execution of another script, maintaining the
+		///// existing execution state. This is used exclusively for allowing certain named
+		///// script sections (InstructionList objects) to execute a secondary script instead
+		///// of their standard child instructions.
+		///// </summary>
+		///// <param name="state">The state in which to continue execution</param>
+		//internal void ExecuteInParentContext(ExecutionState state)
+		//{
+		//    if (state.BaseExecutionState.ScriptIdentifierStack.Contains(identifier))
+		//        throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", state.SourceToken);
+		//    if (hasError)
+		//        throw new InstructionExecutionParseErrorException(Execute());
 
-			state.BaseExecutionState.ScriptIdentifierStack.Pop();
-			state.BaseExecutionState.ExecutingScript.Pop();
-		}
+		//    state.BaseExecutionState.ScriptIdentifierStack.Push(identifier);
+		//    state.BaseExecutionState.ExecutingScript.Push(this);
+
+		//    Dictionary<string, SprocketScript> preservedOverrides = state.SectionOverrides;
+		//    state.SectionOverrides = sectionOverrides;
+		//    instruction.Execute(state);
+		//    state.SectionOverrides = preservedOverrides;
+
+		//    state.BaseExecutionState.ScriptIdentifierStack.Pop();
+		//    state.BaseExecutionState.ExecutingScript.Pop();
+		//}
+		#endregion
 	}
 }

@@ -345,9 +345,9 @@ namespace Sprocket.Web
 		}
 
 		private List<FormPostAction> formPostActions = new List<FormPostAction>();
-		public void AddFormProcessor(FormPostAction action)
+		public static void AddFormProcessor(FormPostAction action)
 		{
-			formPostActions.Add(action);
+			Instance.formPostActions.Add(action);
 		}
 
 		/// <summary>

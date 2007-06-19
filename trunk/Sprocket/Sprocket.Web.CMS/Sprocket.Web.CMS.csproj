@@ -43,6 +43,8 @@
     <Compile Include="Admin\Admin.cs" />
     <Compile Include="Admin\Interfaces.cs" />
     <Compile Include="Content\ContentManager.cs" />
+    <Compile Include="Content\PageRegistry.cs" />
+    <Compile Include="Content\TemplateRegistry.cs" />
     <Compile Include="Content\PagesAdminMenuItem.cs" />
     <Compile Include="Content\Script Extensions\AjaxScriptsExpression.cs" />
     <Compile Include="Content\Script Extensions\FormValuesExpressions.cs" />

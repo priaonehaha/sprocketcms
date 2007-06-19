@@ -81,7 +81,7 @@ namespace Sprocket.Web.CMS.Content
 
 		public string Render(ExecutionState state)
 		{
-			return Template.Script.ExecuteToResolveExpression(state);
+			return Template.RenderIsolated(state);
 		}
 
 		public string Render()
@@ -93,7 +93,7 @@ namespace Sprocket.Web.CMS.Content
 				cachePath = path;
 
 			ContentManager.PageStack.Push(this);
-			string output = Template.Script.Execute();
+			string output = Template.Render();
 			ContentManager.PageStack.Pop();
 			return output;
 		}

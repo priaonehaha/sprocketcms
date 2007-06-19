@@ -33,6 +33,17 @@ namespace Sprocket.Web.CMS.Script
 			get { return scriptIdentifierStack; }
 		}
 
+		private string errorHTML = null;
+		public bool ErrorOccurred
+		{
+			get { return errorHTML != null; }
+		}
+		public string ErrorHTML
+		{
+			get { return errorHTML; }
+			internal set { errorHTML = value; }
+		}
+
 		public class ScriptRecursionIdentifier
 		{
 			private string descriptiveName, identificationString;
@@ -79,37 +90,74 @@ namespace Sprocket.Web.CMS.Script
 			get { return executingScript; }
 		}
 
-		private StreamWriter output;
+		private Stack<StreamWriter> output = new Stack<StreamWriter>();
 		public StreamWriter Output
 		{
-			get { return output; }
+			get { return output.Peek(); }
+		}
+
+		/// <summary>
+		/// causes output to start building in an isolated area that can be merged into the main output at a later point
+		/// </summary>
+		public void BranchOutput()
+		{
+			MemoryStream stream = new MemoryStream();
+			StreamWriter writer = new StreamWriter(stream);
+			output.Push(writer);
+		}
+
+		/// <summary>
+		/// merges the current output branch into the underlying output stream, which it then returns control to, closing the current branch in the process.
+		/// </summary>
+		public void MergeBranch()
+		{
+			StreamWriter writer = output.Pop();
+			writer.Flush();
+			writer.BaseStream.Seek(0, SeekOrigin.Begin);
+			StreamReader reader = new StreamReader(writer.BaseStream);
+			output.Peek().Write(reader.Read());
+			writer.Close();
+		}
+
+		/// <summary>
+		/// reads and returns the contents of the current branch without merging it into the underlying output stream
+		/// </summary>
+		public string ReadAndRemoveBranch()
+		{
+			StreamWriter writer = output.Pop();
+			writer.Flush();
+			writer.BaseStream.Seek(0, SeekOrigin.Begin);
+			StreamReader reader = new StreamReader(writer.BaseStream);
+			string text = reader.ReadToEnd();
+			writer.Close();
+			return text;
+		}
+
+		/// <summary>
+		/// removes the contents of the existing output branch from the stack and discards it without adding it to the underlying output stream
+		/// </summary>
+		public void CancelBranch()
+		{
+			output.Pop();
 		}
 
 		public ExecutionState(Stream stream)
 		{
-			output = new StreamWriter(stream);
-			output.AutoFlush = true;
-			baseExecutionState = this;
+			StreamWriter writer = new StreamWriter(stream);
+			writer.AutoFlush = true;
+			output.Push(writer);
 		}
 
-		public ExecutionState(Stream stream, ExecutionState state)
+		public ExecutionState(params KeyValuePair<string, object>[] preloadedVariables)
 		{
-			output = new StreamWriter(stream);
-			output.AutoFlush = true;
-			baseExecutionState = state;
+			foreach (KeyValuePair<string, object> kvp in preloadedVariables)
+				variables.Add(kvp.Key, kvp.Value);
+			BranchOutput();
 		}
 
-		private Dictionary<string, SprocketScript> sectionOverrides = new Dictionary<string, SprocketScript>();
-		public Dictionary<string, SprocketScript> SectionOverrides
+		public ExecutionState()
 		{
-			get { return sectionOverrides; }
-			set { sectionOverrides = value; }
-		}
-
-		private ExecutionState baseExecutionState;
-		public ExecutionState BaseExecutionState
-		{
-			get { return baseExecutionState; }
+			BranchOutput();
 		}
 
 		private Token sourceToken = null;
@@ -127,30 +175,12 @@ namespace Sprocket.Web.CMS.Script
 
 		public bool HasVariable(string variableName)
 		{
-			ExecutionState state = this;
-			while (state != null)
-			{
-				if (state.Variables.ContainsKey(variableName))
-					return true;
-				if (object.ReferenceEquals(state.baseExecutionState, state))
-					return false;
-				state = state.baseExecutionState;
-			}
-			return false;
+			return Variables.ContainsKey(variableName);
 		}
 
 		public object GetVariable(string variableName)
 		{
-			ExecutionState state = this;
-			while (state != null)
-			{
-				if (state.Variables.ContainsKey(variableName))
-					return state.Variables[variableName];
-				if (object.ReferenceEquals(state.baseExecutionState, state))
-					return null;
-				state = state.baseExecutionState;
-			}
-			return null;
+			return Variables[variableName];
 		}
 	}
 }
