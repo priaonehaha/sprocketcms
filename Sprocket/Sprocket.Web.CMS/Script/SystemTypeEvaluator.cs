@@ -10,7 +10,10 @@ namespace Sprocket.Web.CMS.Script
 		public static object EvaluateProperty(object o, string propertyName, Token propertyNameToken)
 		{
 			if (o == null)
-				throw new InstructionExecutionException("The value here is null, which can't have a property.", propertyNameToken);
+				if (propertyNameToken.Previous != null)
+					throw new InstructionExecutionException("\"" + propertyNameToken.Previous.Value + "\" is not a keyword and has not been assigned a value as a variable. As such, it cannot evaluate the specified property.", propertyNameToken.Previous);
+				else
+					throw new InstructionExecutionException("The value here is null, which can't have a property.", propertyNameToken);
 			if (o is string)
 			{
 				switch (propertyName)
@@ -30,8 +33,13 @@ namespace Sprocket.Web.CMS.Script
 
 		public static object EvaluateArguments(ExecutionState state, object o, List<ExpressionArgument> args, Token contextToken)
 		{
-			if(o == null)
-				throw new InstructionExecutionException("The value here is null, which isn't able to process an argument list.", contextToken);
+			if (o == null)
+			{
+				if(contextToken.Previous != null)
+					throw new InstructionExecutionException("\"" + contextToken.Previous.Value + "\" is not a keyword and has not been assigned a value as a variable. As such, it cannot evaluate the specified argument list.", contextToken.Previous);
+				else
+					throw new InstructionExecutionException("The value here is null, which isn't able to process an argument list.", contextToken);
+			}
 			if (o is IList)
 			{
 				if (args.Count > 1)

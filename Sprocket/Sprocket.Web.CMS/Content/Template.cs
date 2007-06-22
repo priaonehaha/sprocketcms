@@ -141,7 +141,8 @@ namespace Sprocket.Web.CMS.Content
 		internal override void Render(ExecutionState state, Dictionary<string, SprocketScript> overrides)
 		{
 			script.SetOverrides(overrides);
-			script.Execute(state);
+			if (!script.Execute(state))
+				state.Output.Write(state.ErrorHTML);
 			script.RestoreOverrides();
 		}
 	}
