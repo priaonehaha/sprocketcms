@@ -111,6 +111,12 @@ namespace Sprocket.Web.CMS.Script
 		/// </summary>
 		public void MergeBranch()
 		{
+			if (ErrorOccurred)
+			{
+				output.Pop().Dispose();
+				output.Peek().Write(ErrorHTML);
+				return;
+			}
 			StreamWriter writer = output.Pop();
 			writer.Flush();
 			writer.BaseStream.Seek(0, SeekOrigin.Begin);
@@ -124,6 +130,11 @@ namespace Sprocket.Web.CMS.Script
 		/// </summary>
 		public string ReadAndRemoveBranch()
 		{
+			if (ErrorOccurred)
+			{
+				output.Pop().Dispose();
+				return ErrorHTML;
+			}
 			StreamWriter writer = output.Pop();
 			writer.Flush();
 			writer.BaseStream.Seek(0, SeekOrigin.Begin);

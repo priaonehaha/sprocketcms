@@ -50,7 +50,7 @@ namespace Sprocket.Web
 			HttpRequest Request = HttpContext.Current.Request;
 
 			RawQueryString = uri.Query.Length > 0 ? uri.Query.Substring(1) : "";
-			Value = uri.AbsolutePath.ToLower().Substring(Request.ApplicationPath.Length).Trim('/');
+			Value = HttpUtility.UrlDecode(uri.AbsolutePath).ToLower().Substring(Request.ApplicationPath.Length).Trim('/');
 			Sections = Value.Split('/');
 			RawURL = uri.OriginalString;
 		}

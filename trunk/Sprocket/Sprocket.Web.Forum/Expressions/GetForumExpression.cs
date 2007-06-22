@@ -41,7 +41,7 @@ namespace Sprocket.Web.Forums
 	}
 	public class GetForumExpressionCreator : IExpressionCreator
 	{
-		public string Keyword { get { return "getforum"; } }
+		public string Keyword { get { return "get_forum"; } }
 		public IExpression Create() { return new GetForumExpression(); }
 	}
 }

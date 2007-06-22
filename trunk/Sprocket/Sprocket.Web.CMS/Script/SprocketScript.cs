@@ -139,14 +139,14 @@ namespace Sprocket.Web.CMS.Script
 			return output;
 		}
 
-		public void Execute(ExecutionState state)
+		public bool Execute(ExecutionState state)
 		{
 			if (state.ScriptIdentifierStack.Contains(identifier))
 				throw new InstructionExecutionException("Script \"" + identifier.DescriptiveName + "\" aborted to prevent infinite recursion", state.SourceToken);
 			if (hasError)
 			{
 				instruction.Execute(state);
-				return;
+				return false;
 			}
 
 			state.ScriptIdentifierStack.Push(identifier);
@@ -166,8 +166,10 @@ namespace Sprocket.Web.CMS.Script
 			finally
 			{
 				state.ExecutingScript.Pop();
-				state.ScriptIdentifierStack.Pop();
+				if(state.ScriptIdentifierStack.Count > 0)
+					state.ScriptIdentifierStack.Pop();
 			}
+			return state.ErrorOccurred;
 		}
 
 		public string Execute(params KeyValuePair<string, object>[] variables)
