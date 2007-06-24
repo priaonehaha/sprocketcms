@@ -38,6 +38,7 @@ namespace Sprocket.Web.Forums
 				{
 					case "save_forum_settings": SaveForumSettings(); break;
 					case "post_topic": PostTopic(); break;
+					case "post_reply": ReplyToTopic(); break;
 					default:
 						Response.Write("<p>Nope, sorry.</p><p>Click <a href=\"" + HttpUtility.HtmlEncode(Request.UrlReferrer.ToString()) + "\">here</a> to go back to where you were.</p>");
 						Response.End();
@@ -244,6 +245,121 @@ namespace Sprocket.Web.Forums
 			}
 
 #warning to do: redirect to message rather than the forum itself.
+		}
+
+		private void ReplyToTopic()
+		{
+			string forumStr = Request.Form["forum"];
+			string path = Request.Form["path"];
+
+			string notLoggedInURL = Request.Form["notLoggedInURL"];
+
+			ForumTopic topic = DataLayer.SelectForumTopic(long.Parse(Request.Form["topic"]));
+			if (topic == null)
+			{
+				WriteErrorMessage("Bad topic ID");
+				return;
+			}
+			Forum forum = DataLayer.SelectForum(topic.ForumID);
+
+			#region Check to see if the current user is allowed to reply to the topic
+			switch (forum.WriteReplies)
+			{
+				case Forum.AccessType.AllowAnonymous:
+					throw new NotImplementedException("need to put in anonymous author name and CAPTCHA.");
+
+				case Forum.AccessType.ActivatedMembers:
+					CheckAuthentication(notLoggedInURL);
+					if (!SecurityProvider.CurrentUser.Activated)
+					{
+						WriteErrorMessage("You're not authenticated yet.");
+						return;
+					}
+					break;
+
+				case Forum.AccessType.AllMembers:
+					CheckAuthentication(notLoggedInURL);
+					break;
+
+				case Forum.AccessType.Administrators:
+					CheckAuthentication(notLoggedInURL);
+					if (!SecurityProvider.CurrentUser.HasPermission(PermissionType.AdministrativeAccess))
+					{
+						WriteErrorMessage("Only administrators may reply to this topic.");
+						return;
+					}
+					break;
+
+				case Forum.AccessType.RoleMembers:
+					CheckAuthentication(notLoggedInURL);
+					if (forum.PostWriteAccessRoleID.HasValue)
+						if (SecurityProvider.DataLayer.IsUserInRole(SecurityProvider.CurrentUser.UserID, forum.PostWriteAccessRoleID.Value))
+							break;
+					WriteErrorMessage("You don't have the required permissions to post new topics.");
+					return;
+			}
+			#endregion
+
+			ForumTopicMessage msg = new ForumTopicMessage();
+			msg.ForumTopicID = topic.ForumTopicID;
+
+			if (WebAuthentication.IsLoggedIn)
+				msg.AuthorUserID = SecurityProvider.CurrentUser.UserID;
+			else
+				throw new NotImplementedException("need to put in anonymous author name.");
+
+			msg.DateCreated = SprocketDate.Now;
+			msg.ForumTopicMessageID = 0;
+
+#warning to do: administrators should be able to specify a URL Token
+
+			msg.BodySource = Request.Form["body"];
+			switch (forum.Markup)
+			{
+				case Forum.MarkupType.BBCode:
+#warning to do: check for images in source
+					throw new NotImplementedException("BBCode not implemented yet.");
+
+				case Forum.MarkupType.None:
+					msg.BodyOutput = HttpUtility.HtmlEncode(msg.BodySource).Replace(Environment.NewLine, "<br />");
+					break;
+
+				case Forum.MarkupType.Textile:
+#warning to do: check for images in source
+					msg.BodyOutput = Textile.TextileFormatter.FormatString(msg.BodySource);
+					break;
+
+				case Forum.MarkupType.LimitedHTML:
+#warning to do: check for images in source
+					throw new NotImplementedException("Limited HTML not implemented yet.");
+
+				case Forum.MarkupType.ExtendedHTML:
+#warning to do: check for images in source
+					msg.BodyOutput = WebUtility.SafeHtmlString(msg.BodySource, true);
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
+#warning to do: signatures need to be appended to the output
+
+			if (forum.RequireModeration)
+				msg.Moderation = ForumModerationState.Pending;
+			else
+			{
+				if (MightBeSpam(msg.BodySource))
+					msg.Moderation = ForumModerationState.Pending;
+				else
+					msg.Moderation = ForumModerationState.Approved;
+			}
+
+			DataLayer.Store(msg);
+
+
+			string urltoken = forum.URLToken;
+			if(urltoken == "" || urltoken == null)
+				urltoken = forum.ForumID.ToString();
+			WebUtility.Redirect(ContentManager.RequestedPage.Path + "/" + urltoken + "/topic/" + topic.ForumTopicID + "/#" + msg.ForumTopicMessageID);
 		}
 
 		void WriteErrorMessage(string msg)

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Web;
+using System.Text.RegularExpressions;
 
 using Sprocket;
 using Sprocket.Data;
 using Sprocket.Web;
 using Sprocket.Web.CMS.Script;
+using Sprocket.Web.CMS.Content;
 
 
 namespace Sprocket.Web.Forums
@@ -785,7 +787,7 @@ namespace Sprocket.Web.Forums
 		#endregion
 	}
 
-	public class ForumTopic : IJSONEncoder, IJSONReader
+	public class ForumTopic : IJSONEncoder, IJSONReader, IPropertyEvaluatorExpression
 	{
 		#region Constructor, Fields, Properties, JSON Methods
 		#region Fields
@@ -1006,6 +1008,53 @@ namespace Sprocket.Web.Forums
 		{
 			get { return (ForumModerationState)moderationState; }
 			set { moderationState = (short)value; }
+		}
+
+		#endregion
+
+		#region IPropertyEvaluatorExpression Members
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "forumtopicid":
+				case "forumid":
+				case "authoruserid":
+				case "authorname":
+				case "subject":
+				case "urltoken":
+				case "datecreated":
+				case "sticky":
+				case "moderationstate":
+				case "locked":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "forumtopicid": return ForumTopicID;
+				case "forumid": return ForumID;
+				case "authoruserid": return AuthorUserID;
+				case "authorname": return AuthorName;
+				case "subject": return Subject;
+				case "urltoken": return URLToken;
+				case "datecreated": return DateCreated;
+				case "sticky": return Sticky;
+				case "moderationstate": return ModerationState;
+				case "locked": return Locked;
+				default: return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return "[Forum Topic: " + forumTopicID + "]";
 		}
 
 		#endregion
@@ -1391,8 +1440,279 @@ namespace Sprocket.Web.Forums
 		}
 	}
 
+	public class ForumTopicSummary : IPropertyEvaluatorExpression
+	{
+		private DateTime lastMessageDate;
+		private long lastMessageID, rowIndex;
+		private long? lastMessageAuthorID;
+		private string lastMessageAuthorName;
+		private int messageCount;
+		private ForumTopic topic;
+
+		public ForumTopic Topic
+		{
+			get { return topic; }
+		}
+
+		public long RowIndex
+		{
+			get { return rowIndex; }
+		}
+
+		public int MessageCount
+		{
+			get { return messageCount; }
+		}
+
+		public string LastMessageAuthorName
+		{
+			get { return lastMessageAuthorName; }
+		}
+
+		public long LastMessageID
+		{
+			get { return lastMessageID; }
+		}
+
+		public long? LastMessageAuthorID
+		{
+			get { return lastMessageAuthorID; }
+		}
+
+		public DateTime LastMessageDate
+		{
+			get { return lastMessageDate; }
+		}
+
+		public ForumTopicSummary(IDataReader reader)
+		{
+			lastMessageDate = reader["LastMessageDate"] == DBNull.Value ? DateTime.MinValue : (DateTime)reader["LastMessageDate"];
+			lastMessageID = reader["LastMessageID"] == DBNull.Value ? 0 : (long)reader["LastMessageID"];
+			lastMessageAuthorID = reader["LastMessageAuthorID"] == DBNull.Value ? null : (long?)reader["LastMessageAuthorID"];
+			lastMessageAuthorName = reader["LastMessageAuthorName"] == DBNull.Value ? null : (string)reader["LastMessageAuthorName"];
+			messageCount = (int)reader["MessageCount"];
+			rowIndex = (long)reader["RowIndex"];
+			topic = new ForumTopic(reader);
+		}
+
+		#region IPropertyEvaluatorExpression Members
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "lastmessagedate":
+				case "lastmessageid":
+				case "lastmessageauthorid":
+				case "lastmessageauthorname":
+				case "messagecount":
+				case "rowindex":
+				case "topic":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "lastmessagedate": return lastMessageDate;
+				case "lastmessageid": return lastMessageID;
+				case "lastmessageauthorid": return lastMessageAuthorID;
+				case "lastmessageauthorname": return lastMessageAuthorName;
+				case "messagecount": return messageCount;
+				case "rowindex": return rowIndex;
+				case "topic": return topic;
+				default: return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return "[ForumTopicSummary: " + topic.ForumTopicID + "]";
+		}
+
+		#endregion
+	}
+
+	public class ForumTopicPageSummary : IPropertyEvaluatorExpression
+	{
+		private int total, page, pages, topicsPerPage;
+		private List<ForumTopicSummary> topics;
+
+		public ForumTopicPageSummary(int totalTopics, int currentPage, int topicsPerPage, List<ForumTopicSummary> topics)
+		{
+			total = totalTopics;
+			page = currentPage;
+			this.topicsPerPage = topicsPerPage;
+			pages = total / topicsPerPage + (total % topicsPerPage > 0 ? 1 : 0);
+			this.topics = topics;
+		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "topiccount":
+				case "page":
+				case "topics":
+				case "pagecount":
+				case "topicsperpage":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "topiccount": return total;
+				case "page": return page;
+				case "topics": return topics;
+				case "pagecount": return pages;
+				case "topicsperpage": return topicsPerPage;
+				default: return null;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return topics;
+		}
+	}
+
 	public static class ForumPermissionType
 	{
 		public const string ForumCreator = "FORUM_CREATOR";
+	}
+
+	public class ReferencedForum : IPropertyEvaluatorExpression
+	{
+		public static ReferencedForum ExtractFromURL()
+		{
+			ReferencedForum obj = new ReferencedForum();
+			string[] path = ContentManager.DescendentPath.Split('/');
+			if (path.Length == 0)
+				return obj;
+			if (path[0].Length == 0)
+				return obj;
+
+			obj.currentForum = ForumHandler.DataLayer.SelectForumByURLToken(path[0]);
+			if (obj.currentForum == null)
+				return obj;
+
+			if (path.Length == 1)
+				return obj;
+			if (path[1] == "topic")
+			{
+				if (path.Length == 2)
+					return obj;
+				long topicID;
+				if (!long.TryParse(path[2], out topicID))
+					return obj;
+
+				ForumTopic topic = ForumHandler.DataLayer.SelectForumTopic(topicID);
+				if (topic == null)
+					return obj;
+				if (topic.ForumID != obj.currentForum.ForumID)
+					return obj;
+				obj.currentTopic = topic;
+
+				if (path.Length == 3)
+					return obj;
+				int page;
+				if (!int.TryParse(path[3], out page))
+					return obj;
+				obj.currentPage = page;
+			}
+			else
+			{
+				int page;
+				if (!int.TryParse(path[1], out page))
+					return obj;
+				obj.currentPage = page;
+			}
+			return obj;
+		}
+
+		private Forum currentForum = null;
+		private ForumTopic currentTopic = null;
+		private int currentPage = 1;
+
+		public Forum Forum
+		{
+			get { return currentForum; }
+		}
+
+		public ForumTopic Topic
+		{
+			get { return currentTopic; }
+		}
+
+		public int Page
+		{
+			get { return currentPage; }
+		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "forum":
+				case "topic":
+				case "page":
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "forum": return Forum;
+				case "topic": return Topic;
+				case "page": return Page;
+				default: return null;
+			}
+		}
+
+		public static ReferencedForum Current
+		{
+			get
+			{
+				ReferencedForum rf;
+				if (CurrentRequest.Value["ReferencedForum_Value"] == null)
+				{
+					rf = ReferencedForum.ExtractFromURL();
+					CurrentRequest.Value["ReferencedForum_Value"] = rf;
+				}
+				else
+					rf = (ReferencedForum)CurrentRequest.Value["ReferencedForum_Value"];
+				return rf;
+			}
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return Current;
+		}
+	}
+	public class ReferencedForumExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "referenced_forum"; }
+		}
+
+		public IExpression Create()
+		{
+			return new ReferencedForum();
+		}
 	}
 }

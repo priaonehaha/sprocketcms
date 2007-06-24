@@ -33,13 +33,16 @@ namespace Sprocket.Web.CMS.Content
 			get
 			{
 				Template t;
-				if(templates.TryGetValue(id, out t))
+				if (templates.TryGetValue(id, out t))
 				{
 					if (t.IsOutOfDate)
 						templates[id] = t = Template.Create(templateXML[id]);
 				}
 				else
-					templates[id] = t = Template.Create(templateXML[id]);
+					if (templateXML.ContainsKey(id))
+						templates[id] = t = Template.Create(templateXML[id]);
+					else
+						return null;
 				return t;
 			}
 		}

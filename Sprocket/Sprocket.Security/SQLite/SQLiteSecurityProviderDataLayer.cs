@@ -593,5 +593,15 @@ namespace Sprocket.Security.SQLite
 		}
 
 		#endregion
+
+		#region ISecurityProviderDataLayer Members
+
+
+		public bool IsUserInRole(long userID, long roleID)
+		{
+			throw new Exception("The method or operation is not implemented.");
+		}
+
+		#endregion
 	}
 }

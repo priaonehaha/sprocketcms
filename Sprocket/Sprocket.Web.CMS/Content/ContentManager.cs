@@ -194,6 +194,30 @@ namespace Sprocket.Web.CMS.Content
 			requestedPage = null;
 		}
 		#endregion
+
+		/// <summary>
+		/// Indicates the descendent sprocket path for the current page request. This is only relevant for pages that
+		/// have HandleSubPaths set to True, and returns the SprocketPath section of the page's path that is beyond
+		/// the base path for that page. For example, if the path for the page is "content/news" and the actual
+		/// current sprocket path is "content/news/2006/june/7", the descendent path returned is "2006/june/7". If
+		/// there is no descendent path, or the current path does not map to a registered PageEntry object,
+		/// String.Empty is returned.
+		/// </summary>
+		public static string DescendentPath
+		{
+			get
+			{
+				if (CurrentRequest.Value["ContentManager_DescendentPath_Value"] != null)
+					return (string)CurrentRequest.Value["ContentManager_DescendentPath_Value"];
+				string path;
+				if (RequestedPage == null)
+					path = String.Empty;
+				else
+					path = SprocketPath.GetDescendentPath(RequestedPage.Path);
+				CurrentRequest.Value["ContentManager_DescendentPath_Value"] = path;
+				return path;
+			}
+		}
 	}
 
 	public delegate void PagePreprocessorHandler(PageEntry page);

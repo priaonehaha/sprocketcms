@@ -488,7 +488,8 @@ IF OBJECT_ID(N'dbo.IsUserInRole') IS NOT NULL
 go
 CREATE PROCEDURE dbo.IsUserInRole
 	@UserID bigint,
-	@RoleCode nvarchar(100),
+	@RoleCode nvarchar(100)=NULL,
+	@RoleID bigint=NULL,
 	@IsUserInRole bit=NULL OUTPUT
 AS
 BEGIN
@@ -498,14 +499,15 @@ BEGIN
 		SET @IsUserInRole = 1
 	ELSE
 	BEGIN
-		DECLARE @RoleID bigint
-		SELECT @RoleID = RoleID
-		  FROM Roles
-		 WHERE RoleCode = @RoleCode
-		   AND ClientSpaceID = (SELECT ClientSpaceID
-							 FROM Users
-							WHERE UserID = @UserID)
-		
+		IF @RoleID IS NULL
+		BEGIN
+			SELECT @RoleID = RoleID
+			  FROM Roles
+			 WHERE RoleCode = @RoleCode
+			   AND ClientSpaceID = (SELECT ClientSpaceID
+								 FROM Users
+								WHERE UserID = @UserID)
+		END
 		CREATE TABLE #r ( RoleID bigint )
 		INSERT INTO #r (RoleID)
 			SELECT DISTINCT RoleID
@@ -719,7 +721,7 @@ CREATE PROCEDURE dbo.ListAccessibleRolesForUser
 AS
 BEGIN
 	DECLARE @SuperUser bit
-	EXEC IsUserInRole @UserID, 'SUPERUSER', @SuperUser OUTPUT
+	EXEC IsUserInRole @UserID, 'SUPERUSER', NULL, @SuperUser OUTPUT
 	IF @SuperUser = 1
 	BEGIN
 		SELECT *, CAST(0 AS bit) AS [Inherited]
@@ -916,7 +918,7 @@ BEGIN
 			AND (@Activated IS NULL OR Activated = @Activated)
 
 		DECLARE @SuperUser bit
-		EXEC IsUserInRole @EditableByUserID, 'SUPERUSER', @SuperUser OUTPUT
+		EXEC IsUserInRole @EditableByUserID, 'SUPERUSER', NULL, @SuperUser OUTPUT
 
 		IF @EditableByUserID IS NOT NULL AND @SuperUser = 0
 		BEGIN

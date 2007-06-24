@@ -40,6 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities.cs" />
+    <Compile Include="Expressions\CurrentForumOrTopicPageExpression.cs" />
+    <Compile Include="Expressions\UserCanPostNewTopicsExpression.cs" />
+    <Compile Include="Expressions\GetForumTopicsExpression.cs" />
     <Compile Include="Expressions\GetForumsExpression.cs" />
     <Compile Include="Expressions\NewForumExpression.cs" />
     <Compile Include="Expressions\UserCanCreateForumsExpression.cs" />
