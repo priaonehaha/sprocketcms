@@ -624,5 +624,37 @@ namespace Sprocket.Web.Forums.SqlServer2005
 				}
 			}
 		}
+
+		public List<ForumTopicSummary> ListForumTopicSummary(long? forumID, long? userID, long? authorUserID, int recordsPerPage, int pageNumber, Forum.DisplayOrderType? topicDisplayOrder, bool preventStickyPriority, bool hideModeratedTopics, out int totalTopics)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("ForumTopic_ListForumTopics", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(NewSqlParameter("@ForumID", forumID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@UserID", userID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@AuthorUserID", authorUserID, SqlDbType.BigInt));
+					cmd.Parameters.Add(NewSqlParameter("@RecordsPerPage", recordsPerPage, SqlDbType.Int));
+					cmd.Parameters.Add(NewSqlParameter("@PageNumber", pageNumber, SqlDbType.Int));
+					cmd.Parameters.Add(NewSqlParameter("@TopicDisplayOrder", topicDisplayOrder, SqlDbType.SmallInt));
+					cmd.Parameters.Add(NewSqlParameter("@PreventStickyPriority", preventStickyPriority, SqlDbType.Bit));
+					cmd.Parameters.Add(NewSqlParameter("@HideModeratedTopics", hideModeratedTopics, SqlDbType.Bit));
+					SqlParameter prm = new SqlParameter("@Total", SqlDbType.Int);
+					prm.Direction = ParameterDirection.Output;
+					prm.Value = DBNull.Value;
+					cmd.Parameters.Add(prm);
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					List<ForumTopicSummary> list = new List<ForumTopicSummary>();
+					while (reader.Read())
+						list.Add(new ForumTopicSummary(reader));
+					reader.Close();
+					totalTopics = (int)prm.Value;
+					return list;
+				}
+			}
+		}
 	}
 }

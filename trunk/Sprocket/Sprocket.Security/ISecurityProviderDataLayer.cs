@@ -58,6 +58,7 @@ namespace Sprocket.Security
 
 		List<Role> ListUserRoles(long userID);
 		bool IsUserInRole(long userID, string roleCode);
+		bool IsUserInRole(long userID, long roleID);
 		void AssignRoleToUser(long userID, string roleCode);
 		void UnassignRoleFromUser(long userID, string roleCode);
 

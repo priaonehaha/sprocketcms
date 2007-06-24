@@ -271,10 +271,15 @@ namespace Sprocket.Security
 			if (permissions.ContainsKey(PermissionType.SuperUser))
 				if (permissions[PermissionType.SuperUser] != PermissionState.Disabled)
 					return true;
-			if(!permissions.ContainsKey(permissionTypeCode))
+			if (!permissions.ContainsKey(permissionTypeCode))
 				return false;
 			return permissions[permissionTypeCode] != PermissionState.Disabled;
-				//SecurityProvider.DataLayer.DoesUserHavePermission(userID, permissionTypeCode);
+			//SecurityProvider.DataLayer.DoesUserHavePermission(userID, permissionTypeCode);
+		}
+
+		public bool HasRole(long roleID)
+		{
+			return SecurityProvider.DataLayer.IsUserInRole(userID, roleID);
 		}
 
 		public bool HasRole(string roleCode)

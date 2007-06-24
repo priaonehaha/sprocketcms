@@ -861,6 +861,27 @@ namespace Sprocket.Security
 			}
 		}
 
+		public bool IsUserInRole(long userID, long roleID)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SqlCommand cmd = new SqlCommand("IsUserInRole", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SqlParameter("@UserID", userID));
+					cmd.Parameters.Add(new SqlParameter("@RoleID", roleID));
+					SqlParameter prm = new SqlParameter("@IsUserInRole", SqlDbType.Bit);
+					prm.Direction = ParameterDirection.Output;
+					cmd.Parameters.Add(prm);
+					cmd.ExecuteNonQuery();
+					conn.Close();
+					return (bool)prm.Value;
+				}
+			}
+		}
+
 		public void AssignRoleToUser(long userID, string roleCode)
 		{
 			using (TransactionScope scope = new TransactionScope())

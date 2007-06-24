@@ -11,14 +11,14 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
 		{
 			if (args.Count != 1)
-				throw new TokenParserException("The \"template\" expression takes a single argument specifying which template to load", contextToken);
+				throw new InstructionExecutionException("The \"template\" expression takes a single argument specifying which template to load", contextToken);
 			object o = args[0].Expression.Evaluate(state, args[0].Token);
 			if(o == null)
-				throw new TokenParserException("You can't request a template using a null value as the template name.", args[0].Token);
+				throw new InstructionExecutionException("You can't request a template using a null value as the template name.", args[0].Token);
 
 			Template t = ContentManager.Templates[o.ToString()];
-			if(t == null)
-				throw new TokenParserException("The template \"" + o.ToString() + "\" does not exist.", args[0].Token);
+			if (t == null)
+				throw new InstructionExecutionException("There is no template registered with the name \"" + o + "\".", args[0].Token);
 
 			return t;
 		}

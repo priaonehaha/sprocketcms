@@ -95,7 +95,7 @@ namespace Sprocket.Web.CMS.Script
 				}
 			}
 			return "<style>body{font-family:verdana;font-size:8pt;}</style>"
-					+ "<body><h2>Couldn't understand part of the script :(</h2>"
+					+ "<body><h2>Aargh... the script broke :(</h2>"
 					+ "<strong style=\"color:red\">" + HttpUtility.HtmlEncode(message) + "</strong><br/>"
 					+ "The script I was processing was: <strong>" + names + "</strong><br />"
 					+ "The error occurred at position " + token.Position + " in the script, at a section that looks like this:<br/><br/>"

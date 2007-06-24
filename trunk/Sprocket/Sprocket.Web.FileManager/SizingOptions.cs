@@ -64,6 +64,7 @@ namespace Sprocket.Web.FileManager
 
 		private void SetFilename()
 		{
+			if (suspendSetFilename) return;
 			filename = string.Format(
 				"{0}_{1}_{2}_{3}_{4}_{5}_{6}_{7}_{8}_{9}_{10}.jpg",
 				sprocketFileID,
@@ -80,6 +81,14 @@ namespace Sprocket.Web.FileManager
 			);
 			long f1 = sprocketFileID % 200 + 1;
 			long f2 = ((sprocketFileID - f1) / 200) % 200 + 1;
+		}
+
+		private bool suspendSetFilename = false;
+		public void SuspendFilenameUpdate(bool suspend)
+		{
+			suspendSetFilename = suspend;
+			if (!suspend)
+				SetFilename();
 		}
 
 		public void SetSize(int width, int height)

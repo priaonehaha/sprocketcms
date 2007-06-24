@@ -144,6 +144,122 @@ BEGIN
 END
 go
 
+IF OBJECT_ID(N'dbo.ForumTopic_ListForumTopics') IS NOT NULL
+	DROP PROCEDURE ForumTopic_ListForumTopics
+go
+CREATE PROCEDURE dbo.ForumTopic_ListForumTopics
+	@ForumID bigint=NULL,
+	@UserID bigint=NULL,
+	@AuthorUserID bigint=NULL,
+	@RecordsPerPage int=0,
+	@PageNumber int=NULL, -- specify -1 to retrieve the last page
+	@TopicDisplayOrder smallint=NULL,
+	@PreventStickyPriority bit=0,
+	@HideModeratedTopics bit=NULL,
+	@Total int=NULL OUTPUT
+AS
+BEGIN
+	IF @HideModeratedTopics IS NULL SET @HideModeratedTopics = 0
+	IF @PreventStickyPriority IS NULL SET @PreventStickyPriority = 0
+		
+	DECLARE @IsModerator bit, @ForumRequiresModeration bit, @ModeratorRoleID bigint
+	
+	IF @ForumID IS NULL
+	BEGIN
+		SET @ModeratorRoleID = NULL
+		SET @ForumRequiresModeration = 0
+		SET @TopicDisplayOrder = 1
+	SELECT @ModeratorRoleID = ModeratorRoleID,
+		   @ForumRequiresModeration = RequireModeration,
+		   @TopicDisplayOrder = CASE WHEN @TopicDisplayOrder IS NULL THEN TopicDisplayOrder ELSE @TopicDisplayOrder END
+	  FROM Forum f
+	 WHERE ForumID = @ForumID
+	 
+	EXEC IsUserInRole @UserID, NULL, @ModeratorRoleID, @IsModerator OUTPUT
+	
+	SELECT @Total = COUNT(*)
+	  FROM ForumTopic ft
+	 WHERE (@IsModerator = 1 OR @ForumRequiresModeration = 0 OR ft.ModerationState IN (1,2))
+	   AND (@AuthorUserID IS NULL OR AuthorUserID = @AuthorUserID)
+	   AND (@HideModeratedTopics = 0 OR ft.ModerationState IN (0,3))
+	   AND ForumID = @ForumID
+	 
+	DECLARE @n1 int, @n2 int
+	IF @RecordsPerPage > 0
+	BEGIN
+		IF @PageNumber = -1 -- last page
+			SET @n1 = ((@Total / @RecordsPerPage) + CASE WHEN @Total % @RecordsPerPage = 0 THEN 0 ELSE 1 END - 1) * @RecordsPerPage + 1
+		ELSE
+			SET @n1 = (@PageNumber-1) * @RecordsPerPage + 1
+		SET @n2 = @n1 + @RecordsPerPage - 1;
+	END
+	ELSE
+	BEGIN
+		SET @n1 = 1
+		SET @n2 = @Total
+	END
+	;
+		
+	WITH topics AS
+	(
+		SELECT ft.ForumTopicID,
+			   ft.ForumID,
+			   ft.AuthorUserID,
+			   CASE WHEN ft.AuthorUserID IS NOT NULL THEN (SELECT u.Username
+															 FROM Users u
+															WHERE u.UserID = ft.AuthorUserID)
+					ELSE ft.AuthorName
+			   END AS [AuthorName],
+			   ft.Subject,
+			   ft.URLToken,
+			   ft.DateCreated,
+			   ft.Sticky,
+			   ft.ModerationState,
+			   ft.Locked,
+			   m.DateCreated AS [LastMessageDate],
+			   m.ForumTopicMessageID AS [LastMessageID],
+			   m.AuthorUserID AS [LastMessageAuthorID],
+			   CASE WHEN m.AuthorUserID IS NOT NULL THEN (SELECT u.Username
+															FROM Users u
+														   WHERE u.UserID = m.AuthorUserID)
+					ELSE m.AuthorName
+			   END AS [LastMessageAuthorName],
+
+			   (SELECT COUNT(*)
+				  FROM ForumTopicMessage ftm
+				 WHERE ftm.ForumTopicID = ft.ForumTopicID
+				   AND (@IsModerator = 1 OR @ForumRequiresModeration = 0 OR ftm.ModerationState IN (1,2))) AS [MessageCount],
+			   
+			   ROW_NUMBER() OVER (ORDER BY CASE @PreventStickyPriority WHEN 1 THEN 0 ELSE ft.Sticky END DESC,
+								  CASE @TopicDisplayOrder
+									WHEN 1 THEN (SELECT TOP 1 DateCreated
+												   FROM ForumTopicMessage ftm
+												  WHERE ftm.ForumTopicID = ft.ForumTopicID
+													AND (@IsModerator = 1 OR @ForumRequiresModeration = 0 OR ftm.ModerationState IN (1,2))
+											   ORDER BY ftm.DateCreated DESC)
+									WHEN 2 THEN 0 -- TO DO: Vote Weight
+									ELSE ft.DateCreated
+								  END DESC) AS [RowIndex]
+		  FROM ForumTopic ft
+	INNER JOIN ForumTopicMessage m
+			ON m.ForumTopicID = ft.ForumTopicID
+		   AND m.ForumTopicMessageID = (SELECT TOP 1 ftm.ForumTopicMessageID
+										  FROM ForumTopicMessage ftm
+										 WHERE ftm.ForumTopicID = ft.ForumTopicID
+										   AND (@IsModerator = 1 OR @ForumRequiresModeration = 0 OR ftm.ModerationState IN (1,2))
+									  ORDER BY ftm.DateCreated DESC)
+		 WHERE (@IsModerator = 1 OR @ForumRequiresModeration = 0 OR ft.ModerationState IN (1,2))
+		   AND (@AuthorUserID IS NULL OR ft.AuthorUserID = @AuthorUserID)
+		   AND (@HideModeratedTopics = 0 OR ft.ModerationState IN (0,3))
+		   AND ForumID = @ForumID
+	)
+	SELECT *
+	  FROM topics
+	 WHERE RowIndex BETWEEN @n1 AND @n2
+  ORDER BY RowIndex
+END
+go
+
 IF OBJECT_ID(N'dbo.ForumTopic_ListForumTopicMessages') IS NOT NULL
 	DROP PROCEDURE ForumTopic_ListForumTopicMessages
 go
@@ -158,8 +274,8 @@ AS
 BEGIN
 	IF @HideUnmoderatedMessages IS NULL
 		SET @HideUnmoderatedMessages = 0
-	IF @HideUnmoderatedMessages IS NULL
-		SET @HideUnmoderatedMessages = 0
+	IF @ReverseOrder IS NULL
+		SET @ReverseOrder = 0
 	
 	SELECT @Total = COUNT(*)
 	  FROM ForumTopicMessage
