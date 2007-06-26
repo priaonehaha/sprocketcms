@@ -1448,6 +1448,12 @@ namespace Sprocket.Web.Forums
 		private string lastMessageAuthorName;
 		private int messageCount;
 		private ForumTopic topic;
+		private string topicMessage;
+
+		public string TopicMessage
+		{
+			get { return topicMessage; }
+		}
 
 		public ForumTopic Topic
 		{
@@ -1490,6 +1496,7 @@ namespace Sprocket.Web.Forums
 			lastMessageID = reader["LastMessageID"] == DBNull.Value ? 0 : (long)reader["LastMessageID"];
 			lastMessageAuthorID = reader["LastMessageAuthorID"] == DBNull.Value ? null : (long?)reader["LastMessageAuthorID"];
 			lastMessageAuthorName = reader["LastMessageAuthorName"] == DBNull.Value ? null : (string)reader["LastMessageAuthorName"];
+			topicMessage = reader["TopicMessage"] == DBNull.Value ? null : (string)reader["TopicMessage"];
 			messageCount = (int)reader["MessageCount"];
 			rowIndex = (long)reader["RowIndex"];
 			topic = new ForumTopic(reader);
@@ -1508,6 +1515,7 @@ namespace Sprocket.Web.Forums
 				case "messagecount":
 				case "rowindex":
 				case "topic":
+				case "message":
 					return true;
 				default:
 					return false;
@@ -1525,6 +1533,7 @@ namespace Sprocket.Web.Forums
 				case "messagecount": return messageCount;
 				case "rowindex": return rowIndex;
 				case "topic": return topic;
+				case "message": return topicMessage;
 				default: return null;
 			}
 		}
@@ -1547,7 +1556,10 @@ namespace Sprocket.Web.Forums
 			total = totalTopics;
 			page = currentPage;
 			this.topicsPerPage = topicsPerPage;
-			pages = total / topicsPerPage + (total % topicsPerPage > 0 ? 1 : 0);
+			if (topicsPerPage == 0)
+				pages = 1;
+			else
+				pages = total / topicsPerPage + (total % topicsPerPage > 0 ? 1 : 0);
 			this.topics = topics;
 		}
 

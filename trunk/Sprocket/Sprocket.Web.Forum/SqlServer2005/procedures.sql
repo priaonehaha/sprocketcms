@@ -125,9 +125,10 @@ BEGIN
 			(SELECT u.Username
 			   FROM Users u
 			  WHERE u.UserID = (SELECT TOP 1 AuthorUserID
-								  FROM ForumTopic t
-								 WHERE t.ModerationState IN (1,2)
-							  ORDER BY t.DateCreated DESC)) AS [AuthorUsername],
+								  FROM ForumTopicMessage m
+								 WHERE m.ModerationState IN (1,2)
+								   AND m.ForumTopicID IN (SELECT ForumTopicID FROM ForumTopic WHERE ForumID = f.ForumID)
+							  ORDER BY m.DateCreated DESC)) AS [AuthorUsername],
 			
 			(SELECT TOP 1 m.DateCreated
 			   FROM ForumTopicMessage m
@@ -169,6 +170,8 @@ BEGIN
 		SET @ModeratorRoleID = NULL
 		SET @ForumRequiresModeration = 0
 		SET @TopicDisplayOrder = 1
+	END
+	ELSE
 	SELECT @ModeratorRoleID = ModeratorRoleID,
 		   @ForumRequiresModeration = RequireModeration,
 		   @TopicDisplayOrder = CASE WHEN @TopicDisplayOrder IS NULL THEN TopicDisplayOrder ELSE @TopicDisplayOrder END
@@ -216,6 +219,7 @@ BEGIN
 			   ft.Sticky,
 			   ft.ModerationState,
 			   ft.Locked,
+			   m1.BodyOutput AS [TopicMessage],
 			   m.DateCreated AS [LastMessageDate],
 			   m.ForumTopicMessageID AS [LastMessageID],
 			   m.AuthorUserID AS [LastMessageAuthorID],
@@ -248,6 +252,12 @@ BEGIN
 										 WHERE ftm.ForumTopicID = ft.ForumTopicID
 										   AND (@IsModerator = 1 OR @ForumRequiresModeration = 0 OR ftm.ModerationState IN (1,2))
 									  ORDER BY ftm.DateCreated DESC)
+	INNER JOIN ForumTopicMessage m1
+			ON m1.ForumTopicID = ft.ForumTopicID
+		   AND m1.ForumTopicMessageID = (SELECT TOP 1 ftm.ForumTopicMessageID
+										  FROM ForumTopicMessage ftm
+										 WHERE ftm.ForumTopicID = ft.ForumTopicID
+									  ORDER BY ftm.DateCreated ASC)
 		 WHERE (@IsModerator = 1 OR @ForumRequiresModeration = 0 OR ft.ModerationState IN (1,2))
 		   AND (@AuthorUserID IS NULL OR ft.AuthorUserID = @AuthorUserID)
 		   AND (@HideModeratedTopics = 0 OR ft.ModerationState IN (0,3))
@@ -257,6 +267,7 @@ BEGIN
 	  FROM topics
 	 WHERE RowIndex BETWEEN @n1 AND @n2
   ORDER BY RowIndex
+  
 END
 go
 
