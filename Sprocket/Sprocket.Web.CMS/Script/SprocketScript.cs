@@ -112,13 +112,13 @@ namespace Sprocket.Web.CMS.Script
 		}
 
 		private Dictionary<string, SprocketScript> oldOverrides = null;
-		internal void SetOverrides(Dictionary<string, SprocketScript> overrides)
+		public void SetOverrides(Dictionary<string, SprocketScript> overrides)
 		{
 			oldOverrides = sectionOverrides;
 			sectionOverrides = overrides;
 		}
 
-		internal void RestoreOverrides()
+		public void RestoreOverrides()
 		{
 			sectionOverrides = oldOverrides;
 			oldOverrides = null;
