@@ -122,6 +122,7 @@
     <Compile Include="Web\JSONParser.cs" />
     <Compile Include="Web\LogFile.cs" />
     <Compile Include="Web\RankedObject.cs" />
+    <Compile Include="Web\RemotePost.cs" />
     <Compile Include="Web\SprocketPath.cs" />
     <Compile Include="Web\SysInfo.cs" />
     <Compile Include="Web\TestModule.cs" />
