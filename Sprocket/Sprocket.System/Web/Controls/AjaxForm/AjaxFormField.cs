@@ -375,6 +375,31 @@ namespace Sprocket.Web.Controls
 		}
 	}
 
+    public class AjaxFormPassthrough : AjaxFormField
+    {
+        protected string text = "";
+        public AjaxFormPassthrough(string text)
+        {
+            this.text = text;
+        }
+
+        public override string FullFieldHTML
+        {
+            get
+            {
+                return text;
+            }
+        }
+
+        public override string FullFieldJavaScript
+        {
+            get
+            {
+                return "";
+            }
+        }
+    }
+
 	public class AjaxFormButtonGroup : AjaxFormField
 	{
 		protected class Button
