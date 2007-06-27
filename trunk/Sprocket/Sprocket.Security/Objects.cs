@@ -256,6 +256,11 @@ namespace Sprocket.Security
 			return SecurityProvider.DataLayer.SelectUser(userID);
 		}
 
+        public static User SelectUserByEmail(long clientSpaceID, string email)
+        {
+            return SecurityProvider.DataLayer.SelectUserByEmail(clientSpaceID, email);
+        }
+
 		#region Methods
 
 		public bool HasPermission(string permissionTypeCode)
