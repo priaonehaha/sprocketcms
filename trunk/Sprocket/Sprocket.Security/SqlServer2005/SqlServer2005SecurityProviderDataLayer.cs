@@ -924,7 +924,7 @@ namespace Sprocket.Security
 			}
 		}
 
-		public void AssignPermissionToUser(long userID, string permissionTypeCode)
+		public Result AssignPermissionToUser(long userID, string permissionTypeCode)
 		{
 			using (TransactionScope scope = new TransactionScope())
 			{
@@ -938,11 +938,16 @@ namespace Sprocket.Security
 					cmd.ExecuteNonQuery();
 					scope.Complete();
 				}
+				catch (Exception ex)
+				{
+					return new Result("AssignPermissionToUser: " + ex.Message);
+				}
 				finally
 				{
 					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 			}
+			return new Result();
 		}
 
 		public void AssignPermissionToRole(long roleID, string permissionTypeCode)

@@ -77,6 +77,8 @@ namespace ClassGenerator
 			this.tabPage8 = new System.Windows.Forms.TabPage();
 			this.exprExtender = new System.Windows.Forms.RichTextBox();
 			this.label14 = new System.Windows.Forms.Label();
+			this.useSqlServer = new System.Windows.Forms.RadioButton();
+			this.useSQLite = new System.Windows.Forms.RadioButton();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
 			this.splitContainer1.SuspendLayout();
@@ -108,6 +110,8 @@ namespace ClassGenerator
 			// 
 			// splitContainer1.Panel1
 			// 
+			this.splitContainer1.Panel1.Controls.Add(this.useSQLite);
+			this.splitContainer1.Panel1.Controls.Add(this.useSqlServer);
 			this.splitContainer1.Panel1.Controls.Add(this.JsonEncodable);
 			this.splitContainer1.Panel1.Controls.Add(this.AllowKeyValueMethodGeneration);
 			this.splitContainer1.Panel1.Controls.Add(this.LoadButton);
@@ -188,7 +192,7 @@ namespace ClassGenerator
 			this.Password.PasswordChar = '*';
 			this.Password.Size = new System.Drawing.Size(87, 20);
 			this.Password.TabIndex = 1;
-			this.Password.Text = "nathan";
+			this.Password.Text = "ersys makes billions";
 			// 
 			// Username
 			// 
@@ -196,7 +200,7 @@ namespace ClassGenerator
 			this.Username.Name = "Username";
 			this.Username.Size = new System.Drawing.Size(87, 20);
 			this.Username.TabIndex = 0;
-			this.Username.Text = "sa";
+			this.Username.Text = "flirtbeat";
 			// 
 			// label2
 			// 
@@ -697,6 +701,28 @@ namespace ClassGenerator
 			this.label14.TabIndex = 9;
 			this.label14.Text = "SprocketScript Expression Class";
 			// 
+			// useSqlServer
+			// 
+			this.useSqlServer.AutoSize = true;
+			this.useSqlServer.Checked = true;
+			this.useSqlServer.Location = new System.Drawing.Point(746, 58);
+			this.useSqlServer.Name = "useSqlServer";
+			this.useSqlServer.Size = new System.Drawing.Size(80, 17);
+			this.useSqlServer.TabIndex = 9;
+			this.useSqlServer.TabStop = true;
+			this.useSqlServer.Text = "SQL Server";
+			this.useSqlServer.UseVisualStyleBackColor = true;
+			// 
+			// useSQLite
+			// 
+			this.useSQLite.AutoSize = true;
+			this.useSQLite.Location = new System.Drawing.Point(832, 58);
+			this.useSQLite.Name = "useSQLite";
+			this.useSQLite.Size = new System.Drawing.Size(57, 17);
+			this.useSQLite.TabIndex = 10;
+			this.useSQLite.Text = "SQLite";
+			this.useSQLite.UseVisualStyleBackColor = true;
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -789,6 +815,8 @@ namespace ClassGenerator
 		private System.Windows.Forms.TabPage tabPage8;
 		private System.Windows.Forms.RichTextBox exprExtender;
 		private System.Windows.Forms.Label label14;
+		private System.Windows.Forms.RadioButton useSQLite;
+		private System.Windows.Forms.RadioButton useSqlServer;
 
 	}
 }

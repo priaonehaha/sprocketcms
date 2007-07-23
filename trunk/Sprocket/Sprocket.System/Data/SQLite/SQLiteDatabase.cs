@@ -8,12 +8,19 @@ using System.IO;
 using System.Data.SQLite;
 using System.Transactions;
 
+using Sprocket.Utility;
 using Sprocket.Web;
 
 namespace Sprocket.Data
 {
 	public class SQLiteDatabase : IDatabaseHandler
 	{
+		SQLiteStoredProcedures procs;
+		public SQLiteDatabase()
+		{
+			procs = new SQLiteStoredProcedures(ResourceLoader.LoadTextResource("Sprocket.Data.SQLite.scripts.sql"));
+		}
+
 		private string connectionString;
 		public string ConnectionString
 		{
@@ -54,9 +61,35 @@ namespace Sprocket.Data
 			}
 
 			Result result = new Result();
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.CommandText = procs["Schema"];
+					cmd.CommandType = CommandType.Text;
+					try
+					{
+						cmd.ExecuteNonQuery();
+					}
+					catch (Exception ex)
+					{
+						return new Result(ex.Message);
+					}
 
-			if (OnInitialise != null)
-				OnInitialise(result);
+					if (OnInitialise != null)
+						OnInitialise(result);
+
+					if(result.Succeeded)
+						scope.Complete();
+				}
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+
 			return result;
 		}
 
@@ -74,12 +107,33 @@ namespace Sprocket.Data
 
 		public long GetUniqueID()
 		{
-			return -1;
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.CommandText = procs["GetUniqueID"];
+					cmd.CommandType = CommandType.Text;
+					SQLiteDataReader reader = cmd.ExecuteReader();
+					reader.Read();
+					long id = (long)reader[0];
+					reader.Close();
+					scope.Complete();
+					return id;
+				}
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
 		}
 
 		private Stack<bool> stack = new Stack<bool>();
 		public IDbConnection GetConnection()
 		{
+			if (stack == null)
+				stack = new Stack<bool>();
 			stack.Push(true);
 			if (stack.Count == 1)
 			{
@@ -89,7 +143,16 @@ namespace Sprocket.Data
 			}
 			else
 			{
-				return Conn as SQLiteConnection;
+				SQLiteConnection c = Conn as SQLiteConnection;
+				if (c != null)
+				{
+					if (c.State == ConnectionState.Open)
+						return Conn as SQLiteConnection;
+					c.Dispose();
+					Conn = null;
+				}
+				stack = null;
+				return GetConnection();
 			}
 		}
 
@@ -108,14 +171,19 @@ namespace Sprocket.Data
 
 		public void ReleaseConnection()
 		{
-			stack.Pop();
-			if (stack.Count == 0)
+			if (stack.Count == 1)
 			{
 				SQLiteConnection conn = Conn as SQLiteConnection;
-				conn.Close();
-				conn.Dispose();
-				Conn = null;
+				if (conn != null)
+				{
+					if (conn.State == ConnectionState.Open)
+						conn.Close();
+					conn.Dispose();
+					Conn = null;
+				}
 			}
+			if (stack.Count > 0)
+				stack.Pop();
 		}
 
 		private SQLiteConnection Conn
@@ -126,6 +194,15 @@ namespace Sprocket.Data
 
 		public void ForceCloseConnection()
 		{
+			SQLiteConnection c = Conn as SQLiteConnection;
+			if (c != null)
+			{
+				if (c.State == ConnectionState.Open)
+					c.Close();
+				c.Dispose();
+				Conn = null;
+				stack = null;
+			}
 		}
 	}
 }

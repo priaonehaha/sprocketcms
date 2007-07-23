@@ -102,10 +102,21 @@ Event.prototype.AddHandler = function(funcRef, context) {
 
 Event.prototype.Fire = function() {
 	for(var i=0; i<this.handlers.length; i++) {
-		if(this.handlers[i].context)
-			this.handlers[i].funcRef.call(this.handlers[i].context, arguments);
-		else
-			this.handlers[i].funcRef(arguments);
+		if(arguments.length > 0) {
+			var str = 'arguments[0]';
+			for(var j=1; j<arguments.length; j++)
+				str += ', arguments[' + j + ']';
+			var handler = this.handlers[i];
+			if(this.handlers[i].context)
+				eval('handler.funcRef.call(handler.context, ' + str + ');');
+			else
+				eval('handler.funcRef(' + str + ');');
+		} else {
+			if(this.handlers[i].context)
+				this.handlers[i].funcRef.call(this.handlers[i].context);
+			else
+				this.handlers[i].funcRef(arguments);
+		}
 	}
 }
 

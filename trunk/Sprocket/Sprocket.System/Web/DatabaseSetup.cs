@@ -26,6 +26,7 @@ namespace Sprocket.Web
 					HttpContext.Current.Response.Write("<p>Database setup completed.</p>");
 					if (Completed != null)
 						Completed();
+					WebUtility.Redirect("admin");
 				}
 				else
 					HttpContext.Current.Response.Write("<h2>Unable to Initialise Database</h2><p>" + result.Message + "</p>");

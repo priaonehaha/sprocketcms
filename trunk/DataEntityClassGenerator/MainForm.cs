@@ -96,6 +96,7 @@ namespace ClassGenerator
 			exprExtender.Text = csexpr2;
 		}
 
+		delegate string DbTypeNameHandler(Type t);
 		void GenerateCode(string tableName, out string cs, out string sql, out string csmain, out string csoutline, out string csexpr,
 			out string csexpr_extender, out string csdatalayer, out string csinterface)
 		{
@@ -134,12 +135,37 @@ namespace ClassGenerator
 			string sKeyVal = ResourceLoader.LoadTextResource("keyvalmethods.txt");
 			string sJSON = ResourceLoader.LoadTextResource("jsonmethods.txt");
 
-			string sClassDataLayer = ResourceLoader.LoadTextResource("class_datalayer.txt");
+			string sClassDataLayer;
 			string sClassMain = ResourceLoader.LoadTextResource("class_main.txt");
 			string sClassOutline = ResourceLoader.LoadTextResource("class_outline.txt");
 			string sClassInterface = ResourceLoader.LoadTextResource("datalayer_interface.txt");
 
+			string dbTypeName, sqlParameterTypeName, sqlConnectionTypeName, sqlCommandTypeName;
+			DbTypeNameHandler dbTypeFunc;
+			if (useSQLite.Checked)
+			{
+				dbTypeName = "DbType";
+				dbTypeFunc = GetDbTypeName;
+				sqlParameterTypeName = "SQLiteParameter";
+				sqlConnectionTypeName = "SQLiteConnection";
+				sqlCommandTypeName = "SQLiteCommand";
+				sClassDataLayer = ResourceLoader.LoadTextResource("class_datalayer_sqlite.txt");
+			}
+			else
+			{
+				dbTypeName = "SqlDbType";
+				dbTypeFunc = GetSqlDbTypeName;
+				sqlParameterTypeName = "SqlParameter";
+				sqlConnectionTypeName = "SqlConnection";
+				sqlCommandTypeName = "SqlCommand";
+				sClassDataLayer = ResourceLoader.LoadTextResource("class_datalayer.txt");
+			}
 			className = tableName.ToString();
+			if (className.ToLower().EndsWith("ies"))
+				className = className.Substring(0, className.Length - 3) + "y";
+			else if(className.ToLower().EndsWith("s"))
+				className = className.Substring(0, className.Length - 1);
+
 			string classNameLower = className.ToLower();
 			//if (className.ToLower().EndsWith("s"))
 			//    className = className.Substring(0, className.Length - 1);
@@ -165,6 +191,7 @@ namespace ClassGenerator
 				string defVal = GetDefaultValue(c);
 				string fldName = c.ColumnName.Substring(0, 1).ToLower() + c.ColumnName.Substring(1);
 				string prName = c.ColumnName.Substring(0, 1).ToUpper() + c.ColumnName.Substring(1);
+				if (prName == className) prName = "Value";
 				fldName = fldName.Replace("#", "amount");
 				prName = prName.Replace("#", "amount");
 
@@ -234,18 +261,18 @@ namespace ClassGenerator
 				if (!isIdentity && !columnIsID)
 				{
 					if (prms.Length > 0) prms += Environment.NewLine + "\t\t\t\t\t";
-					prms += "cmd.Parameters.Add(NewSqlParameter(\"@" + c.ColumnName + "\", " + lesserClassName + "." + c.ColumnName + ", SqlDbType." + SqlDbTypeFromType(c.DataType).ToString() + "));";
+					prms += "cmd.Parameters.Add(NewParameter(\"@" + c.ColumnName + "\", " + lesserClassName + "." + c.ColumnName + ", " + dbTypeName + "." + dbTypeFunc(c.DataType) + "));";
 				}
 
 				if (filterCommandParams.Length > 0) filterCommandParams += Environment.NewLine + "\t\t\t";
 				if (c.DataType.Name == "DateTime")
 				{
-					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Min\", " + fldName + "Min, DbType." + SqlDbTypeFromType(c.DataType).ToString() + ");";
+					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Min\", " + fldName + "Min, " + dbTypeName + "." + dbTypeFunc(c.DataType) + ");";
 					filterCommandParams += Environment.NewLine + "\t\t\t";
-					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Max\", " + fldName + "Max, DbType." + SqlDbTypeFromType(c.DataType).ToString() + ");";
+					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "_Max\", " + fldName + "Max, " + dbTypeName + "." + dbTypeFunc(c.DataType) + ");";
 				}
 				else
-					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", DbType." + SqlDbTypeFromType(c.DataType).ToString() + ");";
+					filterCommandParams += "Database.Main.AddParameter(cmd, \"@" + c.ColumnName + "\", " + fldName + ", " + dbTypeName + "." + dbTypeFunc(c.DataType) + ");";
 
 				if (!isIdentity)
 				{
@@ -377,12 +404,12 @@ namespace ClassGenerator
 					exprEvaluate_CaseStatements2 += Environment.NewLine + "\t\t\t\t";
 					exprEvaluateProperty_CaseStatements2 += Environment.NewLine + "\t\t\t\t";
 				}
-				exprPropertyTypes += "," + Environment.NewLine + "\t\t\t" + prName;
-				exprEvaluate_CaseStatements += string.Format("case PropertyType.{0}: return {1}.{0};", prName, lesserClassName);
-				exprEvaluateProperty_CaseStatements += string.Format("case \"{0}\": return {2}.{1};", prName.ToLower(), prName, lesserClassName);
-				exprPrepareProperty_CaseStatements += string.Format("case \"{0}\": propertyType = PropertyType.{1}; return true;", prName.ToLower(), prName);
-				exprEvaluate_CaseStatements2 += string.Format("case PropertyType.{0}: return {0};", prName);
-				exprEvaluateProperty_CaseStatements2 += string.Format("case \"{0}\": return {1};", prName.ToLower(), prName);
+				//exprPropertyTypes += "," + Environment.NewLine + "\t\t\t" + prName;
+				//exprEvaluate_CaseStatements += string.Format("case PropertyType.{0}: return {1}.{0};", prName, lesserClassName);
+				//exprPrepareProperty_CaseStatements += string.Format("case \"{0}\": propertyType = PropertyType.{1}; return true;", prName.ToLower(), prName);
+				//exprEvaluate_CaseStatements2 += string.Format("case PropertyType.{0}: return {0};", prName);
+				exprEvaluateProperty_CaseStatements2 += string.Format("case \"{0}\":{1}\t\t\t\t", prName.ToLower(), Environment.NewLine);
+				exprEvaluateProperty_CaseStatements += string.Format("case \"{0}\": return {1};{2}\t\t\t\t", prName.ToLower(), prName, Environment.NewLine);
 
 				n++;
 			}
@@ -399,47 +426,6 @@ namespace ClassGenerator
 					.Replace("[json-reads]", jsonReads);
 				ijsonencoder = " : IJSONEncoder, IJSONReader";
 			}
-
-			cs = sClass
-				.Replace("[classname]", className)
-				.Replace("[lesserclassname]", lesserClassName)
-				.Replace("[classidfield]", classIDField)
-				.Replace("[classidfieldtype]", classIDFieldType)
-				.Replace("[namespace]", Namespace.Text)
-				.Replace("[fields]", classFields)
-				.Replace("[commandparameters]", prms)
-				.Replace("[filtercommandparameters]", filterCommandParams)
-				.Replace("[properties]", classProperties)
-				.Replace("[fieldlistparams]", classconstructorparams)
-				.Replace("[fieldparamassignments]", constructorFieldsFromParams)
-				.Replace("[rowassigns]", constructorFieldAssignsFromDataRow)
-				.Replace("[keyvalmethods]", keyvalmethods)
-				.Replace("[jsonmethods]", jsonMethods)
-				.Replace("[:IJSONEncoder]", ijsonencoder)
-				.Replace("[primarykey]", primaryKey)
-				.Replace("[filterparams]", filterMethodParams)
-				.Replace("[filterparamsvalsonly]", filterMethodParamsValsOnly)
-				.Replace("[fieldnamecases]", fieldNameCaseStatements)
-				.Replace("[enumfieldnames]", enumFieldNames)
-				.Replace("[fieldcopies]", fieldCopies)
-				;
-
-			sql = sProcs
-				.Replace("[primarykeytype]", GetSqlDataType(ds.Tables[0].PrimaryKey[0]))
-				.Replace("[primarykey]", primaryKey)
-				.Replace("[classname]", className)
-				.Replace("[tablename]", tableName)
-				.Replace("[fieldnames]", sqlInsertFieldsListByCommas)
-				.Replace("[fieldvalues]", sqlInsertValuesListByCommas)
-				.Replace("[insertparameters]", insertProcParams)
-				.Replace("[updateparameters]", updateProcParams)
-				.Replace("[filterparameters]", filterProcParams)
-				.Replace("[updateexplicitparameters]", updateExplicitProcParams)
-				.Replace("[updatesets]", updateSqlSets)
-				.Replace("[updateexplicitsets]", updateExplicitSqlSets)
-				.Replace("[filterconditions]", filterProcSelectConditions)
-				.Replace("[filterorderbyclause]", filterOrderByClause)
-				;
 
 			csmain = sClassMain
 				.Replace("[classname]", className)
@@ -463,6 +449,40 @@ namespace ClassGenerator
 				.Replace("[fieldnamecases]", fieldNameCaseStatements)
 				.Replace("[enumfieldnames]", enumFieldNames)
 				.Replace("[fieldcopies]", fieldCopies)
+				;
+
+			csexpr_extender = sExpressionClassExtended
+				.Replace("[classidfield]", classIDField)
+				.Replace("[evaluateproperty_casestatements2]", exprEvaluateProperty_CaseStatements2)
+				.Replace("[evaluateproperty_casestatements]", exprEvaluateProperty_CaseStatements)
+				.Replace("[namespace]", Namespace.Text)
+				.Replace("[classname]", className)
+				.Replace("[classname_lower]", classNameLower)
+				.Replace("[lesserclassname]", lesserClassName)
+				;
+
+			cs = sClass
+				.Replace("[classname]", className)
+				.Replace("[namespace]", Namespace.Text)
+				.Replace("[main]", csmain)
+				.Replace("[expr]", csexpr_extender)
+				;
+
+			sql = sProcs
+				.Replace("[primarykeytype]", GetSqlDataType(ds.Tables[0].PrimaryKey[0]))
+				.Replace("[primarykey]", primaryKey)
+				.Replace("[classname]", className)
+				.Replace("[tablename]", tableName)
+				.Replace("[fieldnames]", sqlInsertFieldsListByCommas)
+				.Replace("[fieldvalues]", sqlInsertValuesListByCommas)
+				.Replace("[insertparameters]", insertProcParams)
+				.Replace("[updateparameters]", updateProcParams)
+				.Replace("[filterparameters]", filterProcParams)
+				.Replace("[updateexplicitparameters]", updateExplicitProcParams)
+				.Replace("[updatesets]", updateSqlSets)
+				.Replace("[updateexplicitsets]", updateExplicitSqlSets)
+				.Replace("[filterconditions]", filterProcSelectConditions)
+				.Replace("[filterorderbyclause]", filterOrderByClause)
 				;
 
 			csdatalayer = sClassDataLayer
@@ -544,17 +564,6 @@ namespace ClassGenerator
 				.Replace("[evaluateproperty_casestatements]", exprEvaluateProperty_CaseStatements)
 				.Replace("[prepareproperty_casestatements]", exprPrepareProperty_CaseStatements)
 				.Replace("[evaluate_casestatements]", exprEvaluate_CaseStatements)
-				;
-
-			csexpr_extender = sExpressionClassExtended
-				.Replace("[namespace]", Namespace.Text)
-				.Replace("[classname]", className)
-				.Replace("[classname_lower]", classNameLower)
-				.Replace("[lesserclassname]", lesserClassName)
-				.Replace("[propertytypes]", exprPropertyTypes)
-				.Replace("[evaluateproperty_casestatements]", exprEvaluateProperty_CaseStatements2)
-				.Replace("[prepareproperty_casestatements]", exprPrepareProperty_CaseStatements)
-				.Replace("[evaluate_casestatements]", exprEvaluate_CaseStatements2)
 				;
 		}
 
@@ -692,6 +701,16 @@ namespace ClassGenerator
 			}
 		}
 
+		private string GetDbTypeName(Type t)
+		{
+			return DbTypeFromType(t).ToString();
+		}
+
+		private string GetSqlDbTypeName(Type t)
+		{
+			return SqlDbTypeFromType(t).ToString();
+		}
+
 		private SqlDbType SqlDbTypeFromType(Type t)
 		{
 			switch (t.Name)
@@ -718,10 +737,36 @@ namespace ClassGenerator
 			}
 		}
 
+		private DbType DbTypeFromType(Type t)
+		{
+			switch (t.Name)
+			{
+				case "Boolean": return DbType.Boolean;
+				case "Byte": return DbType.Byte;
+				case "Byte[]": return DbType.Object;
+				case "Char": return DbType.String;
+				case "DateTime": return DbType.DateTime;
+				case "Decimal": return DbType.Decimal;
+				case "Double": return DbType.Double;
+				case "Float": return DbType.Single;
+				case "Guid": return DbType.Guid;
+				case "Object": return DbType.Object;
+				case "String": return DbType.String;
+				case "TimeSpan": return DbType.DateTime;
+				case "Int16": return DbType.Int16;
+				case "Int32": return DbType.Int32;
+				case "Int64": return DbType.Int64;
+				case "UInt16": return DbType.UInt16;
+				case "UInt32": return DbType.UInt32;
+				case "UInt64": return DbType.UInt64;
+				default: return DbType.String;
+			}
+		}
+
 		private void SaveButton_Click(object sender, EventArgs e)
 		{
 			SaveFileDialog dlg = new SaveFileDialog();
-			dlg.FileName = className + ".Entity.cs";
+			dlg.FileName = className + ".cs";
 			dlg.SupportMultiDottedExtensions = true;
 			dlg.DefaultExt = ".cs";
 			dlg.AddExtension = true;
@@ -816,7 +861,7 @@ namespace ClassGenerator
 						cname = cname.Substring(0, cname.Length - 1);
 					string cs, sql, cs1, cs2, cs3, cs4, cs5, cs6;
 					GenerateCode(name, out cs, out sql, out cs1, out cs2, out cs3, out cs4, out cs5, out cs6);
-					StreamWriter writer = new StreamWriter(dlg.SelectedPath + "\\" + cname + ".Entity.cs");
+					StreamWriter writer = new StreamWriter(dlg.SelectedPath + "\\" + cname + ".cs");
 					writer.Write(cs);
 					writer.Flush();
 					writer.Close();

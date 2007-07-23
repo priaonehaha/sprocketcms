@@ -93,8 +93,14 @@ namespace Sprocket.Web.FileManager
 
 		public void ResizeImage(SizingOptions options, Stream outStream)
 		{
-			SprocketFile file = dataLayer.SelectSprocketFile(options.SprocketFileID, true);
-			Image sourceImage = options.Image == null ? Image.FromStream(new MemoryStream(file.FileData)) : options.Image;
+			Image sourceImage;
+			if (options.Image == null)
+			{
+				SprocketFile file = dataLayer.SelectSprocketFile(options.SprocketFileID, true);
+				sourceImage = Image.FromStream(new MemoryStream(file.FileData));
+			}
+			else
+				sourceImage = options.Image;
 			Size imageSize;
 			if (options.DisplayType == SizingOptions.Display.Constrain)
 			{

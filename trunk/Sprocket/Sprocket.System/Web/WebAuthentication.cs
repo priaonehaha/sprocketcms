@@ -106,6 +106,8 @@ namespace Sprocket.Web
 			string startIP = HttpContext.Current.Request.UserHostAddress;
 			startIP = startIP.Substring(0, startIP.LastIndexOf('.'));
 			string encKey = SprocketSettings.GetValue("EncryptionKeyWord");
+			if (encKey == null)
+				throw new Exception("Please add a kay named \"EncryptionKeyWord\" to your Web.Config file. This is a secret keyword or phrase of your choice.");
 			return Crypto.RC2Decrypt(StringUtilities.BytesFromHexString(passKey), encKey, startIP);
 		}
 
@@ -135,9 +137,19 @@ namespace Sprocket.Web
 						return false;
 					if (cookie.Value == "")
 						return false;
-					string passkey = Instance.PasswordHashFromPassKey(cookie["k"]);
-					
-					bool result = Instance.ValidateLogin(cookie["a"], passkey).Succeeded;
+
+					string passkey;
+					bool result;
+					try
+					{
+						passkey = Instance.PasswordHashFromPassKey(cookie["k"]);
+						result = Instance.ValidateLogin(cookie["a"], passkey).Succeeded;
+					}
+					catch (System.Security.Cryptography.CryptographicException)
+					{
+						result = false;
+					}
+
 					CurrentRequest.Value["CurrentUser_Authenticated"] = result;
 					return result;
 				}

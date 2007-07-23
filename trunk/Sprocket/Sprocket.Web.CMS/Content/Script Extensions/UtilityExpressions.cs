@@ -373,4 +373,24 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			return new IsNumberExpression();
 		}
 	}
+
+	class SpacesToDashesExpression : StringModifierBaseExpression
+	{
+		protected override string Adjust(string s)
+		{
+			return s.Replace(" ", "-");
+		}
+	}
+	class SpacesToDashesExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "spaces_to_dashes"; }
+		}
+
+		public IExpression Create()
+		{
+			return new SpacesToDashesExpression();
+		}
+	}
 }

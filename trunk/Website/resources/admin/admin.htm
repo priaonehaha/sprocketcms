@@ -7,15 +7,15 @@
 </head>
 <body onload="//{onload}">
 <div id="admin-container">
-	<div id="admin-header">{website-name}</div>
-	<div id="admin-section-heading">{section-heading}</div>
+	<div id="admin-header"><h1>{website-name}</h1></div>
 	<div id="admin-column-container">
 		<div id="admin-column-left">{main-menu}</div>
 		<div id="admin-column-main">
+			<div id="admin-section-heading"><h2>{section-heading}</h2></div>
 			<div id="column-border-divider">&nbsp;</div>
 			{main-content}
-			<div id="column-float-breaker">&nbsp;</div>
 		</div>
+		<div style="clear:both"></div>
 	</div>
 	<div id="admin-footer">{footer}</div>
 </div>

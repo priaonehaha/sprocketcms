@@ -93,7 +93,12 @@ namespace Sprocket.Web.CMS.Content
 				cachePath = path;
 
 			ContentManager.PageStack.Push(this);
-			string output = Template.Render();
+			Template t = Template;
+			string output;
+			if (t == null)
+				output = "[Unable to render page; Referenced template name has not been defined]";
+			else
+				output = t.Render();
 			ContentManager.PageStack.Pop();
 			return output;
 		}
