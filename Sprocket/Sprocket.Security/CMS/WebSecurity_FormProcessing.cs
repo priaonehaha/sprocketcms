@@ -55,7 +55,7 @@ namespace Sprocket.Web.CMS.Security
 			switch (form.FormName)
 			{
 				case "UserEditForm":
-					if (!SecurityProvider.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.UserAdministrator))
+					if (!SecurityProvider.CurrentUser.HasPermission(PermissionType.UserAdministrator))
 						return;
 					AjaxFormSubmittedValues.Block block = form.Blocks["MainUserFields"];
 					string pw = block.Fields["Password"].Value;
@@ -123,7 +123,7 @@ namespace Sprocket.Web.CMS.Security
 					break;
 
 				case "RoleEditForm":
-					if (!SecurityProvider.DataLayer.DoesUserHavePermission(SecurityProvider.CurrentUser.UserID, PermissionType.RoleAdministrator))
+					if (!SecurityProvider.CurrentUser.HasPermission(PermissionType.RoleAdministrator))
 						return;
 					block = form.Blocks["RoleDetails"];
 					string name = block.Fields["Name"].Value;

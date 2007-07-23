@@ -85,7 +85,24 @@ namespace Sprocket.Security
 				result.SetFailed("SecurityProvider has no implementation for " + DatabaseManager.DatabaseEngine.Title);
 			else
 			{
-				dataLayer.InitialiseDatabase(result);
+				try
+				{
+					using (TransactionScope scope = new TransactionScope())
+					{
+						DatabaseManager.DatabaseEngine.GetConnection();
+						dataLayer.InitialiseDatabase(result);
+						if(result.Succeeded)
+							scope.Complete();
+					}
+				}
+				catch (Exception ex)
+				{
+					result.SetFailed(ex.Message);
+				}
+				finally
+				{
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
+				}
 //				long forceClientInit = ClientSpaceID;
 			}
 		}

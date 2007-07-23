@@ -49,14 +49,6 @@
       <Project>{8BE3F644-9B56-4D93-9FE8-797CE35061AE}</Project>
       <Name>Sprocket.Web.CMS</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Sprocket.Web.FileManager\Sprocket.Web.FileManager.csproj">
-      <Project>{E8DB933F-621D-4980-8BE7-B7AAAFE705FC}</Project>
-      <Name>Sprocket.Web.FileManager</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Sprocket.Web.Forum\Sprocket.Web.Forums.csproj">
-      <Project>{9237A1BB-DA34-4666-A50D-D92B03136327}</Project>
-      <Name>Sprocket.Web.Forums</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

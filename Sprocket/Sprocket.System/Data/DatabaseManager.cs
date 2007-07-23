@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Web;
 using Sprocket;
 using Sprocket.Utility;
 using System.Transactions;
 
 using System.Data;
+using Sprocket.Web;
 
 namespace Sprocket.Data
 {
@@ -40,6 +42,17 @@ namespace Sprocket.Data
 		{
 			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Core_OnInitialise);
 			SystemEvents.Instance.OnRequestShutDown += new EmptyHandler(Instance_OnRequestShutDown);
+			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(Instance_OnLoadRequestedPath);
+		}
+
+		void Instance_OnLoadRequestedPath(HandleFlag handled)
+		{
+			if(SprocketPath.Sections.Length >= 2)
+				if (SprocketPath.Sections[0] == "datastore" && SprocketPath.Sections[1] == "databases")
+				{
+					HttpContext.Current.Response.Write("access denied.");
+					HttpContext.Current.Response.End();
+				}
 		}
 
 		void Instance_OnRequestShutDown()

@@ -62,7 +62,7 @@ namespace Sprocket.Security
 		void AssignRoleToUser(long userID, string roleCode);
 		void UnassignRoleFromUser(long userID, string roleCode);
 
-		void AssignPermissionToUser(long userID, string permissionTypeCode);
+		Result AssignPermissionToUser(long userID, string permissionTypeCode);
 		void AssignPermissionToRole(long roleID, string permissionTypeCode);
 		bool DoesUserHavePermission(long userID, string permissionTypeCode);
 

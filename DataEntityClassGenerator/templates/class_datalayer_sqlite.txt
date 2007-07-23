@@ -1,7 +1,8 @@
-		public SqlParameter NewParameter(string name, object value, SqlDbType dbType)
+		public SQLiteParameter NewParameter(string name, object value, DbType dbType)
 		{
-			SqlParameter prm = new SqlParameter(name, value);
-			prm.SqlDbType = dbType;
+			SQLiteParameter prm = new SQLiteParameter(name, value);
+			prm.DbType = dbType;
+			if(prm.Value == null) prm.Value = DBNull.Value;
 			return prm;
 		}
 		
@@ -9,20 +10,17 @@
 
 		public Result Store([classname] [lesserclassname])
 		{
-			SqlConnection conn = null;
 			try
 			{
 				using (TransactionScope scope = new TransactionScope())
 				{
-					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
-					SqlCommand cmd = new SqlCommand("[classname]_Store", conn);
-					cmd.CommandType = CommandType.StoredProcedure;
-					SqlParameter prm = new SqlParameter("@[primarykey]", [lesserclassname].[primarykey]);
-					prm.Direction = ParameterDirection.InputOutput;
-					cmd.Parameters.Add(prm);
+					SQLiteConnection conn = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = new SQLiteCommand(procs["Store [classname]"], conn);
+					if([lesserclassname].[primarykey] == 0)
+						[lesserclassname].[primarykey] = DatabaseManager.GetUniqueID();
+					cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", [lesserclassname].[primarykey]));
 					[commandparameters]
 					cmd.ExecuteNonQuery();
-					[lesserclassname].[primarykey] = (long)prm.Value;
 					scope.Complete();
 				}
 			}
@@ -32,7 +30,7 @@
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -44,17 +42,17 @@
 			Result result = new Result();
 			if (OnBeforeDelete[classname] != null)
 				OnBeforeDelete[classname]([lesserclassname], result);
-			SqlConnection conn = null;
+			SQLiteConnection conn = null;
 			if (result.Succeeded)
 			{
 				try
 				{
 					using (TransactionScope scope = new TransactionScope())
 					{
-						conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
-						SqlCommand cmd = new SqlCommand("[classname]_Delete", conn);
+						conn = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+						SQLiteCommand cmd = new SQLiteCommand("[classname]_Delete", conn);
 						cmd.CommandType = CommandType.StoredProcedure;
-						cmd.Parameters.Add(new SqlParameter("@[primarykey]", [lesserclassname].[primarykey]));
+						cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", [lesserclassname].[primarykey]));
 						cmd.ExecuteNonQuery();
 						scope.Complete();
 					}
@@ -77,12 +75,12 @@
 		{
 			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 				{
 					conn.Open();
-					SqlCommand cmd = new SqlCommand("[classname]_Select", conn);
+					SQLiteCommand cmd = new SQLiteCommand("[classname]_Select", conn);
 					cmd.CommandType = CommandType.StoredProcedure;
-					cmd.Parameters.Add(new SqlParameter("@[primarykey]", id));
+					cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", id));
 					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
 					[classname] entity;
 					if (!reader.Read())

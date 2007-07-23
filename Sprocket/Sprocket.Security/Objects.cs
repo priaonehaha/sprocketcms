@@ -132,7 +132,7 @@ namespace Sprocket.Security
 			created = (DateTime)reader["Created"];
 			activationReminderSent = reader["ActivationReminderSent"] == DBNull.Value ? null : (DateTime?)reader["ActivationReminderSent"];
 			lastAuthenticated = reader["LastAuthenticated"] == DBNull.Value ? null : (DateTime?)reader["LastAuthenticated"];
-			localTimeOffsetHours = (int)reader["LocalTimeOffsetHours"];
+			localTimeOffsetHours = reader["LocalTimeOffsetHours"] == DBNull.Value ? 0 : Convert.ToInt32(reader["LocalTimeOffsetHours"]);
 		}
 
 		#endregion
@@ -532,6 +532,13 @@ namespace Sprocket.Security
 			permissionTypeCode = (string)reader["PermissionTypeCode"];
 			description = (string)reader["Description"];
 			defaultValue = (bool)reader["DefaultValue"];
+		}
+		public PermissionType(long permissionTypeID, string permissionTypeCode, string description, bool defaultValue)
+		{
+			this.permissionTypeID = permissionTypeID;
+			this.permissionTypeCode = permissionTypeCode;
+			this.description = description;
+			this.defaultValue = defaultValue;
 		}
 
 		public const string AdministrativeAccess = "ACCESS_ADMIN";

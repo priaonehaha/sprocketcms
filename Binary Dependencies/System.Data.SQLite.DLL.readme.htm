@@ -5,8 +5,8 @@
   </head>
   <body>
     ADO.NET 2.0 SQLite Data Provider<br>
-    Version 1.0.35.1 September 12, 2006<br>
-    Using SQLite 3.3.7<br>
+    Version 1.0.43.0 June 21, 2007<br>
+    Using SQLite 3.4.0<br>
     Written by Robert Simpson (<a href="mailto:robert@blackcastlesoft.com">robert@blackcastlesoft.com</a>)<br>
     Released to the public domain, use at your own risk!<br>
     Official provider website:&nbsp; <a href="http://sqlite.phxsoftware.com">http://sqlite.phxsoftware.com</a><br />
@@ -74,7 +74,7 @@
         Public Domain.&nbsp; 100% free for commercial and non-commercial use.&nbsp;</LI></UL>
     <strong></strong>
     <h2>
-      <strong>Design-Time Support (new as of 1.0.14)</strong></h2>
+      <strong>Design-Time Support</strong></h2>
     <P>
       In Windows Explorer, navigate to the <STRONG>SQLite.NET\bin\Designer</STRONG>
         folder and execute the <STRONG>INSTALL.EXE</STRONG>
@@ -113,13 +113,109 @@
       SQLite3 codebase.</P>
     <H2><B>Development Notes Regarding the SQLite 3 Source Code</B></H2>
     <p>
-      The SQLite3 source code is compiled directly from the SQLite.org release
-      sources.&nbsp; All builds of sqlite after 3.2.8 have included support for Windows CE.&nbsp; Additionally,
-      just one minor modification is made to pager.c, that modification is made automatically by the fixsource.vbs file
-      when the VS2005 solution is compiled.</p>
+      The core sqlite engine is compiled directly from the unmodified source code available
+      at the sqlite.org website.&nbsp; Several additional pieces are compiled on top of
+      it to extend its functionality, but the core engine's source is not changed.</p>
     <p></p>
     <p>
       <b>Version History</b></p>
+    <p><b>1.0.43.0 - June 21, 2007</b></p>
+    <ul>
+    <li>Code merge with SQLite 3.4.0</li>
+      <li>Fixed a reuse bug in the SQLiteDataAdapter in conjunction with the SQLiteCommandBuilder.&nbsp;
+      It's been there unnoticed for more than a year, so it looks like most folks never
+      encountered it. </li>
+      <li>Fixed an event handler bug in SQLiteCommandBuilder in which it could fail to unlatch
+        from the DataAdapter when reused.&nbsp; Relates to the previous bugfix.</li>
+      <li>Fixed a double-dispose bug in SQLiteStatement that triggered a SQLiteException.&nbsp;</li>
+    </ul>
+    <p><b>1.0.42.0 - June 1, 2007</b></p>
+    <ul>
+    <li>Code merge with SQLite 3.3.17</li>
+      <li>Changed the SQLiteFunction static constructor so it only enumerates loaded modules
+        that have referenced the SQLite assembly, which hopefully should cut down dramatically
+        the time it takes for that function to execute.&nbsp;</li>
+      <li>Added the FTS2 full-text search extension to the project.&nbsp; Look for FTS1
+        to disappear within the next couple of revisions.&nbsp;</li>
+      <li>Fixed a bug introduced with the finalizers that triggered an error when statements
+        ended with a semi-colon or had other non-parsable comments at the end of a statement&nbsp;</li>
+      <li>Fixed an intermittent multi-threaded race condition between the garbage collector
+        thread and the main application thread which lead to an occasional SQLITE_MISUSE
+        error.</li>
+      <li>Fixed another issue relating to SQLite's inherent typelessness when dealing with
+        aggregate functions which could return Int64 or Double or even String for a given
+        row depending on what was aggregated.</li>
+      <li>Remembered to recompile the DDEX portion of the engine this time, so Compact Framework
+        users can once again use the design-time functionality</li>
+    </ul>
+    <p><b>1.0.41.0 - April 23, 2007</b></p>
+    <ul>
+    <li>Code merge with SQLite 3.3.16</li>
+      <li>Second go at implementing proper finalizers to cleanup after folks who've forgotten to Dispose() of the SQLite objects</li>
+      <li>Enhanced GetSchema(IndexColumns) to provide numeric scale and precision values</li>
+      <li>Fixed the column ordinals in GetSchema(IndexColumns) to report the ordinal of the column in the index, not the table</li>
+      <li>Fixed a bug whereby parameters named with an empty string (such as String.Empty) were treated like a named parameter instead of an unnamed parameter</li>
+    </ul>
+    <p><b>1.0.40.0 - January 31, 2007</b></p>
+    <ul>
+    <li>Code merge with SQLite 3.3.12</li>
+      <li>Lots of new code to handle misuse of the library.&nbsp; Implemented finalizers
+        where it made sense, fixed numerous garbage collector issues when objects are not
+        disposed properly, &nbsp;fixed some object lifetime issues, etc.</li>
+      <li>A failed Commit() on a transaction no longer leaves the transaction in an unusable
+        state.</li>
+    </ul>
+    <p><b>1.0.39.1 - January 11, 2007</b></p>
+    <ul>
+    <li>Fixed a really dumb mistake that for some reason didn't trigger any errors in
+      the testcases, whereby commands when associated with a connection were not adding
+      or removing themselves from an internal list of commands for that connection --
+      causing a "database is locked" error when trying to close the connection.</li>
+    </ul>
+    <p><b>1.0.39.0 - January 10, 2007</b></p>
+    <ul>
+    <li>Code merge with SQLite 3.3.10</li>
+      <li>Fixed a multi-threaded race condition bug in the garbage collector when commands
+        and/or connections are not properly disposed by the user. </li>
+      <li>Switched the encryption's internal deallocation code to use sqlite's built-in
+        aux functions instead of modifying the pager.c source to free the crypt block.&nbsp;
+        This eliminates the last of the code changes the provider makes to the original
+        sqlite engine sources.&nbsp; Props to Ralf Junker for pointing that out.</li>
+    </ul>
+    <p><b>1.0.38.0 - November 22, 2006</b></p>
+    <ul>
+    <li>Fixed a bug when using CommandBehavior.KeyInfo whereby integer primary key columns may be duplicated in the results. </li>
+      <li>Enhanced the CommandBuilder so that update/delete statements are optimized when the affected table contains unique constraints and
+      a primary key is present.</li>
+      <li>Fixed a bug in the DataReader when used in conjunction with CommandBehavior.CloseConnection.</li></ul>
+    <p><b>1.0.37.0 - November 19, 2006</b></p>
+    <ul>
+    <li>Added support for CommandBehavior.KeyInfo.&nbsp; 
+      When specified in a query, additional column(s) will be returned describing the
+      key(s) defined for the table(s) selected in the query.&nbsp; This is optimized when
+      INTEGER PRIMARY KEY is set for the given tables, but does additional work for other
+      kinds of primary keys.</li>
+      <li>Removed the default values from SQLiteDataReader.GetTableSchema(), to better follow
+        Sql Server's pattern and suppress schema errors when loading the records into a
+        dataset/datatable.</li>
+      <li>Allow integers to implicitly convert to double/decimal/single.</li></ul>
+    <p><b>1.0.36.1 - October 25, 2006</b></p>
+    <ul>
+    <li>Added support for LONGVARCHAR, SMALLDATE and SMALLDATETIME.  These were actually added in 1.0.36.0 but were undocumented.</li>
+    <li>Fixed the embedded helpfile which was accidentally built from old sources. </li>
+    <li>Fixed an unfortunate re-entry of a bug in the .36 codebase that caused the provider to "forget" about commands on a connection under certain circumstances.</li>
+    </ul>
+    <p><b>1.0.36.0 - October 23, 2006</b></p>
+    <ul>
+    <li>Code merge with SQLite 3.3.8, including support for full-text search via the FTS1
+      extension.&nbsp;</li><li>Fixed a bug retrieving data types when UseUtf16Encoding is true.  Side-effect of further merging the common code between the two base classes.</li>
+      <li>Fixed a bug with System.Transactions whereby a connection closed/disposed within
+        a transaction scope is rolled back and cannot be committed.</li>
+      <li>Added more error checking and reporting to transactions to help user's isolate
+        the source of transaction failures.</li>
+      <li>Implemented a workaround for a Compact Framework issue regarding strong-named
+        assemblies containing a PE section with a raw size less than the virtual size.&nbsp;</li>
+    </ul>
     <p><b>1.0.35.1 - September 12, 2006</b></p>
     <ul>
     <li>Fixed the TYPES keyword to work when UseUTF16Encoding is true.</li>

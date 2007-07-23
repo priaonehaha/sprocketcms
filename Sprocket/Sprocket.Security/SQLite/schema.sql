@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS ClientSpaces
 (
-	ClientSpaceID			GUID				PRIMARY KEY,
+	ClientSpaceID			INTEGER				PRIMARY KEY,
 	Name					TEXT(100)			NOT NULL,
 	Enabled					BOOLEAN				NOT NULL,
 	PrimaryUserID			INTEGER
@@ -9,20 +9,21 @@ CREATE TABLE IF NOT EXISTS ClientSpaces
 CREATE TABLE IF NOT EXISTS Users
 (
 	UserID					INTEGER				PRIMARY KEY,
-	ClientSpaceID			GUID				NOT NULL,
+	ClientSpaceID			INTEGER				NOT NULL,
 	Username				TEXT(50)			NOT NULL,
 	PasswordHash			TEXT(200)			NOT NULL,
 	FirstName				TEXT(50),
 	Surname					TEXT(50),
 	Email					TEXT(100),
 	Enabled					BOOLEAN				NOT NULL,
+	Hidden					BOOLEAN				NOT NULL,
 	Locked					BOOLEAN				NOT NULL,
 	Deleted					BOOLEAN				NOT NULL,
-	Hidden					BOOLEAN				NOT NULL,
 	Activated				BOOLEAN				NOT NULL,
 	ActivationReminderSent	DATETIME,
 	Created					DATETIME			NOT NULL,
-	LocalTimeOffsetHours	INTEGER				NOT NULL
+	LastAuthenticated		DATETIME,
+	LocalTimeOffsetHours	INTEGER				NOT NULL,
 	
 	UNIQUE (ClientSpaceID, Username, Deleted)
 );
@@ -31,7 +32,7 @@ CREATE TABLE IF NOT EXISTS Roles
 (
 	RoleID					INTEGER				PRIMARY KEY,
 	RoleCode				TEXT(100)			NOT NULL,
-	ClientSpaceID			GUID				NOT NULL,
+	ClientSpaceID			INTEGER				NOT NULL,
 	Name					TEXT(100)			NOT NULL,
 	Enabled					BOOLEAN				NOT NULL,	-- disables the role without deleting it
 	Locked					BOOLEAN				NOT NULL,	-- prevents role from being modified by users

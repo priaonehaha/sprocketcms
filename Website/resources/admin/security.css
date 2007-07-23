@@ -14,11 +14,9 @@
 }
 #security-filter {
 	float: left;
-	background-image: url(images/lightbackground.gif);
 	padding: 10px 10px 10px 10px;
 	width: 205px;
-	border-right: 1px solid #bac797;
-	border-bottom: 1px solid #bac797;
+	border-right: 1px solid #ddd;
 }
 #security-filter-display {
 	margin-top: 4px;
