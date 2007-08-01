@@ -53,8 +53,8 @@ namespace Sprocket.Web.CMS.Script
 					throw new InstructionExecutionException("\"" + listToken.Value + "\" doesn't contain a list of anything.", listToken);
 			}
 
-			if (state.HasVariable(iteratorToken.Value))
-				throw new InstructionExecutionException("\"" + iteratorToken.Value + "\" already equates to something else. You should use a different word.", iteratorToken);
+			//if (state.HasVariable(iteratorToken.Value))
+			//    throw new InstructionExecutionException("\"" + iteratorToken.Value + "\" already equates to something else. You should use a different word.", iteratorToken);
 			foreach (object item in list)
 			{
 				state.Variables[iteratorToken.Value] = item;

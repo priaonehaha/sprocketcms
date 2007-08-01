@@ -255,6 +255,8 @@ namespace Sprocket.Web
 						throw e.InnerException;
 					throw e;
 				}
+				else if (e.InnerException != null)
+					e = e.InnerException;
 				responseData["__error"] = e;
 				responseData["__exceptionType"] = e.GetType().FullName;
 			}

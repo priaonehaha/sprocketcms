@@ -134,7 +134,6 @@ namespace Sprocket.Data
 			else
 			{
 				SqlConnection c = Conn as SqlConnection;
-
 				if (c != null)
 				{
 					if (c.State == ConnectionState.Open)
@@ -149,6 +148,8 @@ namespace Sprocket.Data
 
 		public void ReleaseConnection()
 		{
+			if (stack == null)
+				stack = new Stack<bool>();
 			if (stack.Count == 1)
 			{
 				SqlConnection conn = Conn as SqlConnection;
