@@ -145,7 +145,7 @@ namespace Sprocket.Web
 						passkey = Instance.PasswordHashFromPassKey(cookie["k"]);
 						result = Instance.ValidateLogin(cookie["a"], passkey).Succeeded;
 					}
-					catch (System.Security.Cryptography.CryptographicException)
+					catch
 					{
 						result = false;
 					}

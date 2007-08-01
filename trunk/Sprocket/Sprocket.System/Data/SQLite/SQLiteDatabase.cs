@@ -171,19 +171,22 @@ namespace Sprocket.Data
 
 		public void ReleaseConnection()
 		{
-			if (stack.Count == 1)
+			if (stack != null)
 			{
-				SQLiteConnection conn = Conn as SQLiteConnection;
-				if (conn != null)
+				if (stack.Count == 1)
 				{
-					if (conn.State == ConnectionState.Open)
-						conn.Close();
-					conn.Dispose();
-					Conn = null;
+					SQLiteConnection conn = Conn as SQLiteConnection;
+					if (conn != null)
+					{
+						if (conn.State == ConnectionState.Open)
+							conn.Close();
+						conn.Dispose();
+						Conn = null;
+					}
 				}
+				if (stack.Count > 0)
+					stack.Pop();
 			}
-			if (stack.Count > 0)
-				stack.Pop();
 		}
 
 		private SQLiteConnection Conn

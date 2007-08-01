@@ -393,4 +393,32 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			return new SpacesToDashesExpression();
 		}
 	}
+
+	class JSONEncodeExpression : IArgumentListEvaluatorExpression
+	{
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 1)
+				throw new InstructionExecutionException("jsonencode expects exactly one argument specifying something to encode.", contextToken);
+			object o = args[0].Expression.Evaluate(state, args[0].Token);
+			return JSON.Encode(o);
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			throw new InstructionExecutionException("jsonencode expects an argument specifying something to encode.", contextToken);
+		}
+	}
+	class JSONEncodeExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "jsonencode"; }
+		}
+
+		public IExpression Create()
+		{
+			return new JSONEncodeExpression();
+		}
+	}
 }

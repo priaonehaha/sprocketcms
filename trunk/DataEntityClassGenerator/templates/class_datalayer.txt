@@ -9,12 +9,11 @@
 
 		public Result Store([classname] [lesserclassname])
 		{
-			SqlConnection conn = null;
 			try
 			{
 				using (TransactionScope scope = new TransactionScope())
 				{
-					conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SqlConnection conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SqlCommand cmd = new SqlCommand("[classname]_Store", conn);
 					cmd.CommandType = CommandType.StoredProcedure;
 					SqlParameter prm = new SqlParameter("@[primarykey]", [lesserclassname].[primarykey]);
@@ -32,7 +31,7 @@
 			}
 			finally
 			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 			return new Result();
 		}
@@ -44,14 +43,13 @@
 			Result result = new Result();
 			if (OnBeforeDelete[classname] != null)
 				OnBeforeDelete[classname]([lesserclassname], result);
-			SqlConnection conn = null;
 			if (result.Succeeded)
 			{
 				try
 				{
 					using (TransactionScope scope = new TransactionScope())
 					{
-						conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
+						SqlConnection conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 						SqlCommand cmd = new SqlCommand("[classname]_Delete", conn);
 						cmd.CommandType = CommandType.StoredProcedure;
 						cmd.Parameters.Add(new SqlParameter("@[primarykey]", [lesserclassname].[primarykey]));
@@ -65,7 +63,7 @@
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (On[classname]Deleted != null)
 					On[classname]Deleted([lesserclassname]);
@@ -75,23 +73,31 @@
 
 		public [classname] Select[classname]([classidfieldtype] id)
 		{
-			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			try
 			{
-				using (SqlConnection conn = new SqlConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				[classname] entity;
+				using (TransactionScope scope = new TransactionScope())
 				{
-					conn.Open();
+					SqlConnection conn = (SqlConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SqlCommand cmd = new SqlCommand("[classname]_Select", conn);
 					cmd.CommandType = CommandType.StoredProcedure;
 					cmd.Parameters.Add(new SqlParameter("@[primarykey]", id));
-					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-					[classname] entity;
-					if (!reader.Read())
-						entity = null;
-					else
-						entity = new [classname](reader);
-					reader.Close();
-					return entity;
+
+					using (SqlDataReader reader = cmd.ExecuteReader())
+					{
+						if (!reader.Read())
+							entity = null;
+						else
+							entity = new [classname](reader);
+						reader.Close();
+					}
+					scope.Complete();
 				}
+				return entity;
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
 		}
 

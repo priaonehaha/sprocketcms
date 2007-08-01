@@ -35,7 +35,12 @@ namespace Sprocket.Data
 		private static IDatabaseHandler dbHandler = null;
 		public static IDatabaseHandler DatabaseEngine
 		{
-			get { return dbHandler; }
+			get
+			{
+				if (dbHandler == null)
+					throw new Exception("OMG! For some reason the dbHandler variable is null!");
+				return dbHandler;
+			}
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
