@@ -151,10 +151,31 @@ Timer.prototype.OnTimerElapsed = function() {
 }
 
 function debug() {
-	var str = 'DEBUG:';
-	for(var i=0; i<arguments.length; i++)
-		str += '\n' + arguments[i];
-	alert(str);
+	var div = $('___debug_div');
+	if(!div) {
+		div = document.createElement('div');
+		div.id = '___debug_div';
+		div.style.position = 'absolute';
+		div.style.zIndex = '32000';
+		div.style.top = '10px';
+		div.style.right = '10px';
+		div.style.width = '300px';
+		div.style.height = '80px';
+		div.style.padding = '4px';
+		div.style.border = '1px solid #999';
+		div.style.backgroundColor = 'white';
+		div.style.fontFamily = 'courier new';
+		div.style.fontSize = '7pt';
+		div.style.letterSpacing = '-0.05em';
+		div.style.lineHeight = '8pt';
+		div.style.overflow = 'auto';
+		document.body.appendChild(div);
+	}
+	for(var i=0; i<arguments.length; i++) {
+		var o = document.createElement('div');
+		o.innerHTML = arguments[i] == null ? 'null' : htmlEncode(arguments[i].toString());
+		div.appendChild(o);
+	}
 }
 
 /* The following stylesheet code is courtesy of http://www.hunlock.com/blogs/Totally_Pwn_CSS_with_Javascript */
