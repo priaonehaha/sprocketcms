@@ -3,23 +3,25 @@ using System.Collections.Generic;
 using System.Text;
 using Sprocket;
 using Sprocket.Web;
+using Sprocket.Web.CMS.Script;
+using Sprocket.Web.CMS.Content;
 using Sprocket.Web.Controls;
 
 namespace Sprocket.Web.CMS.Admin
 {
-	public class AdminMenuLink : IRankable
+	public class AdminMenuLink : IRankable, IComparable
 	{
 		private string name, link;
-		private int rank;
+		private ObjectRank rank;
 
-		public AdminMenuLink(string name, string link, int rank)
+		public AdminMenuLink(string name, string link, ObjectRank rank)
 		{
 			this.name = name;
 			this.link = link;
 			this.rank = rank;
 		}
 
-		public int Rank
+		public ObjectRank Rank
 		{
 			set { rank = value; }
 			get { return rank; }
@@ -33,26 +35,52 @@ namespace Sprocket.Web.CMS.Admin
 			return string.Format("<a class=\"AdminMenuLink\" id=\"AdminMenuLink_{2}\" href=\"{0}\">{1}</a>",
 				link, name, link.Trim('/').Replace(':','_').Replace('/','_').Replace('\\','_').Replace('.','_').Replace(' ','_'));
 		}
+
+		public int CompareTo(object obj)
+		{
+			if (obj == null)
+				return -1;
+			return name.CompareTo(obj.ToString());
+		}
+
+		public override string ToString()
+		{
+			return name;
+		}
 	}
 
-	public class RankedString : IRankable
+	public class AdminSection : IRankable
 	{
-		private string text;
-		private int rank;
+		private string text = null;
+		private SprocketScript script = null;
+		private Template template = null;
+		private ObjectRank rank;
 
-		public RankedString(string text, int rank)
+		public AdminSection(string text, ObjectRank rank)
 		{
 			this.text = text;
 			this.rank = rank;
 		}
 
-		public RankedString(object text, int rank)
+		public AdminSection(Template template, ObjectRank rank)
+		{
+			this.template = template;
+			this.rank = rank;
+		}
+
+		public AdminSection(SprocketScript script, ObjectRank rank)
+		{
+			this.script = script;
+			this.rank = rank;
+		}
+
+		public AdminSection(object text, ObjectRank rank)
 		{
 			this.text = text.ToString();
 			this.rank = rank;
 		}
 
-		public int Rank
+		public ObjectRank Rank
 		{
 			set { rank = value; }
 			get { return rank; }
@@ -60,7 +88,13 @@ namespace Sprocket.Web.CMS.Admin
 
 		public virtual string Render()
 		{
-			return text;
+			if (text != null)
+				return text;
+			if (script != null)
+				return script.Execute();
+			if (template != null)
+				return template.Render();
+			return String.Empty;
 		}
 	}
 
@@ -68,24 +102,18 @@ namespace Sprocket.Web.CMS.Admin
 	{
 		private List<AdminMenuLink> menuLinks = new List<AdminMenuLink>();
 		private List<AdminMenuLink> footerLinks = new List<AdminMenuLink>();
-		private List<RankedString> contentSections = new List<RankedString>();
-		private List<RankedString> headSections = new List<RankedString>();
-		private List<RankedString> menuSections = new List<RankedString>();
-		private List<RankedString> bodyOnLoadScripts = new List<RankedString>();
-		private List<RankedString> interfaceScripts = new List<RankedString>();
-		private string contentHeading = "";
-		private string websiteName = "";
+		private List<AdminSection> preContentSections = new List<AdminSection>();
+		private List<AdminSection> subContentSections = new List<AdminSection>();
+		private List<AdminSection> headSections = new List<AdminSection>();
+		private List<AdminSection> menuSections = new List<AdminSection>();
+		private List<AdminSection> bodyOnLoadScripts = new List<AdminSection>();
+		private List<AdminSection> interfaceScripts = new List<AdminSection>();
+		private string websiteName = "SprocketCMS";
 
-		public string WebsiteName
+		internal string WebsiteName
 		{
 			get { return websiteName; }
 			set { websiteName = value; }
-		}
-
-		public string ContentHeading
-		{
-			get { return contentHeading; }
-			set { contentHeading = value; }
 		}
 
 		protected Dictionary<WebControlScript, bool> loadedScripts = new Dictionary<WebControlScript, bool>();
@@ -93,10 +121,10 @@ namespace Sprocket.Web.CMS.Admin
 		{
 			if (loadedScripts.ContainsKey(script)) return;
 			loadedScripts.Add(script, true);
-			interfaceScripts.Add(new RankedString(WebControls.GetScript(script), -1));
+			interfaceScripts.Add(new AdminSection(WebControls.GetScript(script), ObjectRank.First));
 		}
 
-		public void AddInterfaceScript(RankedString script)
+		public void AddInterfaceScript(AdminSection script)
 		{
 			interfaceScripts.Add(script);
 		}
@@ -111,38 +139,44 @@ namespace Sprocket.Web.CMS.Admin
 			footerLinks.Add(link);
 		}
 
-		public void AddContentSection(RankedString section)
+		public void AddPreContentSection(AdminSection section)
 		{
-			contentSections.Add(section);
+			preContentSections.Add(section);
 		}
 
-		public void AddHeadSection(RankedString section)
+		public void AddSubContentSection(AdminSection section)
+		{
+			subContentSections.Add(section);
+		}
+
+		public void AddHeadSection(AdminSection section)
 		{
 			headSections.Add(section);
 		}
 
-		public void AddLeftColumnSection(RankedString section)
+		public void AddLeftColumnSection(AdminSection section)
 		{
 			menuSections.Add(section);
 		}
 
-		public void AddBodyOnLoadScript(RankedString script)
+		public void AddBodyOnLoadScript(AdminSection script)
 		{
 			bodyOnLoadScripts.Add(script);
 		}
 
-		public string Render()
+		public KeyValuePair<string, object>[] GetScriptVariables()
 		{
 			interfaceScripts.Sort(RankedObject.SortByRank);
 			JavaScriptCollection jsc = new JavaScriptCollection();
 			int scrnum = 0;
-			foreach (RankedString str in interfaceScripts)
+			foreach (AdminSection str in interfaceScripts)
 				jsc.Add("sprocket-admin-script-" + scrnum++, str.Render());
-			headSections.Add(new RankedString(jsc.CreateScriptTags(), 1000));
+			headSections.Add(new AdminSection(jsc.CreateScriptTags(), ObjectRank.Last));
 
 			menuLinks.Sort(RankedObject.SortByRank);
 			footerLinks.Sort(RankedObject.SortByRank);
-			contentSections.Sort(RankedObject.SortByRank);
+			preContentSections.Sort(RankedObject.SortByRank);
+			subContentSections.Sort(RankedObject.SortByRank);
 			headSections.Sort(RankedObject.SortByRank);
 			bodyOnLoadScripts.Sort(RankedObject.SortByRank);
 
@@ -150,7 +184,7 @@ namespace Sprocket.Web.CMS.Admin
 			foreach (AdminMenuLink link in menuLinks)
 				menu.AppendFormat("<div id=\"main-menu\">{0}</div>", link.Render());
 
-			menuSections.Add(new RankedString(menu.ToString(), 0));
+			menuSections.Add(new AdminSection(menu.ToString(), ObjectRank.Late));
 			menuSections.Sort(RankedObject.SortByRank);
 
 			StringBuilder footer = new StringBuilder();
@@ -161,20 +195,24 @@ namespace Sprocket.Web.CMS.Admin
 				footer.Append(link.Render());
 			}
 
-			StringBuilder content = new StringBuilder();
-			foreach (RankedString section in contentSections)
-				content.Append(section.Render());
+			StringBuilder preContent = new StringBuilder();
+			foreach (AdminSection section in preContentSections)
+				preContent.Append(section.Render());
+
+			StringBuilder subContent = new StringBuilder();
+			foreach (AdminSection section in subContentSections)
+				subContent.Append(section.Render());
 
 			StringBuilder head = new StringBuilder();
-			foreach (RankedString section in headSections)
+			foreach (AdminSection section in headSections)
 				head.Append(section.Render());
 
 			StringBuilder left = new StringBuilder();
-			foreach (RankedString section in menuSections)
+			foreach (AdminSection section in menuSections)
 				left.Append(section.Render());
 
 			StringBuilder onLoad = new StringBuilder();
-			foreach (RankedString script in bodyOnLoadScripts)
+			foreach (AdminSection script in bodyOnLoadScripts)
 			{
 				string scr = script.Render();
 				if (!scr.Trim().EndsWith(";"))
@@ -182,16 +220,15 @@ namespace Sprocket.Web.CMS.Admin
 				onLoad.Append(scr);
 			}
 
-			string html = WebUtility.CacheTextFile("resources/admin/admin.htm");
-			html = html.Replace("{website-name}", websiteName);
-			html = html.Replace("{head}", head.ToString());
-			html = html.Replace("//{onload}", onLoad.ToString());
-			html = html.Replace("{main-menu}", left.ToString());
-			html = html.Replace("{main-content}", content.ToString());
-			html = html.Replace("{section-heading}", contentHeading);
-			html = html.Replace("{footer}", footer.ToString());
-			html = html.Replace("{basepath}", WebUtility.BasePath);
-			return html;
+			KeyValuePair<string, object>[] vars = new KeyValuePair<string, object>[7];
+			vars[0] = new KeyValuePair<string, object>("_admin_head", head.ToString());
+			vars[1] = new KeyValuePair<string, object>("_admin_mainmenu", left.ToString());
+			vars[2] = new KeyValuePair<string, object>("_admin_precontent", preContent.ToString());
+			vars[3] = new KeyValuePair<string, object>("_admin_subcontent", subContent.ToString());
+			vars[4] = new KeyValuePair<string, object>("_admin_footer", footer.ToString());
+			vars[5] = new KeyValuePair<string, object>("_admin_websitename", websiteName);
+			vars[6] = new KeyValuePair<string, object>("_admin_bodyonload", onLoad.ToString());
+			return vars;
 		}
 	}
 }

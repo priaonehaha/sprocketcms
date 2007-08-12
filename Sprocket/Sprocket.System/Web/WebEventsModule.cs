@@ -100,7 +100,11 @@ namespace Sprocket.Web
 		/// <param name="e"></param>
 		internal void FireBeginRequest(object sender, EventArgs e)
 		{
-			if (!AjaxRequestHandler.IsAjaxRequest)
+			if (HttpContext.Current.Request.Path.EndsWith(".ajax"))
+			{
+				AjaxRequestHandler.IsAjaxRequest = true;
+			}
+			else
 			{
 				// The SprocketPath refers to the bit after the application base path and before the
 				// querystring, minus any leading and trailing forward-slashes. (/) For example if the

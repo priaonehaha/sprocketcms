@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<title>{??_admin_websitename} Administration - Log In</title>
+		<link rel="stylesheet" href="{??basepath}resources/admin/main/main.css" type="text/css" />
+		<style>
+		</style>
+	</head>
+	<body id="loginpage">
+		<div id="loginbox-container">
+			<div id="loginbox">
+				<div id="loginbox-title">
+					<span id="loginbox-title-name">{??_admin_websitename}</span>
+					<span id="loginbox-title-title">Administration</span>
+				</div>
+				<form method="post" action="{??basepath}admin/login/">
+					<span id="loginbox-label-username" class="label">Username:</span>
+					<span id="loginbox-field-username" class="field"><input name="SprocketUsername" type="text" class="text" id="SprocketUsername" size="22" maxlength="64" /></span>
+					<span id="loginbox-label-password" class="label">Password:</span>
+					<span id="loginbox-field-password" class="field"><input name="SprocketPassword" type="password" class="text" id="SprocketPassword" size="22" maxlength="64" /></span>
+					<span id="loginbox-field-preservelogin">
+						<input name="SprocketPreserveLogin" type="checkbox" class="checkbox" id="SprocketPreserveLogin" value="yes" />
+						<label for="SprocketPreserveLogin">Keep me logged in until I log out</label>
+					</span>
+					<span id="loginbox-submit"><input type="submit" name="Submit" class="button" value="Log In" /></span>
+				</form>
+				<div id="loginbox-error">{? if isformerror }incorrect username and/or password{? end }</div>
+			</div>
+		</div>
+	</body>
+</html>

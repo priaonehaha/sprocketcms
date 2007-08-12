@@ -57,9 +57,11 @@ namespace Sprocket.Web
 
 		#endregion
 
+		private bool isAjaxRequest = false;
 		public static bool IsAjaxRequest
 		{
-			get { return HttpContext.Current.Request.Path.EndsWith(".ajax"); }
+			get { return Instance.isAjaxRequest; }
+			internal set { Instance.isAjaxRequest = value; }
 		}
 
 		private static Guid authKey = Guid.Empty;
@@ -112,6 +114,7 @@ namespace Sprocket.Web
 		/// <param name="context">The current HttpContext object.</param>
 		internal void ProcessRequest(HttpContext context)
 		{
+			isAjaxRequest = true;
 			System.Diagnostics.Debug.WriteLine("Start of AJAX page request...");
 			Dictionary<string, object> responseData = new Dictionary<string, object>();
 			try

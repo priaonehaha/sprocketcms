@@ -97,6 +97,7 @@
     <Compile Include="Data\SQLite\SQLiteStoredProcedures.cs" />
     <Compile Include="Data\SQLite\SQLiteDatabase.cs" />
     <Compile Include="Data\SqlServer2005\SqlServer2005Database.cs" />
+    <Compile Include="SourceFileDependent.cs" />
     <Compile Include="HandleFlag.cs" />
     <Compile Include="Mail\EmailHandler.cs" />
     <Compile Include="ModuleHandler.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="Web\Cache\ContentCache.cs" />
     <Compile Include="Web\Cache\CacheItemInfo.cs" />
     <Compile Include="Web\Cache\CacheManager.cs" />
+    <Compile Include="Web\Config.cs" />
     <Compile Include="Web\Controls\AjaxForm\AjaxForm.cs" />
     <Compile Include="Web\Controls\AjaxForm\AjaxFormField.cs" />
     <Compile Include="Web\Controls\MultiPageNav.cs" />

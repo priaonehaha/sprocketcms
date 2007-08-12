@@ -6,10 +6,10 @@ namespace Sprocket.Web
 {
 	public interface IRankable
 	{
-		int Rank { get; set; }
+		ObjectRank Rank { get; set; }
 	}
 
-	public class RankedObject
+	public static class RankedObject
 	{
 		public static int SortByRank(IRankable a, IRankable b)
 		{
@@ -22,8 +22,18 @@ namespace Sprocket.Web
 				return 1;
 			else if (a.Rank < b.Rank)
 				return -1;
-			else
-				return 0;
+			if (a is IComparable && b is IComparable && a.GetType() == b.GetType())
+				return ((IComparable)a).CompareTo((IComparable)b);
+			return 0;
 		}
+	}
+
+	public enum ObjectRank
+	{
+		First = 1,
+		Early = 2,
+		Normal = 3,
+		Late = 4,
+		Last = 5
 	}
 }

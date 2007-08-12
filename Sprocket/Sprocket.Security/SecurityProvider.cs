@@ -31,6 +31,7 @@ namespace Sprocket.Security
 			DatabaseSetup.Instance.Completed += new EmptyHandler(DatabaseSetup_Completed);
 			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
 			WebAuthentication.Instance.Authenticate = ValidateLogin;
+			WebAuthentication.Instance.VerifyUserAccess = VerifyUserAccess;
 		}
 
 		void DatabaseSetup_Completed()
@@ -43,6 +44,13 @@ namespace Sprocket.Security
 			if (!dataLayer.Authenticate(username, passwordHash))
 				return new Result("Invalid username and/or password");
 			return new Result();
+		}
+
+		bool VerifyUserAccess(string permissionTypeCode)
+		{
+			if (CurrentUser == null)
+				return false;
+			return CurrentUser.HasPermission(permissionTypeCode);
 		}
 
 		public static User CurrentUser

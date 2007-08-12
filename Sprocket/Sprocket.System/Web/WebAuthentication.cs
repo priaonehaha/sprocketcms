@@ -9,6 +9,7 @@ using Sprocket.Utility;
 namespace Sprocket.Web
 {
 	public delegate Result LoginAuthenticationHandler(string username, string passwordHash);
+	public delegate bool PermissionVerificationHandler(string permissionTypeCode);
 
 	[ModuleDependency(typeof(WebClientScripts))]
 	[ModuleDescription("Provides an interface for authenticating web requests.")]
@@ -19,6 +20,7 @@ namespace Sprocket.Web
 		public delegate void AjaxAuthKeyStoredHandler(string username, Guid authKey);
 		public event AjaxAuthKeyStoredHandler OnAjaxAuthKeyStored;
 		public LoginAuthenticationHandler Authenticate = null;
+		public PermissionVerificationHandler VerifyUserAccess = null;
 
 		private Hashtable usersByKey = new Hashtable();
 		private Hashtable keysByUser = new Hashtable();
@@ -32,29 +34,6 @@ namespace Sprocket.Web
 		{
 			if(registry.IsRegistered("WebClientScripts"))
 				WebClientScripts.Instance.OnBeforeRenderJavaScript += new Sprocket.Web.WebClientScripts.BeforeRenderJavaScriptHandler(OnPreRenderJavaScript);
-			SprocketSettings.Instance.OnCheckingSettings += new SprocketSettings.CheckSettingsHandler(OnCheckingSprocketSettings);
-		}
-
-		void OnCheckingSprocketSettings(SprocketSettings.SettingsErrors errors)
-		{
-			string psl = SprocketSettings.GetValue("PreventSimultaneousLogins");
-			if (psl == null)
-			{
-				errors.Add(this, "The Web.config file is missing a value for \"PreventSimultaneousLogins\". The value should be \"True\" or \"False\".");
-				errors.SetCriticalError();
-				return;
-			}
-			if (psl.ToLower() != "true" && psl.ToLower() != "false")
-			{
-				errors.Add(this, "The Web.config file value for \"PreventSimultaneousLogins\" is invalid. The value should be \"True\" or \"False\".");
-				errors.SetCriticalError();
-				return;
-			}
-		}
-
-		bool AllowSimultaneousLogins
-		{
-			get { return !bool.Parse(SprocketSettings.GetValue("PreventSimultaneousLogins")); }
 		}
 
 		public bool CheckAjaxAuthKey(Guid key)
@@ -142,8 +121,9 @@ namespace Sprocket.Web
 					bool result;
 					try
 					{
-						passkey = Instance.PasswordHashFromPassKey(cookie["k"]);
-						result = Instance.ValidateLogin(cookie["a"], passkey).Succeeded;
+						WebAuthentication auth = Instance;
+						passkey = auth.PasswordHashFromPassKey(cookie["k"]);
+						result = auth.ValidateLogin(cookie["a"], passkey).Succeeded;
 					}
 					catch
 					{
@@ -156,6 +136,28 @@ namespace Sprocket.Web
 				else
 					return (bool)CurrentRequest.Value["CurrentUser_Authenticated"];
 			}
+		}
+
+		/// <summary>
+		/// Some modules provide functionality that can be divided into areas with differing security requirements.
+		/// The security provider in use should determine if the current end user, whether authenticated or not,
+		/// has been assigned (directly or indirectly) the specified permission type code.
+		/// </summary>
+		/// <param name="permissionTypeCode">A unique string specifying the permission to check for</param>
+		/// <returns>True if the current user has access, otherwise False</returns>
+		public static bool VerifyAccess(string permissionTypeCode)
+		{
+			WebAuthentication auth = Instance;
+			if (auth.VerifyUserAccess == null)
+				return true;
+			if (!IsLoggedIn)
+				return false;
+			return auth.VerifyUserAccess(permissionTypeCode);
+		}
+
+		public static bool VerifyAccess(Enum permissionType)
+		{
+			return VerifyAccess(permissionType.GetType().Name + "." + permissionType.ToString());
 		}
 
 		public bool ProcessLoginForm(string usernameFieldName, string passwordFieldName, string preserveLoginCheckboxName)

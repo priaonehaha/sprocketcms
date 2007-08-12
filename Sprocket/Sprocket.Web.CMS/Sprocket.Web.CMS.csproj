@@ -41,6 +41,7 @@
     <Compile Include="Admin\AdminInterfaceSections.cs" />
     <Compile Include="Admin\AdminWindow.cs" />
     <Compile Include="Admin\Admin.cs" />
+    <Compile Include="Admin\_Admin.cs" />
     <Compile Include="Admin\Interfaces.cs" />
     <Compile Include="Content\ContentManager.cs" />
     <Compile Include="Content\PageRegistry.cs" />

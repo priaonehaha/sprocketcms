@@ -45,6 +45,17 @@ namespace Sprocket.Web
 			}
 		}
 
+		public static bool StartsWith(params string[] startingSequence)
+		{
+			string[] sections = Sections;
+			if (startingSequence.Length > sections.Length)
+				return false;
+			for (int i = 0; i < startingSequence.Length; i++)
+				if (sections[i] != startingSequence[i])
+					return false;
+			return true;
+		}
+
 		internal static void Parse(Uri uri)
 		{
 			HttpRequest Request = HttpContext.Current.Request;

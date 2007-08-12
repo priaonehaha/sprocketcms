@@ -1,0 +1,241 @@
+﻿body {
+	font-family: verdana, arial;
+	font-size: 8pt;
+	margin: 0;
+}
+
+h1, h2, h3, h4, h5 { margin: 0; }
+
+h1 {
+	color: #66f;
+	border-bottom: 1px solid #ddd;
+	padding: 0 0 10px 0;
+	margin-bottom: 10px;
+}
+
+h2 {
+	color: #393;
+}
+
+form {
+	margin: 0;
+}
+input.text,
+input.button,
+select,
+textarea {
+	font-size: 8pt;
+	font-family: verdana;
+	letter-spacing: -0.05em;
+}
+input.checkbox {
+	width: 16px;
+	height: 16px;
+	margin: 0 2px 0 0;
+	vertical-align: middle;
+}
+
+/* login page */
+
+body#loginpage {
+	background-image: url(bg.png);
+}
+#loginbox-container {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -87px;
+	margin-left: -162px;
+	width: 324px;
+	height: 174px;
+	background-image: url(login-shadow.png);
+}
+#loginbox {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	width: 300px;
+	height: 150px;
+	background-color: #eee;
+}
+#loginbox-title {
+	font-size: 11pt;
+	font-family: arial;
+	font-weight: bold;
+	background-color: black;
+	color: white;
+	padding: 8px;
+	text-align: center;
+}
+#loginbox-title-name {
+	color: #fc0;
+}
+#loginbox form {
+	line-height: 12pt;
+	letter-spacing: -0.05em;
+	position: relative;
+	width: 196px;
+	height: 86px;
+	margin: 8px auto 0 auto;
+}
+#loginbox .field input.text {
+	width: 100px;
+}
+#loginbox-label-username {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#loginbox-field-username {
+	position: absolute;
+	top: 0;
+	left: 80px;
+}
+#loginbox-label-password {
+	position: absolute;
+	top: 16pt;
+	left: 0;
+}
+#loginbox-field-password {
+	position: absolute;
+	top: 16pt;
+	left: 80px;
+}
+#loginbox-field-preservelogin {
+	position: absolute;
+	top: 32pt;
+	left: 0;
+}
+#loginbox-label-preservelogin {
+	position: absolute;
+	top: 32pt;
+	left: 20px;
+}
+#loginbox-submit {
+	position: absolute;
+	top: 48pt;
+	left: 80px;
+}
+#loginbox-error {
+	font-weight: bold;
+	color: red;
+	text-align: center;
+	margin: 0 12px 0 12px;
+}
+
+/* general page sections */
+
+#admin-header {
+	background-color: black;
+	font-family: arial;
+	font-weight: bold;
+	font-size: 11pt;
+	padding: 12px;
+	color: white;
+	text-align: right;
+}
+#admin-header-name {
+	float: left;
+	color: #fc0;
+}
+
+#content-area {
+	margin: 12px;
+}
+
+#admin-column-left {
+	float: left;
+	width: 200px;
+}
+
+#admin-column-main {
+	float: left;
+	margin-left: 20px;
+}
+
+#admin-column-container {
+	padding-bottom: 10px;
+}
+
+#currentuser-block {
+	border-bottom: 1px solid #ddd;
+	padding: 0 0 10px 0;
+	margin-bottom: 10px;
+}
+
+#admin-footer {
+	clear: both;
+	padding: 10px 0 10px 0;
+	border-top: 1px solid #ddd;
+	text-align: center;
+}
+
+/* generic styles */
+
+.tabstrip {
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 10px;
+}
+
+.tabstrip .tab {
+	float: left;
+	display: block;
+	padding: 4px;
+	margin-right: 1px;
+}
+
+.tabstrip .final {
+	clear: left;
+	overflow: hidden;
+	height: 0;
+}
+
+.tabstrip .selected {
+	background-color: #66f;
+	color: white;
+	font-weight: bold;
+	cursor: default;
+}
+
+.tabstrip .unselected {
+	background-color: #ddd;
+	cursor: pointer;
+}
+
+.ajaxformblock-heading {
+	font-weight: bold;
+	padding: 6px 6px 6px 12px;
+	margin: 0 0 8px 0;
+}
+.ajaxform-row {
+	padding: 1px 0 1px 0;
+}
+.ajaxformblock { padding-bottom: 8px; }
+.ajaxform .label {
+	float: left;
+	display: block;
+	width: 100px;
+	text-indent: 12px;
+}
+.ajaxform .error, .ajaxform .checkbox-error {
+	font-weight: bold;
+	color: red;
+	padding-left: 12px;
+}
+.ajaxform .field input {
+	line-height: 10pt;
+	height: 10pt;
+}
+.ajaxform .checkbox-field {
+	padding-top: 4px;
+	padding-right: 4px;
+	display: block;
+	float: left;
+	text-indent: 8px;
+}
+.ajaxform .checkbox-label {
+	line-height: 20pt;
+}
+.ajaxform .ajaxform-buttongroup {
+	padding-left: 11px;
+}
