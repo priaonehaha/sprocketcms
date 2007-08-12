@@ -50,6 +50,7 @@
     <Compile Include="CMS\WebSecurity_FormProcessing.cs" />
     <Compile Include="ISecurityProviderDataLayer.cs" />
     <Compile Include="Objects.cs" />
+    <Compile Include="PermissionTypeDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecurityProvider.cs" />
     <Compile Include="SQLite\SQLiteSecurityProviderDataLayer.cs" />

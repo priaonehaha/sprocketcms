@@ -9,7 +9,6 @@ using Sprocket.Utility;
 
 namespace Sprocket.Web.CMS.Content
 {
-
 	[ModuleTitle("Content Manager")]
 	[ModuleDescription("The content management engine that handles content, pages and the templates they use")]
 	[ModuleDependency(typeof(WebEvents))]
@@ -92,7 +91,7 @@ namespace Sprocket.Web.CMS.Content
 			get
 			{
 				if (Values.Templates == null)
-					Values.Templates = new TemplateRegistry();
+					Values.Templates = new TemplateRegistry((XmlElement)DefinitionsXml.SelectSingleNode("/Definitions/Templates"));
 				return Values.Templates;
 			}
 		}
@@ -102,7 +101,7 @@ namespace Sprocket.Web.CMS.Content
 			get
 			{
 				if (Values.Pages == null)
-					Values.Pages = new PageRegistry();
+					Values.Pages = new PageRegistry(Templates, DefinitionsXml.SelectSingleNode("/Definitions/Pages") as XmlElement);
 				return Values.Pages;
 			}
 		}
@@ -116,6 +115,7 @@ namespace Sprocket.Web.CMS.Content
 		public static PageEntry RequestedPage
 		{
 			get { return Instance.requestedPage; }
+			internal set { Instance.requestedPage = value; }
 		}
 
 		HttpRequest Request { get { return HttpContext.Current.Request; } }
@@ -143,30 +143,30 @@ namespace Sprocket.Web.CMS.Content
 
 		void WebEvents_OnPathNotFound(HandleFlag handled)
 		{
-			#region Map missing referenced files (e.g. images and css) to the same location as the content file
+			//#region Map missing referenced files (e.g. images and css) to the same location as the content file
 
-			//if (!SprocketPath.Value.Contains("."))
-			//{
-			//    HttpContext.Current.Response.Write(ResourceLoader.LoadTextResource("Sprocket.Web.CMS.Content.404.htm"));
-			//    handled.Set();
+			////if (!SprocketPath.Value.Contains("."))
+			////{
+			////    HttpContext.Current.Response.Write(ResourceLoader.LoadTextResource("Sprocket.Web.CMS.Content.404.htm"));
+			////    handled.Set();
+			////    return;
+			////}
+			//string urlpath;
+			//if (SprocketPath.Sections.Length == 1)
+			//    urlpath = "";
+			//else
+			//    urlpath = SprocketPath.Value.Substring(0, SprocketPath.Value.Length - SprocketPath.Sections[SprocketPath.Sections.Length - 1].Length - 1);
+
+			//PageEntry page = Pages.FromPath(urlpath);
+			//if (page == null) return;
+			//string newurl = page.ContentFile;
+			//newurl = WebUtility.BasePath + newurl.Substring(0, newurl.LastIndexOf('/') + 1) + SprocketPath.Sections[SprocketPath.Sections.Length - 1];
+			//if (!File.Exists(HttpContext.Current.Server.MapPath(newurl)))
 			//    return;
-			//}
-			string urlpath;
-			if (SprocketPath.Sections.Length == 1)
-				urlpath = "";
-			else
-				urlpath = SprocketPath.Value.Substring(0, SprocketPath.Value.Length - SprocketPath.Sections[SprocketPath.Sections.Length - 1].Length - 1);
+			//HttpContext.Current.Response.TransmitFile(HttpContext.Current.Server.MapPath(newurl));
+			//handled.Set();
 
-			PageEntry page = Pages.FromPath(urlpath);
-			if (page == null) return;
-			string newurl = page.ContentFile;
-			newurl = WebUtility.BasePath + newurl.Substring(0, newurl.LastIndexOf('/') + 1) + SprocketPath.Sections[SprocketPath.Sections.Length - 1];
-			if (!File.Exists(HttpContext.Current.Server.MapPath(newurl)))
-				return;
-			HttpContext.Current.Response.TransmitFile(HttpContext.Current.Server.MapPath(newurl));
-			handled.Set();
-
-			#endregion
+			//#endregion
 		}
 
 		void WebEvents_OnLoadRequestedPath(HandleFlag handled)

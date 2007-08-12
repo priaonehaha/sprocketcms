@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+	This is your definitions file for use by the CMS Module found in Sprocket.Web.CMS. For information
+	about how to use this file, see http://code.google.com/p/sprocketcms/wiki/BasicWebsiteConstruction
+-->
+<Definitions>
+	<Pages>
+		<Page Code="AdminHome" Path="" Template="Admin" />
+		<Page Code="Login" Path="login" Template="Login" />
+		<Page Code="Logout" Path="logout" />
+	</Pages>
+	<Templates>
+		<Template Name="Login" File="resources/admin/main/login.htm" />
+		<Template Name="AdminMaster" File="resources/admin/main/master.htm" />
+		<Template Name="Admin" Master="AdminMaster">
+			<Replace Section="Html Head"><![CDATA[{??_admin_head}{?@"Html Head";}]]></Replace>
+			<Replace Section="Content Area" File="resources/admin/main/admin.htm" />
+			<Replace Section="Body OnLoad">{??_admin_bodyonload}</Replace>
+		</Template>
+	</Templates>
+</Definitions>

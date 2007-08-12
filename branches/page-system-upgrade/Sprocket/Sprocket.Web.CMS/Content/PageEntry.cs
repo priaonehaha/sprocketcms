@@ -12,11 +12,13 @@ namespace Sprocket.Web.CMS.Content
 	{
 		#region Fields and Properties
 
-		private string path = "", contentFile = "", template = "", pageCode = "", contentType = "text/html";
+		private string path = "", template = "", pageCode = "", contentType = "text/html";
 		private Guid internalID = Guid.NewGuid();
 		private PageEntry parent = null;
 		private List<PageEntry> pages = new List<PageEntry>();
 		private bool handleSubPaths = false;
+
+		private TemplateRegistry sourceTemplateRegistry = null;
 
 		public bool HandleSubPaths
 		{
@@ -54,12 +56,6 @@ namespace Sprocket.Web.CMS.Content
 			set { path = value; }
 		}
 
-		public string ContentFile
-		{
-			get { return contentFile; }
-			set { contentFile = value; }
-		}
-
 		public string TemplateName
 		{
 			get { return template; }
@@ -68,7 +64,7 @@ namespace Sprocket.Web.CMS.Content
 
 		public Template Template
 		{
-			get { return ContentManager.Templates[template]; }
+			get { return sourceTemplateRegistry[template]; }
 		}
 
 		public PageEntry Parent
@@ -79,12 +75,17 @@ namespace Sprocket.Web.CMS.Content
 
 		#endregion
 
+		public PageEntry(TemplateRegistry sourceTemplateRegistry)
+		{
+			this.sourceTemplateRegistry = sourceTemplateRegistry;
+		}
+
 		public string Render(ExecutionState state)
 		{
 			return Template.RenderIsolated(state);
 		}
 
-		public string Render()
+		public string Render(params KeyValuePair<string, object>[] preloadedVariables)
 		{
 			string cachePath;
 			if (pageCode != null && pageCode != "")
@@ -98,7 +99,7 @@ namespace Sprocket.Web.CMS.Content
 			if (t == null)
 				output = "[Unable to render page; Referenced template name has not been defined]";
 			else
-				output = t.Render();
+				output = t.Render(preloadedVariables);
 			ContentManager.PageStack.Pop();
 			return output;
 		}
@@ -109,7 +110,6 @@ namespace Sprocket.Web.CMS.Content
 			{
 				case "path":
 				case "code":
-				case "contentfile":
 				case "templatename":
 				case "contenttype":
 					return true;
@@ -124,7 +124,6 @@ namespace Sprocket.Web.CMS.Content
 			{
 				case "path": return path;
 				case "code": return pageCode;
-				case "contentfile": return contentFile;
 				case "templatename": return template;
 				case "contenttype": return contentType;
 				default: return VariableExpression.InvalidProperty;

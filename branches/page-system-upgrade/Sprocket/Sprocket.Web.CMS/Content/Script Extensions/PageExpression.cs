@@ -11,7 +11,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 	{
 		public bool IsValidPropertyName(string propertyName)
 		{
-			return new PageEntry().IsValidPropertyName(propertyName);
+			return new PageEntry(ContentManager.Templates).IsValidPropertyName(propertyName);
 		}
 
 		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)

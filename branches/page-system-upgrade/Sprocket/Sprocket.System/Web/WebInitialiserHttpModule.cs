@@ -11,6 +11,19 @@ namespace Sprocket.Web
 	/// </summary>
 	public class WebInitialiserHttpModule : IHttpModule
 	{
+		private Core coreInstance;
+		public WebInitialiserHttpModule()
+		{
+			coreInstance = new Core();
+			RememberCore();
+			coreInstance.Initialise();
+		}
+
+		private void RememberCore()
+		{
+			HttpContext.Current.Items["__{Sprocket:Core}__"] = coreInstance;
+		}
+
 		/// <summary>
 		/// This is called just once when the HttpApplication starts up.
 		/// </summary>
@@ -40,6 +53,8 @@ namespace Sprocket.Web
 
 		void app_BeginRequest(object sender, EventArgs e)
 		{
+			RememberCore();
+			AjaxRequestHandler.IsAjaxRequest = false;
 			WebEvents.Instance.FireBeginRequest(sender, e);
 		}
 

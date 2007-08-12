@@ -16,7 +16,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			if(o == null)
 				throw new InstructionExecutionException("You can't request a template using a null value as the template name.", args[0].Token);
 
-			Template t = ContentManager.Templates[o.ToString()];
+			Template t = (Admin.AdminHandler.IsAdminRequest ? Admin.AdminHandler.Instance.Templates : ContentManager.Templates)[o.ToString()];
 			if (t == null)
 				throw new InstructionExecutionException("There is no template registered with the name \"" + o + "\".", args[0].Token);
 

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web;
 using System.IO;
+using System.Xml;
 
 using Sprocket;
 using Sprocket.Web;
+using Sprocket.Web.CMS.Content;
 using Sprocket.Web.Cache;
 using Sprocket.Utility;
 using Sprocket.Data;
@@ -13,172 +15,219 @@ using Sprocket.Data;
 namespace Sprocket.Web.CMS.Admin
 {
 	[ModuleDependency(typeof(WebEvents))]
+	[ModuleDependency(typeof(AjaxRequestHandler))]
 	[ModuleDependency(typeof(SprocketSettings))]
 	[ModuleDependency(typeof(WebAuthentication))]
 	[ModuleDescription("The base platform upon which the Sprocket CMS web interface is built. Most modules for the CMS plug into this module.")]
 	[ModuleTitle("Website Administration Module")]
-	public partial class WebsiteAdmin : ISprocketModule
+	public partial class AdminHandler : ISprocketModule
 	{
-		public delegate void AdminRequestHandler(AdminInterface admin, HandleFlag handled);
+		public event AdminRequestHandler OnLoadAdminPage;
+		public delegate void AdminRequestHandler(AdminInterface admin, PageEntry page, HandleFlag handled);
+		public delegate string WebsiteNameHandler();
 
-		public event AdminRequestHandler OnAdminRequest;
-		public event InterruptableEventHandler<string> OnCMSAdminAuthenticationSuccess;
-
-		public static WebsiteAdmin Instance
+		private WebsiteNameHandler getWebsiteName;
+		public WebsiteNameHandler GetWebsiteName
 		{
-			get { return (WebsiteAdmin)Core.Instance[typeof(WebsiteAdmin)].Module; }
+			get { return getWebsiteName; }
+			set { getWebsiteName = value; }
+		}
+
+		List<XmlSourceFileDependent> definitionsFiles = new List<XmlSourceFileDependent>();
+		TemplateRegistry templates = null;
+		PageRegistry pages = null;
+		Dictionary<string, List<PagePreprocessorHandler>> pagePreProcessors = new Dictionary<string, List<PagePreprocessorHandler>>();
+
+		HttpRequest Request { get { return HttpContext.Current.Request; } }
+		HttpResponse Response { get { return HttpContext.Current.Response; } }
+
+		public static AdminHandler Instance
+		{
+			get { return (AdminHandler)Core.Instance[typeof(AdminHandler)].Module; }
+		}
+
+		public TemplateRegistry Templates
+		{
+			get { return templates; }
+		}
+
+		private string GetDefaultWebsiteName()
+		{
+			return "SprocketCMS";
 		}
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			WebEvents wem = WebEvents.Instance;
-			wem.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(OnLoadRequestedPath);
-			OnAdminRequest += new AdminRequestHandler(WebsiteAdmin_OnAdminRequest);
+			getWebsiteName = GetDefaultWebsiteName;
+
+			Core.Instance.OnInitialiseComplete += new EmptyHandler(LoadDefinitionFiles);
+			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(WebEvents_OnBeginHttpRequest);
+			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
+			WebEvents.Instance.OnRequestedPathProcessed += new WebEvents.HttpApplicationEventHandler(WebEvents_OnRequestedPathProcessed);
+			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(WebEvents_OnEndHttpRequest);
+
+			AddPagePreprocessor("Login", PreProcessLoginPage);
+			AddPagePreprocessor("Logout", PreProcessLogout);
+			WebEvents.AddFormProcessor(new WebEvents.FormPostAction("admin/login", null, null, null, ProcessLoginForm));
 		}
 
-		public void Write(object val)
+		void WebEvents_OnBeginHttpRequest(HandleFlag handled)
 		{
-			HttpContext.Current.Response.Write(val);
-		}
-
-		void OnLoadRequestedPath(HandleFlag handled)
-		{
-			if (SprocketPath.Sections.Length == 0) return;
-			if (SprocketPath.Sections[0] != "admin") return;
-			bool processed = false;
-			string lastchunk = SprocketPath.Sections[SprocketPath.Sections.Length - 1];
-
-			switch(lastchunk)
+			if (IsAdminRequest && !AjaxRequestHandler.IsAjaxRequest)
 			{
-				case "admin.css":
-					HttpContext.Current.Response.TransmitFile("~/resources/admin/admin.css");
-					HttpContext.Current.Response.ContentType = "text/css";
-					processed = true;
-					break;
-
-				default:
-					WebAuthentication auth = WebAuthentication.Instance;
-					HttpResponse Response = HttpContext.Current.Response;
-					HttpServerUtility Server = HttpContext.Current.Server;
-					switch (SprocketPath.Value)
+				foreach(XmlSourceFileDependent file in definitionsFiles)
+					if (file.HasFileChanged)
 					{
-						case "admin/login":
-							ShowLoginScreen();
-							processed = true;
-							break;
-
-						case "admin/logout":
-							auth.ClearAuthenticationCookie();
-							Response.Redirect(WebUtility.MakeFullPath("admin/login"));
-							processed = true;
-							break;
-
-						case "admin/login/process":
-							if (auth.ProcessLoginForm("SprocketUsername", "SprocketPassword", "SprocketPreserveLogin"))
-								Response.Redirect(WebUtility.MakeFullPath("admin"));
-							else
-								ShowLoginScreen("Invalid Username and/or Password.");
-							processed = true;
-							break;
-
-						default:
-							if (!WebAuthentication.IsLoggedIn)
-							{
-								GotoLoginScreen();
-								processed = true;
-							}
-							else if (OnCMSAdminAuthenticationSuccess != null)
-							{
-								Result result = new Result();
-								OnCMSAdminAuthenticationSuccess(auth.CurrentUsername, result);
-								if (!result.Succeeded)
-								{
-									ShowLoginScreen(result.Message);
-									processed = true;
-								}
-							}
-							break;
+						definitionsFiles = new List<XmlSourceFileDependent>();
+						LoadDefinitionFiles();
+						break;
 					}
-					break;
 			}
-			if (processed)
-			{
-				handled.Set();
-				return;
-			}
+		}
 
-			if (OnAdminRequest != null)
+		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
+		{
+			if (handled.Handled) return;
+			if (!IsAdminRequest) return;
+
+
+			PageEntry page = pages.FromPath(SprocketPath.Value);
+			if (page == null)
+				return;
+
+			KeyValuePair<string, object>[] vars;
+			if (!SprocketPath.StartsWith("admin", "login"))
 			{
-				AdminInterface admin = new AdminInterface();
-				OnAdminRequest(admin, handled);
-				if (handled.Handled)
+				if (!WebAuthentication.VerifyAccess(PermissionType.AccessAdminArea))
 				{
-					WebClientScripts scripts = WebClientScripts.Instance;
-					admin.AddMainMenuLink(new AdminMenuLink("Administrative Tasks", WebUtility.MakeFullPath("admin"), -100));
-					admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), 100));
-					admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + SprocketDate.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", 100));
-					string powered = SprocketSettings.GetValue("ShowPoweredBySprocket");
-					if(powered != null)
-						if(StringUtilities.MatchesAny(powered.ToLower(), "true", "yes"))
-							admin.AddFooterLink(new AdminMenuLink("Powered by Sprocket", "http://www.sprocketcms.com", 1000));
-					admin.AddHeadSection(new RankedString(scripts.BuildStandardScriptsBlock(), 1));
-					HttpContext.Current.Response.Write(admin.Render());
+					WebUtility.Redirect("admin/login");
+					return;
+				}
+
+				AdminInterface admin = new AdminInterface();
+				WebClientScripts scripts = WebClientScripts.Instance;
+				admin.AddMainMenuLink(new AdminMenuLink("Overview", WebUtility.MakeFullPath("admin"), ObjectRank.First));
+				admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), ObjectRank.Last));
+
+				admin.AddFooterLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), ObjectRank.Early));
+				admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + SprocketDate.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", ObjectRank.Late));
+				admin.AddFooterLink(new AdminMenuLink("Powered by Sprocket", "http://www.sprocketcms.com", ObjectRank.Last));
+				admin.AddHeadSection(new AdminSection(scripts.BuildStandardScriptsBlock(), ObjectRank.Late));
+				admin.WebsiteName = GetWebsiteName();
+
+				if (OnLoadAdminPage != null)
+				{
+					OnLoadAdminPage(admin, page, handled);
+					if (handled.Handled)
+						return;
+				}
+
+				vars = admin.GetScriptVariables();
+			}
+			else
+			{
+				vars = new KeyValuePair<string, object>[1];
+				vars[0] = new KeyValuePair<string, object>("_admin_websitename", GetWebsiteName());
+			}
+			
+			ContentManager.RequestedPage = page;
+			if (pagePreProcessors.ContainsKey(page.PageCode))
+				foreach (PagePreprocessorHandler method in pagePreProcessors[page.PageCode])
+					method(page);
+			string txt = page.Render(vars);
+			Response.ContentType = page.ContentType;
+			Response.Write(txt);
+			handled.Set();
+		}
+
+		void LoadDefinitionFiles()
+		{
+			templates = new TemplateRegistry();
+			pages = new PageRegistry(templates, "admin");
+			string dirpath = WebUtility.MapPath("resources/admin");
+			if(!Directory.Exists(dirpath))
+				Directory.CreateDirectory(dirpath);
+			foreach (string dir in Directory.GetDirectories(dirpath))
+			{
+				string path = dir + "\\definitions.xml";
+				if (File.Exists(path))
+				{
+					XmlSourceFileDependent file = new XmlSourceFileDependent(path);
+					definitionsFiles.Add(file);
+					XmlElement xml = file.Data.SelectSingleNode("/Definitions") as XmlElement;
+					if (xml == null)
+						continue;
+					xml = file.Data.SelectSingleNode("/Definitions/Templates") as XmlElement;
+					if (xml != null)
+						templates.Load(xml);
+					xml = file.Data.SelectSingleNode("/Definitions/Pages") as XmlElement;
+					if (xml != null)
+						pages.Load(xml);
 				}
 			}
 		}
 
-		void WebsiteAdmin_OnAdminRequest(AdminInterface admin, HandleFlag handled)
+		/// <summary>
+		/// Determines if the requested path is within the admin area, i.e. if the first path section is "admin".
+		/// </summary>
+		public static bool IsAdminRequest
 		{
-			if (SprocketPath.Sections[0] != "admin") return;
-
-			switch (SprocketPath.Value)
-			{
-				case "admin/dbsetup":
-					Result result = DatabaseManager.DatabaseEngine.Initialise();
-					if (result.Succeeded)
-						admin.AddContentSection(new RankedString("<p style=\"color:green\" class=\"standalone-message\">Database setup completed.</p>", 1));
-					else
-						admin.AddContentSection(new RankedString("<strong style=\"color:red\" class=\"standalone-message\">Unable to Initialise Database</strong><p>" + result.Message + "</p>", 1));
-					break;
-
-				case "admin/clearcache":
-					ContentCache.ClearMultiple("%");
-					admin.AddContentSection(new RankedString("<p style=\"color:green\" class=\"standalone-message\">The cache has been cleared.</p>", 1));
-					break;
-
-				case "admin":
-					break;
-
-				default:
-					return;
-			}
-
-			admin.ContentHeading = "Current Overview";
-			admin.AddContentSection(new RankedString("<div class=\"standalone-message\">" +
-				"<a href=\"" + WebUtility.BasePath + "admin/dbsetup\">Run database setup</a> | " +
-				"<a href=\"" + WebUtility.BasePath + "admin/clearcache\">Clear page cache</a>" +
-				"</div>", 0));
-			handled.Set();
+			get { return SprocketPath.Sections[0] == "admin"; }
 		}
 
-		void GotoLoginScreen()
+		public enum PermissionType
 		{
-			HttpContext.Current.Response.Redirect(WebUtility.MakeFullPath("admin/login"));
+			AccessAdminArea = 0
 		}
 
-		void ShowLoginScreen()
+		public static void AddPagePreprocessor(string pageCode, PagePreprocessorHandler method)
 		{
-			ShowLoginScreen("");
+			AdminHandler admin = Instance;
+			if (!admin.pagePreProcessors.ContainsKey(pageCode))
+				admin.pagePreProcessors.Add(pageCode, new List<PagePreprocessorHandler>());
+			admin.pagePreProcessors[pageCode].Add(method);
 		}
 
-		void ShowLoginScreen(string loginErrorMessage)
+		void WebEvents_OnRequestedPathProcessed()
 		{
-			string html = WebUtility.CacheTextFile("resources/admin/login.htm");
-			html = html.Replace("{basepath}", WebUtility.BasePath);
-			html = html.Replace("{login-processor}", WebUtility.MakeFullPath("admin/login/process"));
-			html = html.Replace("{login-error}", loginErrorMessage);
-			html = html.Replace("{website-name}", "Website Administration");
-			Write(html);
+			if (!HttpContext.Current.Response.ContentType.Contains("html"))
+				return;
+			if (IsAdminRequest)
+				return;
+			if (!WebAuthentication.VerifyAccess(PermissionType.AccessAdminArea))
+				return;
+			string html = WebUtility.CacheTextFile("resources/admin/header.htm");
+			HttpContext.Current.Response.Write(string.Format(html, WebUtility.BasePath));
 		}
+
+		void WebEvents_OnEndHttpRequest()
+		{
+		}
+
+		#region Login/Logout
+		public void PreProcessLoginPage(PageEntry page)
+		{
+			if(WebAuthentication.VerifyAccess(PermissionType.AccessAdminArea))
+				WebUtility.Redirect("admin");
+		}
+
+		public void ProcessLoginForm()
+		{
+			WebAuthentication auth = WebAuthentication.Instance;
+			if (auth.ProcessLoginForm("SprocketUsername", "SprocketPassword", "SprocketPreserveLogin"))
+				if (WebAuthentication.VerifyAccess(PermissionType.AccessAdminArea))
+					WebUtility.Redirect("admin");
+				else
+					auth.ClearAuthenticationCookie();
+			FormValues.Set("login", "", null, true);
+		}
+
+		public void PreProcessLogout(PageEntry page)
+		{
+			WebAuthentication.Instance.ClearAuthenticationCookie();
+			WebUtility.Redirect("admin/logout");
+		}
+
+		#endregion
 	}
 }

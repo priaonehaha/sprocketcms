@@ -57,10 +57,10 @@ namespace Sprocket.Web.CMS.Content
 		}
 		#endregion
 
-		public static Template Create(XmlElement xml)
+		public static Template Create(TemplateRegistry templateRegistry, XmlElement xml)
 		{
 			if (xml.HasAttribute("Master"))
-				return new SubTemplate(xml);
+				return new SubTemplate(templateRegistry, xml);
 			return new MasterTemplate(xml);
 		}
 
@@ -151,6 +151,7 @@ namespace Sprocket.Web.CMS.Content
 	{
 		private Dictionary<string, TemplateSectionReplacement> replacedSections = new Dictionary<string, TemplateSectionReplacement>();
 		private string masterTemplateName = null;
+		private TemplateRegistry templateRegistry = null;
 
 		public string MasterTemplateName
 		{
@@ -162,8 +163,9 @@ namespace Sprocket.Web.CMS.Content
 			get { return replacedSections; }
 		}
 
-		public SubTemplate(XmlElement xml)
+		public SubTemplate(TemplateRegistry templateRegistry, XmlElement xml)
 		{
+			this.templateRegistry = templateRegistry;
 			name = xml.GetAttribute("Name");
 			masterTemplateName = xml.GetAttribute("Master");
 			foreach (XmlElement xmlreplace in xml.SelectNodes("Replace[@Section]"))
@@ -182,7 +184,7 @@ namespace Sprocket.Web.CMS.Content
 				foreach (TemplateSectionReplacement repl in replacedSections.Values)
 					if (repl.IsOutOfDate)
 						return true;
-				Template t = ContentManager.Templates[masterTemplateName];
+				Template t = templateRegistry[masterTemplateName];
 				if (t == null)
 					return false;
 				return t.IsOutOfDate;
@@ -209,7 +211,7 @@ namespace Sprocket.Web.CMS.Content
 			}
 
 			// get the master template and pass the override requests upstairs to be rendered
-			Template master = ContentManager.Templates[masterTemplateName];
+			Template master = templateRegistry[masterTemplateName];
 			if (master == null)
 				state.Output.Write("[Template \"" + name + "\" references nonexistant master template \"" + masterTemplateName + "\"]");
 			else

@@ -122,6 +122,11 @@ namespace Sprocket.Web.CMS.Script
 		IBinaryExpression Create();
 	}
 
+	public interface IAdminRestrictedExpression
+	{
+
+	}
+
 	#endregion
 
 	#region Instruction Interfaces

@@ -34,7 +34,7 @@ namespace Sprocket.Web.CMS.Security
 					return;
 				}
 			for (int i = 0; i < permAttr.Length; i++)
-				if (!SecurityProvider.CurrentUser.HasPermission(((RequiresPermissionAttribute)permAttr[i]).PermissionTypeCode))
+				if (!WebAuthentication.VerifyAccess(((RequiresPermissionAttribute)permAttr[i]).PermissionTypeCode))
 				{
 					result.SetFailed("Ajax method call failed because you do not have one or more required permissions.");
 					return;
@@ -121,18 +121,18 @@ namespace Sprocket.Web.CMS.Security
 			if (userID != null) form.RecordID = userID.Value;
 			AjaxFormFieldBlock block = new AjaxFormFieldBlock("MainUserFields", blockheading);
 			block.Add(new AjaxFormInputField("Username", "Username", 50, locked, null, "width:150px;", username, null, string.Format(fErr, "username"), true, 0));
-			block.Add(new AjaxFormInputField("Password", "Password", 50, false, null, "width:150px;", null, null, pErr, true, 1));
-			block.Add(new AjaxFormInputField("First Name", "FirstName", 50, false, null, "width:150px;", firstname, null, null, true, 2));
-			block.Add(new AjaxFormInputField("Surname", "Surname", 50, false, null, "width:150px;", surname, null, null, true, 3));
-			block.Add(new AjaxFormInputField("Email", "Email", 100, false, null, "width:150px;", email, null, string.Format(fErr, "valid email address"), true, 4));
-			block.Add(new AjaxFormCheckboxField("User account is enabled", "Enabled", enabled, locked, null, null, false, 5));
-			block.Rank = -10000;
+			block.Add(new AjaxFormInputField("Password", "Password", 50, false, null, "width:150px;", null, null, pErr, true, ObjectRank.Normal));
+			block.Add(new AjaxFormInputField("First Name", "FirstName", 50, false, null, "width:150px;", firstname, null, null, true, ObjectRank.Normal));
+			block.Add(new AjaxFormInputField("Surname", "Surname", 50, false, null, "width:150px;", surname, null, null, true, ObjectRank.Normal));
+			block.Add(new AjaxFormInputField("Email", "Email", 100, false, null, "width:150px;", email, null, string.Format(fErr, "valid email address"), true, ObjectRank.Normal));
+			block.Add(new AjaxFormCheckboxField("User account is enabled", "Enabled", enabled, locked, null, null, false, ObjectRank.Normal));
+			block.Rank = ObjectRank.First;
 			form.FieldBlocks.Add(block);
 
 			if (!locked && username != SecurityProvider.CurrentUser.Username)
 			{
 				block = new AjaxFormFieldBlock("Roles", "Assigned Roles");
-				block.Rank = 998;
+				block.Rank = ObjectRank.First;
 				List<RoleState> roleStates = SecurityProvider.DataLayer.ListAllRolesAgainstUser(userID == null ? 0 : userID.Value);
 				List<PermissionTypeState> permissions = SecurityProvider.DataLayer.ListAllPermissionTypesAgainstUser(userID == null ? 0 : userID.Value);
 
@@ -144,25 +144,25 @@ namespace Sprocket.Web.CMS.Security
 				{
 					// check that the current user has access to assign the specified permission/role
 					//if (CurrentUser.HasRole(...) continue;
-					block.Add(new AjaxFormCheckboxField(state.Role.Name, state.Role.RoleCode, state.IsAccessible, false, null, null, false, c++));
+					block.Add(new AjaxFormCheckboxField(state.Role.Name, state.Role.RoleCode, state.IsAccessible, false, null, null, false, ObjectRank.Normal));
 				}
 				if (c > 0) form.FieldBlocks.Add(block);
 
 				block = new AjaxFormFieldBlock("Permissions", "Specific Assigned Permissions");
-				block.Rank = 999;
+				block.Rank = ObjectRank.Early;
 				c = 0;
 				foreach (PermissionTypeState state in permissions)
 				{
 					// check that the current user has access to assign the specified permission/role
 					//if (!CurrentUser.HasPermission(row["PermissionTypeCode"].ToString())) continue;
 					block.Add(new AjaxFormCheckboxField(state.PermissionType.Description, state.PermissionType.PermissionTypeCode,
-						state.PermissionState == PermissionState.Specified, false, null, null, false, c++));
+						state.PermissionState == PermissionState.Specified, false, null, null, false, ObjectRank.Normal));
 				}
 				if (c > 0) form.FieldBlocks.Add(block);
 			}
 			block = new AjaxFormFieldBlock("SubmitButtons", null);
 			AjaxFormButtonGroup buttons = new AjaxFormButtonGroup();
-			block.Rank = 10000;
+			block.Rank = ObjectRank.Last;
 			buttons.AddSubmitButton(null, "Save", "SecurityInterface.OnUserSaved", null);
 			if (userID != null)
 			{
@@ -268,7 +268,7 @@ namespace Sprocket.Web.CMS.Security
 				"Name", 100, role.Locked, null, null, role.Name, null,
 				"function(value){{if(value.length==0) return 'A name is required'; return null;}}",
 				true, 0));
-			block.Add(new AjaxFormCheckboxField("Role is enabled", "Enabled", role.Enabled, role.Locked, null, null, false, 1));
+			block.Add(new AjaxFormCheckboxField("Role is enabled", "Enabled", role.Enabled, role.Locked, null, null, false, ObjectRank.Normal));
 			block.Rank = 0;
 			form.FieldBlocks.Add(block);
 
@@ -286,12 +286,12 @@ namespace Sprocket.Web.CMS.Security
 			//ds = Database.Main.GetDataSet(cmd);
 
 			block = new AjaxFormFieldBlock("Roles", "Roles that this role should adopt");
-			block.Rank = 1;
+			block.Rank = ObjectRank.Normal;
 			int c = 0;
 			foreach (RoleState r in roles)
 				//if (CurrentUser.HasPermission(row["RoleCode"].ToString()) && !roleDescendents.Contains((Guid)row["RoleID"]))
 					block.Add(new AjaxFormCheckboxField(
-						r.Role.Name, r.Role.RoleCode, r.State == PermissionState.Inherited, r.Role.Locked, null, null, false, c++));
+						r.Role.Name, r.Role.RoleCode, r.State == PermissionState.Inherited, r.Role.Locked, null, null, false, ObjectRank.Normal));
 						//(bool)row["Inherited"], role.Locked, null, null, false, c++));
 			if (block.Count > 0)
 				form.FieldBlocks.Add(block);
@@ -307,13 +307,13 @@ namespace Sprocket.Web.CMS.Security
 				//if (CurrentUser.HasPermission(row["PermissionTypeCode"].ToString()))
 				block.Add(new AjaxFormCheckboxField(
 					pts.PermissionType.Description, pts.PermissionType.PermissionTypeCode, pts.PermissionState == PermissionState.Specified,
-					role.Locked, null, null, false, c++));
+					role.Locked, null, null, false, ObjectRank.Normal));
 					//row["Description"].ToString(), row["PermissionTypeCode"].ToString(),
 					//row["Value"] == DBNull.Value ? false : (bool)row["Value"], role.Locked, null, null, false, c++));
 
 			AjaxFormButtonGroup buttons = new AjaxFormButtonGroup();
-			block.Rank = 2;
-			buttons.Rank = 10000;
+			block.Rank = ObjectRank.Early;
+			buttons.Rank = ObjectRank.Last;
 			buttons.AddSubmitButton(null, "Save", "SecurityInterface.OnRoleSaved", null);
 			if (roleID != null)
 				if (!role.Locked) buttons.AddButton(null, "Delete", "SecurityInterface.DeleteRole('" + roleID.ToString() + "')");

@@ -13,7 +13,7 @@ namespace Sprocket.Web.Controls
 		protected string clientValidationFunctionReference = "";
 
 		public AjaxFormField() { }
-		public AjaxFormField(string fieldHTML, AjaxJavaScript runScript, string clientValidationFunctionName, int rank)
+		public AjaxFormField(string fieldHTML, AjaxJavaScript runScript, string clientValidationFunctionName, ObjectRank rank)
 		{
 			FieldHTML = fieldHTML;
 			RunScript = runScript;
@@ -66,8 +66,8 @@ namespace Sprocket.Web.Controls
 			get { return runScript == null ? "" : runScript.ToString(); }
 		}
 
-		protected int rank = 0;
-		public int Rank
+		protected ObjectRank rank = ObjectRank.Normal;
+		public ObjectRank Rank
 		{
 			set { rank = value; }
 			get { return rank; }
@@ -81,12 +81,12 @@ namespace Sprocket.Web.Controls
 
 		public AjaxFormStandardField() { }
 
-		public AjaxFormStandardField(string fieldLabel, string fieldName, string fieldHTML, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, int rank)
+		public AjaxFormStandardField(string fieldLabel, string fieldName, string fieldHTML, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, ObjectRank rank)
 		{
 			SetFields(fieldLabel, fieldName, fieldHTML, runScript, clientValidationFunctionReference, validateOnServer, rank);
 		}
 
-		protected void SetFields(string fieldLabel, string fieldName, string fieldHTML, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, int rank)
+		protected void SetFields(string fieldLabel, string fieldName, string fieldHTML, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, ObjectRank rank)
 		{
 			this.fieldLabel = fieldLabel;
 			this.fieldName = fieldName;
@@ -155,7 +155,7 @@ namespace Sprocket.Web.Controls
 		private bool readOnly;
 		private string fieldValue, className, style;
 
-		public AjaxFormInputField(string fieldLabel, string fieldName, int? maxLength, bool readOnly, string className, string style, string fieldValue, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, int rank)
+		public AjaxFormInputField(string fieldLabel, string fieldName, int? maxLength, bool readOnly, string className, string style, string fieldValue, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, ObjectRank rank)
 		{
 			this.maxLength = maxLength;
 			this.readOnly = readOnly;
@@ -201,7 +201,7 @@ namespace Sprocket.Web.Controls
 		private bool readOnly;
 		private string fieldValue, className, style;
 
-		public AjaxFormTextAreaField(string fieldLabel, string fieldName, bool readOnly, string className, string style, string fieldValue, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, int rank)
+		public AjaxFormTextAreaField(string fieldLabel, string fieldName, bool readOnly, string className, string style, string fieldValue, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, ObjectRank rank)
 		{
 			this.readOnly = readOnly;
 			this.fieldValue = fieldValue;
@@ -241,7 +241,7 @@ namespace Sprocket.Web.Controls
 	/// </summary>
 	public class AjaxFormPasswordField : AjaxFormStandardField
 	{
-		public AjaxFormPasswordField(string fieldLabel, int? maxLength, string className, string style, int rank, bool multilingual, bool requiredField, bool allowBlankPassword)
+		public AjaxFormPasswordField(string fieldLabel, int? maxLength, string className, string style, ObjectRank rank, bool multilingual, bool requiredField, bool allowBlankPassword)
 		{
 			string errNoMatch = multilingual ? "{?form-error-different-passwords?}" : "The passwords entered must match";
 			string errNoPassword = multilingual ? "{?form-error-password-required?}" : "Please enter a password";
@@ -273,7 +273,7 @@ namespace Sprocket.Web.Controls
 	public class AjaxFormCheckboxField : AjaxFormStandardField
 	{
 		protected bool isChecked = false, readOnly = false;
-		public AjaxFormCheckboxField(string fieldLabel, string fieldName, bool isChecked, bool readOnly, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, int rank)
+		public AjaxFormCheckboxField(string fieldLabel, string fieldName, bool isChecked, bool readOnly, AjaxJavaScript runScript, string clientValidationFunctionReference, bool validateOnServer, ObjectRank rank)
 		{
 			this.isChecked = isChecked;
 			this.readOnly = readOnly;
@@ -302,7 +302,7 @@ namespace Sprocket.Web.Controls
 	public class AjaxFormSelectField : AjaxFormStandardField
 	{
 		public AjaxFormSelectField(string fieldLabel, string fieldName, AjaxJavaScript runScript,
-			string clientValidationFunctionReference, int rank, string onchangeScript,
+			string clientValidationFunctionReference, ObjectRank rank, string onchangeScript,
 			string nothingSelectedLabel, string selectedValue)
 		{
 			SetFields(fieldLabel, fieldName, "", runScript, clientValidationFunctionReference, validateOnServer, rank);
@@ -482,8 +482,8 @@ namespace Sprocket.Web.Controls
 			this.label = label;
 		}
 
-		protected int rank = 0;
-		public int Rank
+		protected ObjectRank rank = ObjectRank.Normal;
+		public ObjectRank Rank
 		{
 			set { rank = value; }
 			get { return rank; }

@@ -32,18 +32,9 @@ namespace Sprocket.Web
 		{
 			get
 			{
-				if (HttpContext.Current == null)
-				{
-					if(dict == null)
-						dict = new Dictionary<string,object>();
-					return dict;
-				}
-				else
-				{
-					if(HttpContext.Current.Items["Sprocket_CurrentRequest"] == null)
-						HttpContext.Current.Items["Sprocket_CurrentRequest"] = new Dictionary<string, object>();
-					return (Dictionary<string, object>)HttpContext.Current.Items["Sprocket_CurrentRequest"];
-				}
+				if(HttpContext.Current.Items["Sprocket_CurrentRequest"] == null)
+					HttpContext.Current.Items["Sprocket_CurrentRequest"] = new Dictionary<string, object>();
+				return (Dictionary<string, object>)HttpContext.Current.Items["Sprocket_CurrentRequest"];
 			}
 		}
 

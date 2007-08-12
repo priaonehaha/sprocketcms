@@ -1,6 +1,8 @@
 using System;
+using System.Configuration;
 using System.Collections.Generic;
 using System.Web;
+using System.Web.Configuration;
 using Sprocket;
 using Sprocket.Web;
 
@@ -33,7 +35,7 @@ namespace Sprocket
 			Reset();
 		}
 
-		private void Initialise()
+		internal void Initialise()
 		{
 			if (moduleHandler != null)
 				return;
@@ -52,6 +54,8 @@ namespace Sprocket
 				if (OnInitialiseComplete != null)
 					OnInitialiseComplete();
 			}
+			else
+				HttpRuntime.UnloadAppDomain(); // reset the application
 		}
 
 		private ModuleHandler moduleHandler;
@@ -66,20 +70,21 @@ namespace Sprocket
 		{
 			get
 			{
-				lock (syncInstance)
-				{
-					int key = HttpContext.Current.ApplicationInstance.GetHashCode();
-					if (coreInstances.ContainsKey(key))
-						return coreInstances[key];
+				return (Core)HttpContext.Current.Items["__{Sprocket:Core}__"];
+				//lock (syncInstance)
+				//{
+				//    int key = HttpContext.Current.ApplicationInstance.GetHashCode();
+				//    if (coreInstances.ContainsKey(key))
+				//        return coreInstances[key];
 
-					Core core = new Core();
-					if (core.instanceKey == -1)
-						core.instanceKey = key;
-					coreInstances.Add(key, core);
-					core.Initialise();
+				//    Core core = new Core();
+				//    if (core.instanceKey == -1)
+				//        core.instanceKey = key;
+				//    coreInstances.Add(key, core);
+				//    core.Initialise();
 
-					return core;
-				}
+				//    return core;
+				//}
 			}
 		}
 

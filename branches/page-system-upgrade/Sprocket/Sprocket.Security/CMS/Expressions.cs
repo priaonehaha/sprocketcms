@@ -158,7 +158,7 @@ namespace Sprocket.Security.CMS
 				throw new InstructionExecutionException("the argument didn't equate to a string naming a permission.", contextToken);
 			if (!WebAuthentication.IsLoggedIn)
 				return false;
-			return SecurityProvider.CurrentUser.HasPermission(permission);
+			return WebAuthentication.VerifyAccess(permission);
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)

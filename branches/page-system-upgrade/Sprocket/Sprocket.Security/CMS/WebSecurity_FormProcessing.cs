@@ -55,7 +55,7 @@ namespace Sprocket.Web.CMS.Security
 			switch (form.FormName)
 			{
 				case "UserEditForm":
-					if (!SecurityProvider.CurrentUser.HasPermission(PermissionType.UserAdministrator))
+					if (!WebAuthentication.VerifyAccess(PermissionType.UserAdministrator))
 						return;
 					AjaxFormSubmittedValues.Block block = form.Blocks["MainUserFields"];
 					string pw = block.Fields["Password"].Value;
@@ -123,7 +123,7 @@ namespace Sprocket.Web.CMS.Security
 					break;
 
 				case "RoleEditForm":
-					if (!SecurityProvider.CurrentUser.HasPermission(PermissionType.RoleAdministrator))
+					if (!WebAuthentication.VerifyAccess(PermissionType.RoleAdministrator))
 						return;
 					block = form.Blocks["RoleDetails"];
 					string name = block.Fields["Name"].Value;
@@ -200,12 +200,12 @@ namespace Sprocket.Web.CMS.Security
 			if(allowUsernameEditing)
 				block.Add(new AjaxFormInputField(labelUsername, "Username", 50, locked, null, "width:150px;", user.Username, null, string.Format(fErr, errNoUsername), true, 0));
 			if (plainTextPassword)
-				block.Add(new AjaxFormInputField(labelPassword, "Password", 50, false, null, "width:150px;", null, null, pErr, true, 1));
+				block.Add(new AjaxFormInputField(labelPassword, "Password", 50, false, null, "width:150px;", null, null, pErr, true, ObjectRank.Early));
 			else
-				block.Add(new AjaxFormPasswordField(labelPassword, 50, null, "width:73px", 1, multilingual, newUser, !newUser));
-			block.Add(new AjaxFormInputField(labelFirstName, "FirstName", 50, false, null, "width:150px;", user.FirstName, null, fnErr, true, 2));
-			block.Add(new AjaxFormInputField(labelSurname, "Surname", 50, false, null, "width:150px;", user.Surname, null, snErr, true, 3));
-			block.Add(new AjaxFormInputField(labelEmail, "Email", 100, false, null, "width:150px;", user.Email, null, string.Format(fErr, errNoEmail), true, 4));
+				block.Add(new AjaxFormPasswordField(labelPassword, 50, null, "width:73px", ObjectRank.Early, multilingual, newUser, !newUser));
+			block.Add(new AjaxFormInputField(labelFirstName, "FirstName", 50, false, null, "width:150px;", user.FirstName, null, fnErr, true, ObjectRank.Normal));
+			block.Add(new AjaxFormInputField(labelSurname, "Surname", 50, false, null, "width:150px;", user.Surname, null, snErr, true, ObjectRank.Normal));
+			block.Add(new AjaxFormInputField(labelEmail, "Email", 100, false, null, "width:150px;", user.Email, null, string.Format(fErr, errNoEmail), true, ObjectRank.Normal));
 		}
 
 		public void ValidateStandardUserField(AjaxFormFieldValidationResponse formArgs, bool multilingual)
