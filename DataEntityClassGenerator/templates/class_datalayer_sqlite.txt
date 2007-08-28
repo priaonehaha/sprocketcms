@@ -1,3 +1,5 @@
+		SQLiteStoredProcedures procs = new SQLiteStoredProcedures(ResourceLoader.LoadTextResource("[namespace].Data.SQLite.procedures.sql"));
+		
 		public SQLiteParameter NewParameter(string name, object value, DbType dbType)
 		{
 			SQLiteParameter prm = new SQLiteParameter(name, value);
@@ -50,7 +52,7 @@
 					using (TransactionScope scope = new TransactionScope())
 					{
 						conn = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
-						SQLiteCommand cmd = new SQLiteCommand("[classname]_Delete", conn);
+						SQLiteCommand cmd = new SQLiteCommand(procs["Delete [classname]"], conn);
 						cmd.CommandType = CommandType.StoredProcedure;
 						cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", [lesserclassname].[primarykey]));
 						cmd.ExecuteNonQuery();
@@ -63,7 +65,7 @@
 				}
 				finally
 				{
-					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
 				}
 				if (On[classname]Deleted != null)
 					On[classname]Deleted([lesserclassname]);
@@ -78,10 +80,10 @@
 				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 				{
 					conn.Open();
-					SQLiteCommand cmd = new SQLiteCommand("[classname]_Select", conn);
+					SQLiteCommand cmd = new SQLiteCommand(procs["Select [classname]"], conn);
 					cmd.CommandType = CommandType.StoredProcedure;
 					cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", id));
-					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
 					[classname] entity;
 					if (!reader.Read())
 						entity = null;

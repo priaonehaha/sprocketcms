@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-	This is your definitions file for use by the CMS Module found in Sprocket.Web.CMS. For information
-	about how to use this file, see http://code.google.com/p/sprocketcms/wiki/BasicWebsiteConstruction
--->
 <Definitions>
 	<Pages>
 		<Page Code="AdminHome" Path="" Template="Admin" />

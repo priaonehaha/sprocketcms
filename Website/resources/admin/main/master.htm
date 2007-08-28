@@ -6,12 +6,14 @@
     {?@"Html Head";}
 </head>
 <body onload="{?@"Body OnLoad";}">
-	<div id="admin-header">
-		<div id="admin-header-name">SprocketCMS</div>
-		<div id="admin-header-title">{?? _admin_websitename } Website Administration</div>
-	</div>
-	<div id="content-area">
-	{?@"Content Area"}This is admin. <a href="{??basepath}">Return to the website home page</a>.{? end }
+	<div id="admin-container">
+		<div id="admin-header">
+			<div id="admin-header-name">{?? _admin_websitename }</div>
+			<div id="admin-header-title">Website Administration</div>
+		</div>
+		<div id="content-area">
+		{?@"Content Area"}This is admin. <a href="{??basepath}">Return to the website home page</a>.{? end }
+		</div>
 	</div>
 </body>
 </html>

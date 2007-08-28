@@ -1,0 +1,19 @@
+{?@"Template Interface"}
+<table id="templates-list-table" cellpadding="3" cellspacing="1" border="0" width="100%">
+	<tr>
+		<th>Template Name</th>
+		<th>Type</th>
+		<th>Source</th>
+	</tr>
+	{?
+		set templates to all_templates
+		list each item in templates
+	}<tr>
+		<td>{?? item:name }</td>
+		<td>{?? item:type }</td>
+		<td>{?? item:source }</td>
+	</tr>{?
+		loop
+	}
+</table>
+{? end }

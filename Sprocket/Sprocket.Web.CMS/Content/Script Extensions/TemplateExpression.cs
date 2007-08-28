@@ -31,14 +31,21 @@ namespace Sprocket.Web.CMS.Content.Expressions
 
 	class TemplateExpressionCreator : IExpressionCreator
 	{
-		public string Keyword
-		{
-			get { return "template"; }
-		}
+		public string Keyword { get { return "template"; } }
+		public IExpression Create() { return new TemplateExpression(); }
+	}
 
-		public IExpression Create()
+	class AllTemplatesExpression : IExpression
+	{
+		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			return new TemplateExpression();
+			return ContentManager.Templates.GetList();
 		}
+	}
+
+	class AllTemplatesExpressionCreator : IExpressionCreator
+	{
+		public string Keyword { get { return "all_templates"; } }
+		public IExpression Create() { return new AllTemplatesExpression(); }
 	}
 }

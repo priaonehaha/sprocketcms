@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
+using System.Data;
+
 using Sprocket.Web;
 using Sprocket.Web.Cache;
 using Sprocket.Web.CMS.Script;
@@ -76,6 +78,11 @@ namespace Sprocket.Web.CMS.Content
 		#endregion
 
 		public PageEntry(TemplateRegistry sourceTemplateRegistry)
+		{
+			this.sourceTemplateRegistry = sourceTemplateRegistry;
+		}
+
+		public PageEntry(TemplateRegistry sourceTemplateRegistry, IDataReader reader)
 		{
 			this.sourceTemplateRegistry = sourceTemplateRegistry;
 		}

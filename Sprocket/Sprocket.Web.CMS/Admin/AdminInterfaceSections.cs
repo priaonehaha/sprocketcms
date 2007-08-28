@@ -182,7 +182,7 @@ namespace Sprocket.Web.CMS.Admin
 
 			StringBuilder menu = new StringBuilder();
 			foreach (AdminMenuLink link in menuLinks)
-				menu.AppendFormat("<div id=\"main-menu\">{0}</div>", link.Render());
+				menu.AppendFormat("<div class=\"main-menu-link\">{0}</div>", link.Render());
 
 			menuSections.Add(new AdminSection(menu.ToString(), ObjectRank.Late));
 			menuSections.Sort(RankedObject.SortByRank);

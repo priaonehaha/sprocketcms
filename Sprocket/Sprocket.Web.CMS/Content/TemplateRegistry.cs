@@ -48,5 +48,13 @@ namespace Sprocket.Web.CMS.Content
 				return t;
 			}
 		}
+
+		public List<Template> GetList()
+		{
+			List<Template> list = new List<Template>();
+			foreach (string name in templateXML.Keys)
+				list.Add(this[name]);
+			return list;
+		}
 	}
 }

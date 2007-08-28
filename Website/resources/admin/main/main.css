@@ -14,7 +14,23 @@ h1 {
 }
 
 h2 {
-	color: #393;
+	color: #369;
+	font-family: arial, verdana;
+	font-size: 12pt;
+}
+
+a { color: #006; }
+a:hover {
+	color: #66c;
+	text-decoration: none;
+}
+
+td { font-size: 8pt; }
+th {
+	font-size: 8pt;
+	font-weight: bold;
+	text-align: left;
+	background-color: #ccc;
 }
 
 form {
@@ -125,6 +141,11 @@ body#loginpage {
 
 /* general page sections */
 
+#admin-container {
+	width: 850px;
+	margin: 0 auto 0 auto;
+}
+
 #admin-header {
 	background-color: black;
 	font-family: arial;
@@ -140,7 +161,7 @@ body#loginpage {
 }
 
 #content-area {
-	margin: 12px;
+	margin: 12px 0 12px 0;
 }
 
 #admin-column-left {
@@ -150,7 +171,12 @@ body#loginpage {
 
 #admin-column-main {
 	float: left;
-	margin-left: 20px;
+	width: 642px;
+	margin-left: 8px;
+}
+
+#admin-column-left .main-menu-link {
+	line-height: 13pt;
 }
 
 #admin-column-container {
