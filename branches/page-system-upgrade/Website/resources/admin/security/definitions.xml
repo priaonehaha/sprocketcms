@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-	This is your definitions file for use by the CMS Module found in Sprocket.Web.CMS. For information
-	about how to use this file, see http://code.google.com/p/sprocketcms/wiki/BasicWebsiteConstruction
--->
 <Definitions>
 	<Pages>
 		<Page Code="WebSecurity" Path="security" Template="Security" />
 	</Pages>
 	<Templates>
 		<Template Name="Security" Master="Admin">
+			<Replace Section="Page Heading"><![CDATA[Security Management{?@"Page Heading";}]]></Replace>
 			<Replace Section="Html Head"><![CDATA[<link rel="stylesheet" type="text/css" href="{??basepath}resources/admin/security/security.css" />]]></Replace>
 			<Replace Section="Content Area"></Replace>
 		</Template>

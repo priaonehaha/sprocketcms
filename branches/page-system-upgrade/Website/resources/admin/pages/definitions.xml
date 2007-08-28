@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Definitions>
+	<Pages>
+		<Page Code="Pages" Path="pages" Template="Pages" />
+		<Page Code="Templates" Path="templates" Template="Templates" />
+	</Pages>
+	<Templates>
+		<Template Name="Pages" Master="Admin">
+			<Replace Section="Page Heading"><![CDATA[Pages and Content{?@"Page Heading";}]]></Replace>
+			<Replace Section="Html Head"><![CDATA[<link rel="stylesheet" type="text/css" href="{??basepath}resources/admin/pages/pages.css" />]]></Replace>
+			<Replace Section="Content Area" />
+		</Template>
+		<Template Name="Templates" Master="Admin">
+			<Replace Section="Page Heading"><![CDATA[Pages and Templates{?@"Page Heading";}]]></Replace>
+			<Replace Section="Html Head"><![CDATA[<link rel="stylesheet" type="text/css" href="{??basepath}resources/admin/pages/pages.css" />]]></Replace>
+			<Replace Section="Content Area" File="resources/admin/pages/templates.htm" />
+		</Template>
+	</Templates>
+</Definitions>

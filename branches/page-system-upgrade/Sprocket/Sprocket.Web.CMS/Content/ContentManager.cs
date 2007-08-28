@@ -6,6 +6,7 @@ using System.IO;
 using System.Web;
 using Sprocket.Web.CMS.Script;
 using Sprocket.Utility;
+using Sprocket.Web.CMS.Admin;
 
 namespace Sprocket.Web.CMS.Content
 {
@@ -128,6 +129,15 @@ namespace Sprocket.Web.CMS.Content
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			WebEvents.Instance.OnPathNotFound += new WebEvents.RequestedPathEventHandler(WebEvents_OnPathNotFound);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(WebEvents_OnEndHttpRequest);
+			AdminHandler.Instance.OnLoadAdminPage += new AdminHandler.AdminRequestHandler(AdminHandler_OnLoadAdminPage);
+		}
+
+		void AdminHandler_OnLoadAdminPage(AdminInterface admin, PageEntry page, HandleFlag handled)
+		{
+			if(WebAuthentication.VerifyAccess(PermissionType.ModifyPages))
+				admin.AddMainMenuLink(new AdminMenuLink("Pages and Content", WebUtility.MakeFullPath("admin/pages"), ObjectRank.Normal));
+			if (WebAuthentication.VerifyAccess(PermissionType.ModifyTemplates))
+				admin.AddMainMenuLink(new AdminMenuLink("Page Templates", WebUtility.MakeFullPath("admin/templates"), ObjectRank.Normal));
 		}
 
 		void WebEvents_OnBeginHttpRequest(HandleFlag handled)
@@ -217,6 +227,12 @@ namespace Sprocket.Web.CMS.Content
 				CurrentRequest.Value["ContentManager_DescendentPath_Value"] = path;
 				return path;
 			}
+		}
+
+		public enum PermissionType
+		{
+			ModifyPages = 0,
+			ModifyTemplates = 1
 		}
 	}
 

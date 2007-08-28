@@ -32,6 +32,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite, Version=1.0.43.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binary Dependencies\System.Data.SQLite.DLL</HintPath>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
@@ -44,7 +48,9 @@
     <Compile Include="Admin\_Admin.cs" />
     <Compile Include="Admin\Interfaces.cs" />
     <Compile Include="Content\ContentManager.cs" />
+    <Compile Include="Content\Database\SQLite\SQLiteContentDataProvider.cs" />
     <Compile Include="Content\PageRegistry.cs" />
+    <Compile Include="Content\RevisionInformation.cs" />
     <Compile Include="Content\TemplateRegistry.cs" />
     <Compile Include="Content\PagesAdminMenuItem.cs" />
     <Compile Include="Content\Script Extensions\AjaxScriptsExpression.cs" />
@@ -63,6 +69,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Content\Template.cs" />
+    <Compile Include="Content\Database\IContentDataProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Script\ExecutionState.cs" />
     <Compile Include="Script\Enumerations.cs" />
@@ -103,10 +110,9 @@
     <Content Include="Admin\temp.xml" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Content\Database\SQLite\procedures.sql" />
+    <EmbeddedResource Include="Content\Database\SQLite\schema.sql" />
     <None Include="Content\SqlServer2005\schema.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Content\Database\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -90,7 +90,6 @@ namespace Sprocket.Web.CMS.Admin
 			if (handled.Handled) return;
 			if (!IsAdminRequest) return;
 
-
 			PageEntry page = pages.FromPath(SprocketPath.Value);
 			if (page == null)
 				return;
@@ -106,6 +105,7 @@ namespace Sprocket.Web.CMS.Admin
 
 				AdminInterface admin = new AdminInterface();
 				WebClientScripts scripts = WebClientScripts.Instance;
+				admin.AddMainMenuLink(new AdminMenuLink("Go to Website Home Page", WebUtility.MakeFullPath(""), ObjectRank.Last));
 				admin.AddMainMenuLink(new AdminMenuLink("Overview", WebUtility.MakeFullPath("admin"), ObjectRank.First));
 				admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), ObjectRank.Last));
 

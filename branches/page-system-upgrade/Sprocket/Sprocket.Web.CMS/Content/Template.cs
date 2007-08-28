@@ -24,9 +24,10 @@ namespace Sprocket.Web.CMS.Content
 			switch (propertyName)
 			{
 				case "name":
+				case "type":
+				case "source":
 					return true;
-				default:
-					return false;
+				default: return false;
 			}
 		}
 
@@ -34,10 +35,18 @@ namespace Sprocket.Web.CMS.Content
 		{
 			switch (propertyName)
 			{
-				case "name":
-					return name;
-				default:
-					return VariableExpression.InvalidProperty;
+				case "name": return name;
+				case "type": return GetType().Name;
+				case "source":
+					if (this is MasterTemplate)
+					{
+						if (((MasterTemplate)this).SprocketPath != null)
+							return ((MasterTemplate)this).SprocketPath;
+						return "HTML in definitions.xml";
+					}
+					return (this as SubTemplate).MasterTemplateName;
+
+				default: return VariableExpression.InvalidProperty;
 			}
 		}
 
@@ -65,7 +74,7 @@ namespace Sprocket.Web.CMS.Content
 		}
 
 		internal abstract void Render(ExecutionState state, Dictionary<string, SprocketScript> overrides);
-		
+
 		public void Render(ExecutionState state)
 		{
 			Render(state, new Dictionary<string, SprocketScript>());
@@ -104,12 +113,19 @@ namespace Sprocket.Web.CMS.Content
 			get { return filePath; }
 		}
 
+		string sprocketPath = null;
+		public string SprocketPath
+		{
+			get { return sprocketPath; }
+		}
+
 		public MasterTemplate(XmlElement xml)
 		{
 			name = xml.GetAttribute("Name");
 			if (xml.HasAttribute("File"))
 			{
-				filePath = WebUtility.MapPath(xml.GetAttribute("File"));
+				sprocketPath = xml.GetAttribute("File");
+				filePath = WebUtility.MapPath(sprocketPath);
 				if (!File.Exists(filePath))
 				{
 					script = new SprocketScript("[The template \"" + Name + "\" references a nonexistant file]", "Template: " + Name, "Template: " + Name);

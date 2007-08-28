@@ -85,6 +85,26 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		}
 	}
 
+	class LineBreaksToBRTagsExpression : StringModifierBaseExpression
+	{
+		protected override string Adjust(string s)
+		{
+			return s.Replace(Environment.NewLine, "<br/>");
+		}
+	}
+	class LineBreaksToBRTagsExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "line_breaks_to_br_tags"; }
+		}
+
+		public IExpression Create()
+		{
+			return new LineBreaksToBRTagsExpression();
+		}
+	}
+
 	class UrlEncodeExpression : StringModifierBaseExpression
 	{
 		protected override string Adjust(string s)

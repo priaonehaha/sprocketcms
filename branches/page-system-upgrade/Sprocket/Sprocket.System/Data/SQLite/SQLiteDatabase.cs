@@ -16,6 +16,12 @@ namespace Sprocket.Data
 	public class SQLiteDatabase : IDatabaseHandler
 	{
 		SQLiteStoredProcedures procs;
+
+		public SQLiteStoredProcedures Procedures
+		{
+			get { return procs; }
+		}
+
 		public SQLiteDatabase()
 		{
 			procs = new SQLiteStoredProcedures(ResourceLoader.LoadTextResource("Sprocket.Data.SQLite.scripts.sql"));

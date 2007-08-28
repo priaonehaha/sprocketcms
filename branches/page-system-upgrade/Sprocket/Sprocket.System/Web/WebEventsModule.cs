@@ -38,12 +38,12 @@ namespace Sprocket.Web
 		/// a request.
 		/// </summary>
 		public event HttpApplicationCancellableEventHandler OnBeginHttpRequest;
-		
+
 		/// <summary>
 		/// Fires right before Sprocket finishes handling the request and releases it back to ASP.Net.
 		/// </summary>
 		public event HttpApplicationEventHandler OnEndHttpRequest;
-		
+
 		/// <summary>
 		/// Fires when cookies, sessions, etc have been loaded and made available. This is called
 		/// before Sprocket does any standard path processing, and should generally be used with
@@ -136,7 +136,7 @@ namespace Sprocket.Web
 			}
 			HandleFlag handled = new HandleFlag();
 
-			if(OnBeginHttpRequest != null)
+			if (OnBeginHttpRequest != null)
 				OnBeginHttpRequest(handled);
 
 			if (handled.Handled)
@@ -164,14 +164,14 @@ namespace Sprocket.Web
 		/// <param name="e"></param>
 		internal void FireEndRequest(object sender, EventArgs e)
 		{
-			if(OnEndHttpRequest != null)
+			if (OnEndHttpRequest != null)
 				OnEndHttpRequest();
 
 			// seeing as this is the end of the line for a Sprocket request, let the system events
 			// module know so that other modules can clean up if necessary, close database connections
 			// and anything else relevant.
 			SystemEvents.Instance.NotifySessionEnding();
-			if(SprocketSettings.Instance.HasErrors)
+			if (SprocketSettings.Instance.HasErrors)
 				Core.Instance.Reset();
 		}
 
@@ -193,31 +193,32 @@ namespace Sprocket.Web
 			if (OnRequestStateLoaded != null) // as always, let the other modules know where we are...
 				OnRequestStateLoaded();
 
-			if (HttpContext.Current.Request.Form.Count > 0)
-			{
-				foreach (FormPostAction action in formPostActions)
+			if (HttpContext.Current.Request.Form != null)
+				if (HttpContext.Current.Request.Form.Count > 0)
 				{
-					if (action.PostFromPath != null)
-						if (action.PostFromPath != SprocketPath.ExtractSprocketPath(HttpContext.Current.Request.UrlReferrer.ToString()))
-							continue;
-
-					if (action.PostToPath != null)
-						if (action.PostToPath.ToLower() != SprocketPath.Value)
-							continue;
-
-					if (action.FieldName != null)
+					foreach (FormPostAction action in formPostActions)
 					{
-						string s = HttpContext.Current.Request.Form[action.FieldName];
-						if (s == null)
-							continue;
-						if (action.FieldValue != null)
-							if (s != action.FieldValue)
+						if (action.PostFromPath != null)
+							if (action.PostFromPath != SprocketPath.ExtractSprocketPath(HttpContext.Current.Request.UrlReferrer.ToString()))
 								continue;
-					}
 
-					action.PostHandler();
+						if (action.PostToPath != null)
+							if (action.PostToPath.ToLower() != SprocketPath.Value)
+								continue;
+
+						if (action.FieldName != null)
+						{
+							string s = HttpContext.Current.Request.Form[action.FieldName];
+							if (s == null)
+								continue;
+							if (action.FieldValue != null)
+								if (s != action.FieldValue)
+									continue;
+						}
+
+						action.PostHandler();
+					}
 				}
-			}
 
 			// this is our flag so that request event handlers can let us know if they handled this request.
 			HandleFlag flag = new HandleFlag();
@@ -288,7 +289,7 @@ namespace Sprocket.Web
 
 			// if we've reached this point and still havent found anything that wants to handle
 			// the current request, we offer up a final chance to respond to this fact...
-			if(OnPathNotFound != null)
+			if (OnPathNotFound != null)
 			{
 				OnPathNotFound(flag);
 				if (flag.Handled)
@@ -311,11 +312,11 @@ namespace Sprocket.Web
 		/// <param name="e"></param>
 		internal void FireError(object sender, EventArgs e)
 		{
-			if(OnApplicationError != null)
+			if (OnApplicationError != null)
 			{
 				HttpApplication app = (HttpApplication)sender;
 				SystemEvents.Instance.NotifyExceptionThrown(app.Server.GetLastError());
-				if(OnApplicationError != null)
+				if (OnApplicationError != null)
 					OnApplicationError(app.Server.GetLastError());
 				if (SprocketSettings.Instance.HasErrors)
 					Core.Instance.Reset();
