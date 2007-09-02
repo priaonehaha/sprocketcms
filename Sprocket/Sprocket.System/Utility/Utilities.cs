@@ -25,6 +25,7 @@ namespace Sprocket.Utility
 
 		public static bool BoolFromString(string value)
 		{
+			if (value == null) return false;
 			return MatchesAny(value.ToLower(), "yes", "true", "on", "1");
 		}
 

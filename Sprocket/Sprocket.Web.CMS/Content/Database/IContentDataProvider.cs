@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Sprocket.Data;
 
 namespace Sprocket.Web.CMS.Content
 {
-	public interface IContentDataProvider
+	public interface IContentDataProvider : IModuleDataProvider
 	{
-		Result Initialise();
 		Result Store(RevisionInformation revisionInformation);
+		Result Store(Page page);
 	}
 }

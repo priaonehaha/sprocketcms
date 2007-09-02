@@ -15,19 +15,20 @@ namespace Sprocket.Web.CMS.Content
 	{
 		#region Constructor, Fields, Properties, JSON Methods
 		#region Fields
-		
+
 		protected long revisionID = 0;
-		protected long revisionGroupID = 0;
-		protected DateTime revisionDate = DateTime.MinValue;
-		protected bool isCurrent = false;
+		protected long revisionSourceID = 0;
+		protected DateTime revisionDate = DateTime.UtcNow;
 		protected long userID = 0;
-		protected string notes = null;
+		protected string notes = "";
+		protected bool hidden = false;
+		protected bool draft = false;
 		protected bool deleted = false;
-		
+
 		#endregion
 
 		#region Properties
-		
+
 		///<summary>
 		///Gets or sets the value for RevisionID
 		///</summary>
@@ -38,12 +39,12 @@ namespace Sprocket.Web.CMS.Content
 		}
 
 		///<summary>
-		///Gets or sets the value for RevisionGroupID
+		///Gets or sets the value for RevisionSourceID
 		///</summary>
-		public long RevisionGroupID
+		public long RevisionSourceID
 		{
-			get { return revisionGroupID; }
-			set { revisionGroupID = value; }
+			get { return revisionSourceID; }
+			set { revisionSourceID = value; }
 		}
 
 		///<summary>
@@ -53,15 +54,6 @@ namespace Sprocket.Web.CMS.Content
 		{
 			get { return revisionDate; }
 			set { revisionDate = value; }
-		}
-
-		///<summary>
-		///Gets or sets the value for IsCurrent
-		///</summary>
-		public bool IsCurrent
-		{
-			get { return isCurrent; }
-			set { isCurrent = value; }
 		}
 
 		///<summary>
@@ -83,6 +75,24 @@ namespace Sprocket.Web.CMS.Content
 		}
 
 		///<summary>
+		///Gets or sets the value for Hidden
+		///</summary>
+		public bool Hidden
+		{
+			get { return hidden; }
+			set { hidden = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for Draft
+		///</summary>
+		public bool Draft
+		{
+			get { return draft; }
+			set { draft = value; }
+		}
+
+		///<summary>
 		///Gets or sets the value for Deleted
 		///</summary>
 		public bool Deleted
@@ -90,7 +100,7 @@ namespace Sprocket.Web.CMS.Content
 			get { return deleted; }
 			set { deleted = value; }
 		}
-		
+
 		#endregion
 
 		#region Constructors
@@ -98,84 +108,91 @@ namespace Sprocket.Web.CMS.Content
 		public RevisionInformation()
 		{
 		}
-		
-		public RevisionInformation(long revisionID, long revisionGroupID, DateTime revisionDate, bool isCurrent, long userID, string notes, bool deleted)
+
+		public RevisionInformation(long revisionID, long revisionSourceID, DateTime revisionDate, long userID, string notes, bool hidden, bool draft, bool deleted)
 		{
 			this.revisionID = revisionID;
-			this.revisionGroupID = revisionGroupID;
+			this.revisionSourceID = revisionSourceID;
 			this.revisionDate = revisionDate;
-			this.isCurrent = isCurrent;
 			this.userID = userID;
 			this.notes = notes;
+			this.hidden = hidden;
+			this.draft = draft;
 			this.deleted = deleted;
 		}
-		
+
 		public RevisionInformation(IDataReader reader)
 		{
-			if(reader["RevisionID"] != DBNull.Value) revisionID = (long)reader["RevisionID"];
-			if(reader["RevisionGroupID"] != DBNull.Value) revisionGroupID = (long)reader["RevisionGroupID"];
-			if(reader["RevisionDate"] != DBNull.Value) revisionDate = (DateTime)reader["RevisionDate"];
-			if(reader["IsCurrent"] != DBNull.Value) isCurrent = (bool)reader["IsCurrent"];
-			if(reader["UserID"] != DBNull.Value) userID = (long)reader["UserID"];
-			if(reader["Notes"] != DBNull.Value) notes = (string)reader["Notes"];
-			if(reader["Deleted"] != DBNull.Value) deleted = (bool)reader["Deleted"];
+			if (reader["RevisionID"] != DBNull.Value) revisionID = (long)reader["RevisionID"];
+			if (reader["RevisionSourceID"] != DBNull.Value) revisionSourceID = (long)reader["RevisionSourceID"];
+			if (reader["RevisionDate"] != DBNull.Value) revisionDate = (DateTime)reader["RevisionDate"];
+			if (reader["UserID"] != DBNull.Value) userID = (long)reader["UserID"];
+			if (reader["Notes"] != DBNull.Value) notes = (string)reader["Notes"];
+			if (reader["Hidden"] != DBNull.Value) hidden = (bool)reader["Hidden"];
+			if (reader["Draft"] != DBNull.Value) draft = (bool)reader["Draft"];
+			if (reader["Deleted"] != DBNull.Value) deleted = (bool)reader["Deleted"];
 		}
 
 		#endregion
-		
+
 		#region Clone
 		public RevisionInformation Clone()
 		{
 			RevisionInformation copy = new RevisionInformation();
 			copy.revisionID = revisionID;
-			copy.revisionGroupID = revisionGroupID;
+			copy.revisionSourceID = revisionSourceID;
 			copy.revisionDate = revisionDate;
-			copy.isCurrent = isCurrent;
 			copy.userID = userID;
 			copy.notes = notes;
+			copy.hidden = hidden;
+			copy.draft = draft;
 			copy.deleted = deleted;
 			return copy;
 		}
 		#endregion
 
 		#region JSON Methods
-		
+
 		/// <summary>
 		/// Writes this entity out as a JSON formatted string
 		/// </summary>
 		public void WriteJSON(StringWriter writer)
 		{
 			writer.Write("{");
-			JSON.EncodeNameValuePair(writer, "RevisionID",revisionID);
+			JSON.EncodeNameValuePair(writer, "RevisionID", revisionID);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "RevisionGroupID",revisionGroupID);
+			JSON.EncodeNameValuePair(writer, "RevisionSourceID", revisionSourceID);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "RevisionDate",revisionDate);
+			JSON.EncodeNameValuePair(writer, "RevisionDate", revisionDate);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "IsCurrent",isCurrent);
+			JSON.EncodeNameValuePair(writer, "UserID", userID);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "UserID",userID);
+			JSON.EncodeNameValuePair(writer, "Notes", notes);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "Notes",notes);
+			JSON.EncodeNameValuePair(writer, "Hidden", hidden);
 			writer.Write(",");
-			JSON.EncodeNameValuePair(writer, "Deleted",deleted);
+			JSON.EncodeNameValuePair(writer, "Draft", draft);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "Deleted", deleted);
 			writer.Write("}");
 		}
-		
+
 		public void LoadJSON(object json)
 		{
 			Dictionary<string, object> values = json as Dictionary<string, object>;
-			if(values == null) return;
+			if (values == null) return;
 			revisionID = (long)values["RevisionID"];
-			revisionGroupID = (long)values["RevisionGroupID"];
+			revisionSourceID = (long)values["RevisionSourceID"];
 			revisionDate = (DateTime)values["RevisionDate"];
-			isCurrent = (bool)values["IsCurrent"];
 			userID = (long)values["UserID"];
 			notes = (string)values["Notes"];
+			hidden = (bool)values["Hidden"];
+			draft = (bool)values["Draft"];
 			deleted = (bool)values["Deleted"];
 		}
-		
+
 		#endregion
+
 		#endregion
 
 		#region Expression Methods
@@ -186,14 +203,15 @@ namespace Sprocket.Web.CMS.Content
 
 		public bool IsValidPropertyName(string propertyName)
 		{
-			switch(propertyName)
+			switch (propertyName)
 			{
 				case "revisionid":
-				case "revisiongroupid":
+				case "revisionsourceid":
 				case "revisiondate":
-				case "iscurrent":
 				case "userid":
 				case "notes":
+				case "hidden":
+				case "draft":
 				case "deleted":
 					return true;
 				default:
@@ -203,14 +221,15 @@ namespace Sprocket.Web.CMS.Content
 
 		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
 		{
-			switch(propertyName)
+			switch (propertyName)
 			{
 				case "revisionid": return RevisionID;
-				case "revisiongroupid": return RevisionGroupID;
+				case "revisionsourceid": return RevisionSourceID;
 				case "revisiondate": return RevisionDate;
-				case "iscurrent": return IsCurrent;
 				case "userid": return UserID;
 				case "notes": return Notes;
+				case "hidden": return Hidden;
+				case "draft": return Draft;
 				case "deleted": return Deleted;
 				default: return null;
 			}

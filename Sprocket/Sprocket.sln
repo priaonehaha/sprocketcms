@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.Security", "Sprock
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyWebsite", "MyWebsite\MyWebsite.csproj", "{F4D4A03B-2FCB-4E79-B9A3-0436BE26B115}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprocket.Web.Merchant", "Sprocket.Web.Merchant\Sprocket.Web.Merchant.csproj", "{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|.NET = Debug|.NET
@@ -89,6 +91,16 @@ Global
 		{F4D4A03B-2FCB-4E79-B9A3-0436BE26B115}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F4D4A03B-2FCB-4E79-B9A3-0436BE26B115}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{F4D4A03B-2FCB-4E79-B9A3-0436BE26B115}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Debug|.NET.ActiveCfg = Debug|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|.NET.ActiveCfg = Release|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{21B39069-FFD1-4FE5-92A2-76D8BFE0C9A6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

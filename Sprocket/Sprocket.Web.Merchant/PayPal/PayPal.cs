@@ -3,33 +3,36 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web;
 using System.Diagnostics;
+using System.Transactions;
 
-using Sprocket.Web.CMS.Pages;
+using Sprocket.Web.CMS;
 using Sprocket;
 using Sprocket.Data;
-using Sprocket;
 using Sprocket.Utility;
+using Sprocket.Web.Merchant.Database;
 
 namespace Sprocket.Web.Merchant.PayPal
 {
-	[ModuleDependency("WebEvents")]
-	[ModuleDependency("SprocketSettings")]
+	[ModuleDependency(typeof(WebEvents))]
+	[ModuleDependency(typeof(SprocketSettings))]
+	[ModuleTitle("PayPal Module")]
 	[ModuleDescription("Encapsulates PayPal features and merchant facilities")]
-	public sealed class PayPal : ISprocketModule, IDataHandlerModule
+	public sealed class PayPal : ISprocketModule //, IDataHandlerModule
 	{
 		public event NotificationEventHandler<PayPalTransactionResponse> OnTransactionResponse;
 		public event NotificationEventHandler<PayPalTransactionResponse> OnInstantPaymentNotification;
+		private IMerchantDataProvider dataProvider = null;
 
-		void WebEvents_OnLoadRequestedPath(System.Web.HttpApplication app, string sprocketPath, string[] pathSections, HandleFlag handled)
+		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
 		{
 			if (!IntegrationEnabled)
 				return;
 
-			switch (sprocketPath)
+			switch (SprocketPath.Value)
 			{
 				case "paypal-ipn-process":
-					using (PayPalTransactionResponse resp = InstantPaymentNotification.Authenticate())
 					{
+						PayPalTransactionResponse resp = InstantPaymentNotification.Authenticate();
 						if (OnInstantPaymentNotification != null && resp != null)
 							OnInstantPaymentNotification(resp);
 					}
@@ -37,8 +40,8 @@ namespace Sprocket.Web.Merchant.PayPal
 					break;
 
 				case "paypal-trans-return":
-					using (PayPalTransactionResponse resp = TransactionReturn())
 					{
+						PayPalTransactionResponse resp = TransactionReturn();
 						if (OnTransactionResponse != null && resp != null)
 							OnTransactionResponse(resp);
 					}
@@ -61,10 +64,10 @@ namespace Sprocket.Web.Merchant.PayPal
 			return pdt.TransactionResponse;
 		}
 
-		void PageRequestHandler_OnRegisteringPlaceHolderRenderers(Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers)
-		{
-			placeHolderRenderers.Add("paypal", new PayPalPlaceHolderRenderer());
-		}
+		//void PageRequestHandler_OnRegisteringPlaceHolderRenderers(Dictionary<string, IPlaceHolderRenderer> placeHolderRenderers)
+		//{
+		//    placeHolderRenderers.Add("paypal", new PayPalPlaceHolderRenderer());
+		//}
 
 		#region Settings Properties
 		private static string _ppsetting(string suffix)
@@ -104,7 +107,7 @@ namespace Sprocket.Web.Merchant.PayPal
 
 		public static PayPal Instance
 		{
-			get { return (PayPal)SystemCore.Instance["PayPal"]; }
+			get { return (PayPal)Core.Instance[typeof(PayPal)].Module; }
 		}
 
 		#endregion
@@ -119,12 +122,12 @@ namespace Sprocket.Web.Merchant.PayPal
 			{
 				if (SprocketSettings.GetValue("PayPalTestIdentityToken") == null)
 				{
-					errors.Add("PayPal", "PayPalTestMode setting has been specified, thus a value is required for PayPalTestIdentityToken. This is the PayPal-supplied identity token for use with the PayPal Sandbox development environment. See developer.paypal.com for more info.");
+					errors.Add(this, "PayPalTestMode setting has been specified, thus a value is required for PayPalTestIdentityToken. This is the PayPal-supplied identity token for use with the PayPal Sandbox development environment. See developer.paypal.com for more info.");
 					errors.SetCriticalError();
 				}
 				if (SprocketSettings.GetValue("PayPalTestAccountAddress") == null)
 				{
-					errors.Add("PayPal", "PayPalTestMode setting has been specified, thus a value is required for PayPalTestAccountAddress. This is a test PayPal account address for use with the PayPal Sandbox development environment. See developer.paypal.com for more info.");
+					errors.Add(this, "PayPalTestMode setting has been specified, thus a value is required for PayPalTestAccountAddress. This is a test PayPal account address for use with the PayPal Sandbox development environment. See developer.paypal.com for more info.");
 					errors.SetCriticalError();
 				}
 			}
@@ -132,52 +135,65 @@ namespace Sprocket.Web.Merchant.PayPal
 			{
 				if (SprocketSettings.GetValue("PayPalIdentityToken") == null)
 				{
-					errors.Add("PayPal", "The PayPalTestMode setting is disabled and the PayPalIntegration setting is enabled, thus a value is required for PayPalIdentityToken. This is the PayPal-supplied identity token for authenticating PayPal responses. See developer.paypal.com for more info.");
+					errors.Add(this, "The PayPalTestMode setting is disabled and the PayPalIntegration setting is enabled, thus a value is required for PayPalIdentityToken. This is the PayPal-supplied identity token for authenticating PayPal responses. See developer.paypal.com for more info.");
 					errors.SetCriticalError();
 				}
 				if (SprocketSettings.GetValue("PayPalAccountAddress") == null)
 				{
-					errors.Add("PayPal", "The PayPalTestMode setting is disabled and the PayPalIntegration setting is enabled, thus a value is required for PayPalAccountAddress. This is the PayPal account address that is to receive transaction payments. See developer.paypal.com for more info.");
+					errors.Add(this, "The PayPalTestMode setting is disabled and the PayPalIntegration setting is enabled, thus a value is required for PayPalAccountAddress. This is the PayPal account address that is to receive transaction payments. See developer.paypal.com for more info.");
 					errors.SetCriticalError();
 				}
 			}
 		}
 		#endregion
 
-		#region ISprocketModule Members
-
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
+			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(DatabaseManager_OnDatabaseHandlerLoaded);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			SprocketSettings.Instance.OnCheckingSettings += new SprocketSettings.CheckSettingsHandler(Settings_OnCheckingSettings);
-			if (registry.IsRegistered("PageRequestHandler"))
-				PageRequestHandler.Instance.OnRegisteringPlaceHolderRenderers += new PageRequestHandler.RegisteringPlaceHolderRenderers(PageRequestHandler_OnRegisteringPlaceHolderRenderers);
 		}
 
-		public void Initialise(ModuleRegistry registry)
+		void DatabaseManager_OnDatabaseHandlerLoaded(IDatabaseHandler source)
 		{
+			source.OnInitialise += new InterruptableEventHandler(Database_OnInitialise);
 		}
 
-		public string RegistrationCode
+		void Database_OnInitialise(Result result)
 		{
-			get { return "PayPal"; }
+			if (!result.Succeeded)
+				return;
+			if (dataProvider == null)
+				result.SetFailed("PayPal module has no implementation for " + DatabaseManager.DatabaseEngine.Title);
+			else
+			{
+				try
+				{
+					using (TransactionScope scope = new TransactionScope())
+					{
+						DatabaseManager.DatabaseEngine.GetConnection();
+						dataProvider.Initialise(result);
+						if (result.Succeeded)
+							scope.Complete();
+					}
+				}
+				catch (Exception ex)
+				{
+					result.SetFailed(ex.Message);
+				}
+				finally
+				{
+					DatabaseManager.DatabaseEngine.ReleaseConnection();
+				}
+			}
 		}
 
-		public string Title
+		public static IMerchantDataProvider DataProvider
 		{
-			get { return "PayPal Module"; }
+			get
+			{
+				return (IMerchantDataProvider)Instance.dataProvider;
+			}
 		}
-
-		#endregion
-
-		#region IDataHandlerModule Members
-
-		public void ExecuteDataScripts()
-		{
-			((SqlDatabase)Database.Main).ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Web.Merchant.PayPal.Database.tables.sql"));
-			((SqlDatabase)Database.Main).ExecuteScript(ResourceLoader.LoadTextResource("Sprocket.Web.Merchant.PayPal.Database.procs.sql"));
-		}
-
-		#endregion
 	}
 }

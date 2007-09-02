@@ -93,7 +93,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core.cs" />
+    <Compile Include="Data\IModuleDataProvider.cs" />
+    <Compile Include="Data\DataDrivenSprocketModule.cs" />
     <Compile Include="Data\IEntity.cs" />
+    <Compile Include="Data\SQLite\SQLiteDataProvider.cs" />
     <Compile Include="Data\SQLite\SQLiteStoredProcedures.cs" />
     <Compile Include="Data\SQLite\SQLiteDatabase.cs" />
     <Compile Include="Data\SqlServer2005\SqlServer2005Database.cs" />
