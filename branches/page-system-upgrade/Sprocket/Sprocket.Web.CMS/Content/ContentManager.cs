@@ -7,6 +7,7 @@ using System.Web;
 using Sprocket.Web.CMS.Script;
 using Sprocket.Utility;
 using Sprocket.Web.CMS.Admin;
+using Sprocket.Data;
 
 namespace Sprocket.Web.CMS.Content
 {
@@ -14,7 +15,7 @@ namespace Sprocket.Web.CMS.Content
 	[ModuleDescription("The content management engine that handles content, pages and the templates they use")]
 	[ModuleDependency(typeof(WebEvents))]
 	[AjaxMethodHandler("ContentManager")]
-	public sealed class ContentManager : ISprocketModule
+	public sealed class ContentManager : DataDrivenSprocketModule<IContentDataProvider>
 	{
 		public static ContentManager Instance
 		{
@@ -123,13 +124,15 @@ namespace Sprocket.Web.CMS.Content
 		HttpResponse Response { get { return HttpContext.Current.Response; } }
 
 		#region Module Event Handlers
-		public void AttachEventHandlers(ModuleRegistry registry)
+		public override void AttachEventHandlers(ModuleRegistry registry)
 		{
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(WebEvents_OnBeginHttpRequest);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			WebEvents.Instance.OnPathNotFound += new WebEvents.RequestedPathEventHandler(WebEvents_OnPathNotFound);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(WebEvents_OnEndHttpRequest);
 			AdminHandler.Instance.OnLoadAdminPage += new AdminHandler.AdminRequestHandler(AdminHandler_OnLoadAdminPage);
+			
+			base.AttachEventHandlers(registry);
 		}
 
 		void AdminHandler_OnLoadAdminPage(AdminInterface admin, PageEntry page, HandleFlag handled)

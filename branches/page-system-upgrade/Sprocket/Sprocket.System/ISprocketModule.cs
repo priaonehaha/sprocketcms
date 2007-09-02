@@ -1,5 +1,6 @@
 using System;
 using Sprocket;
+using Sprocket.Data;
 
 namespace Sprocket
 {

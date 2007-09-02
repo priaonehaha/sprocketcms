@@ -79,10 +79,9 @@ namespace Sprocket.Web.Merchant.PayPal
 			}
 		}
 
-		public PayPalTransactionResponse StoreResponseToDatabase()
+		public Result StoreResponseToDatabase()
 		{
-			TransactionResponse.Save();
-			return ppresponse;
+			return PayPal.DataProvider.Store(TransactionResponse);
 		}
 
 		private string ComposeFormPostData(string key, string value)

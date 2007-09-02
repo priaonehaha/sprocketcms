@@ -43,7 +43,7 @@ namespace Sprocket.Web.Merchant.PayPal
 			if (recentIDs.Contains(resp.Txn_id))
 				return null;
 			recentIDs.Enqueue(resp.Txn_id);
-			try { resp.Save(); }
+			try { PayPal.DataProvider.Store(resp); }
 			catch(Exception e) { } // thrown usually on duplicate id, which we try to avoid via the queue above (less hits to database)
 			return resp;
 		}

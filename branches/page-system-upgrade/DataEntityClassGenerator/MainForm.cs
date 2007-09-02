@@ -261,7 +261,7 @@ namespace ClassGenerator
 				if (!isIdentity && !columnIsID)
 				{
 					if (prms.Length > 0) prms += Environment.NewLine + "\t\t\t\t\t";
-					prms += "cmd.Parameters.Add(NewParameter(\"@" + c.ColumnName + "\", " + lesserClassName + "." + c.ColumnName + ", " + dbTypeName + "." + dbTypeFunc(c.DataType) + "));";
+					prms += "cmd.Parameters.Add(NewParameter(\"@" + c.ColumnName + "\", " + lesserClassName + "." + prName + ", " + dbTypeName + "." + dbTypeFunc(c.DataType) + "));";
 				}
 
 				if (filterCommandParams.Length > 0) filterCommandParams += Environment.NewLine + "\t\t\t";

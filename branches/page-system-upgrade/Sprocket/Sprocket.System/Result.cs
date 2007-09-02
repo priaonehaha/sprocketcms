@@ -57,6 +57,17 @@ namespace Sprocket
 			this.message = message;
 		}
 
+		/// <summary>
+		/// If the supplied result argument has Succeed = false, the error message is appended to this one.
+		/// </summary>
+		/// <param name="result">A result to merge with this one</param>
+		public void Merge(Result result)
+		{
+			if (result.succeeded) return;
+			succeeded = false;
+			this.message += Environment.NewLine + message;
+		}
+
 		public virtual void WriteJSON(System.IO.StringWriter writer)
 		{
 			JSON.EncodeCustomObject(writer,

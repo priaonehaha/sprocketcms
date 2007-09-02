@@ -31,9 +31,11 @@ namespace Sprocket.Web
 	public enum ObjectRank
 	{
 		First = 1,
-		Early = 2,
-		Normal = 3,
-		Late = 4,
-		Last = 5
+		Earlier = 2,
+		Early = 3,
+		Normal = 5,
+		Late = 7,
+		Later = 8,
+		Last = 9
 	}
 }
