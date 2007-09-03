@@ -8,7 +8,7 @@ Pages and templates are defined and pointed to in XML files. Templates are HTML 
 
 A security model is provided and is the primary piece of functionality available within the admin system. Users, roles, permissions and permission types are the focus of the security system. Permissions can be applied to both roles and individual users, and roles can inherit the permissions of other roles. The user interface makes use of AJAX for fast access.
 
-==Release 0.5==
+=Release 0.5=
 
 Release *0.5* is in progress and implements the following:
 
