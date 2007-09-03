@@ -1,0 +1,17 @@
+Sprocket is an ongoing project, a long time in the making and likely to continue being made for a long time.
+
+=Current Status=
+
+The current release version is *0.4*. This is essentially a web framework, providing time-saving tools and methods for putting together a database-driven website with a static set of pages (editable if you write editing functionality).
+
+Pages and templates are defined and pointed to in XML files. Templates are HTML with embedded SprocketScript syntax where desired. Templates have full inheritance capability, so you can define master templates, subpage templates, and still deeper templates beyond that. 
+
+A security model is provided and is the primary piece of functionality available within the admin system. Users, roles, permissions and permission types are the focus of the security system. Permissions can be applied to both roles and individual users, and roles can inherit the permissions of other roles. The user interface makes use of AJAX for fast access.
+
+==Release 0.5==
+
+Release *0.5* is in progress and implements the following:
+
+* A database-driven page editing user interface with a full versioning/revision system for content. You should be able to roll content back to any previous state in its history. Pages can be saved as drafts. Deleted pages can be restored.
+* Standard data provider/layer base classes now exist to accelerate development of new database-driven modules.
+* The admin system has received a make-over and now looks a lot cleaner. It also now makes full use of SprocketScript and the base page content system (defined in XML) to make customisation and extensioon of the admin system very easy.
