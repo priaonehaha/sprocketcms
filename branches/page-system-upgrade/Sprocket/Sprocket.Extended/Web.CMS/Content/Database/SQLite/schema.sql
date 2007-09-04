@@ -9,6 +9,7 @@
 	- Whenever the page is saved, a new set of ContentNode records are created for the new revision. If the content for an individual
 	  ContentNode was changed, a new record with the updated information is stored in the related value table, otherwise the new
 	  record points at the existing record in that table.
+	- When no template is specified for a page, ALL node types are available and are rendered sequentially to the page
 */
 
 CREATE TABLE IF NOT EXISTS RevisionInformation
@@ -41,8 +42,8 @@ CREATE TABLE IF NOT EXISTS ContentNode
 (
 	PageRevisionID INTEGER,
 	ContentNodeID INTEGER NOT NULL, -- FK to ContentNode_XXX where XXX = NodeTypeIdentifier
-	NodeTypeIdentifier TEXT NOT NULL,
-	Name TEXT NOT NULL,
+	NodeTypeIdentifier TEXT NOT NULL, -- e.g. 'TextBox'
+	Name TEXT NOT NULL, -- identifies the content field in which the node appears
 	Rank INTEGER NOT NULL,
 	PRIMARY KEY (PageRevisionID, ContentNodeID, NodeTypeIdentifier)
 );
