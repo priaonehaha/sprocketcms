@@ -37,12 +37,20 @@ namespace Sprocket.Web.CMS.Content
 			public PageRegistry Pages = null;
 			public Stack<PageEntry> PageStack = new Stack<PageEntry>();
 			public Dictionary<string, List<PagePreprocessorHandler>> PagePreProcessors = new Dictionary<string,List<PagePreprocessorHandler>>();
+			public Dictionary<string, IContentNodeTypeCreator> ContentNodeTypes = new Dictionary<string, IContentNodeTypeCreator>();
 		}
 		
 		private StateValues stateValues = new StateValues();
 		private static StateValues Values
 		{
 			get { return Instance.stateValues; }
+		}
+
+		public static IContentNodeType GetNodeType(string nodeTypeName)
+		{
+			IContentNodeTypeCreator t = null;
+			Instance.stateValues.ContentNodeTypes.TryGetValue(nodeTypeName, out t);
+			return t == null ? null : t.Create();
 		}
 
 		public static void AddPagePreprocessor(string pageCode, PagePreprocessorHandler method)
@@ -132,8 +140,20 @@ namespace Sprocket.Web.CMS.Content
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			WebEvents.Instance.OnPathNotFound += new WebEvents.RequestedPathEventHandler(WebEvents_OnPathNotFound);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(WebEvents_OnEndHttpRequest);
-			
+			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Instance_OnInitialise);
 			base.AttachEventHandlers(registry);
+		}
+
+		void Instance_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
+		{
+			List<Type> list;
+			interfaceImplementations.TryGetValue(typeof(IContentNodeTypeCreator), out list);
+			if(list != null)
+				foreach (Type t in list)
+				{
+					IContentNodeTypeCreator cntc = (IContentNodeTypeCreator)Activator.CreateInstance(t);
+					Values.ContentNodeTypes.Add(cntc.Identifier, cntc);
+				}
 		}
 
 		void WebEvents_OnBeginHttpRequest(HandleFlag handled)

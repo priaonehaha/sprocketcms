@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.IO;
+using Sprocket.Utility;
 
 using Sprocket.Web.CMS.Script;
 
@@ -96,6 +97,99 @@ namespace Sprocket.Web.CMS.Content
 			Render(state);
 			return state.ReadAndRemoveBranch();
 		}
+
+		protected void ReadAdminXml(XmlElement xml)
+		{
+			foreach (XmlElement cfxml in xml.SelectNodes("ContentFields/ContentField"))
+			{
+				ContentField cf = new ContentField();
+
+				XmlElement e = xml.SelectSingleNode("Label") as XmlElement;
+				cf.Label = e == null ? null : e.InnerText == "" ? null : e.InnerText;
+				e = xml.SelectSingleNode("DefaultContentType") as XmlElement;
+				if (e != null)
+				{
+					XmlElement def = e.SelectSingleNode("*") as XmlElement;
+					if (def != null)
+					{
+						cf.AllowDeleteDefaultNode = StringUtilities.BoolFromString(e.GetAttribute("AllowDelete"));
+						cf.DefaultContentNode = ContentManager.GetNodeType(def.Name);
+						cf.DefaultContentNode.Initialise(def);
+					}
+				}
+
+				e = xml.SelectSingleNode("AllowableNodeTypes") as XmlElement;
+				if (e != null)
+				{
+					if (e.HasAttribute("Maximum"))
+					{
+						int max;
+						if (int.TryParse(e.GetAttribute("Maximum"), out max))
+							cf.MaxAdditionalContentNodes = max;
+					}
+
+					foreach (XmlElement x in e.SelectNodes("*"))
+					{
+						IContentNodeType cnt = ContentManager.GetNodeType(x.Name);
+						if (cnt != null)
+						{
+							cnt.Initialise(x);
+							cf.AllowableNodeTypes.Add(cnt);
+						}
+					}
+				}
+			}
+		}
+
+		private List<ContentField> contentFields = new List<ContentField>();
+		public List<ContentField> ContentFields
+		{
+			get { return contentFields; }
+		}
+
+		public class ContentField
+		{
+			private string label = String.Empty;
+			private IContentNodeType defaultContentNode = null;
+			private bool allowDeleteDefaultNode = false;
+			private int? maxAdditionalContentNodes = null;
+			private List<IContentNodeType> allowableNodeTypes = new List<IContentNodeType>();
+
+			/// <summary>
+			/// If this list is empty, any kind of node can be added to the page.
+			/// If MaxAdditionalContentNodes > 0 or is null and this list has one or more items, only items of those types can be added.
+			/// If MaxAdditionalContentNodes = 0 OR (AllowableContentNodes is omitted and there is a default node type specified),
+			///		new content nodes can't be added to this field on the page.
+			/// </summary>
+			public List<IContentNodeType> AllowableNodeTypes
+			{
+				get { return allowableNodeTypes; }
+			}
+
+			public int? MaxAdditionalContentNodes
+			{
+				get { return maxAdditionalContentNodes; }
+				internal set { maxAdditionalContentNodes = value; }
+			}
+
+			public bool AllowDeleteDefaultNode
+			{
+				get { return allowDeleteDefaultNode; }
+				internal set { allowDeleteDefaultNode = value; }
+			}
+
+			public IContentNodeType DefaultContentNode
+			{
+				get { return defaultContentNode; }
+				internal set { defaultContentNode = value; }
+			}
+
+			public string Label
+			{
+				get { return label; }
+				internal set { label = value; }
+			}
+		}
 	}
 
 	public class MasterTemplate : Template
@@ -137,7 +231,18 @@ namespace Sprocket.Web.CMS.Content
 				}
 			}
 			else
-				script = new SprocketScript(xml.InnerText, "Template: " + name, "Template: " + name);
+			{
+				string text;
+				XmlElement body = xml.SelectSingleNode("Body") as XmlElement;
+				if (body == null)
+					text = "Master template \"" + name + "\" does not have any body text/html. In the XML definition, either reference a file with the \"File=\" attribute, or supply a child element called \"<Body>\" and place the text there.";
+				else
+					text = body.InnerText;
+				script = new SprocketScript(text, "Template: " + name, "Template: " + name);
+			}
+			XmlElement adminxml = xml.SelectSingleNode("Admin") as XmlElement;
+			if (adminxml != null)
+				ReadAdminXml(adminxml);
 		}
 
 		public override bool IsOutOfDate
@@ -191,6 +296,9 @@ namespace Sprocket.Web.CMS.Content
 					throw new Exception("Error building subpage template. There is more than one replacement defined for section \"" + replacement.Name + "\"");
 				replacedSections.Add(replacement.Name, replacement);
 			}
+			XmlElement adminxml = xml.SelectSingleNode("Admin") as XmlElement;
+			if (adminxml != null)
+				ReadAdminXml(adminxml);
 		}
 
 		public override bool IsOutOfDate
