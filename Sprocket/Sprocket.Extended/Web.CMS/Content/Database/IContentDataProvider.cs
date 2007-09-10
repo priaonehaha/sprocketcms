@@ -14,5 +14,6 @@ namespace Sprocket.Web.CMS.Content
 		Page SelectPage(long pageID);
 		Page SelectPageByPageCode(string pageCode);
 		List<Page> ListPages();
+		Dictionary<string, List<ContentNode>> ListContentNodesForPage(long pageRevisionID);
 	}
 }

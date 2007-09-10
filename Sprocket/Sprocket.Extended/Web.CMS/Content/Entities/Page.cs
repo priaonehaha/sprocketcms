@@ -328,5 +328,35 @@ namespace Sprocket.Web.CMS.Content
 			FormValues.Set(fieldName, result.Message, value, !result.Succeeded);
 			return result;
 		}
+
+		public Dictionary<string, List<ContentNode>> LoadContentNodes()
+		{
+			Dictionary<string, List<ContentNode>> nodes = ContentManager.Instance.DataProvider.ListContentNodesForPage(revisionID);
+			Dictionary<string, List<ContentNode>> nodesByFieldName = new Dictionary<string, List<ContentNode>>();
+			foreach (KeyValuePair<string, List<ContentNode>> list in nodes)
+			{
+				foreach (ContentNode node in list.Value) // group all of the nodes (currently grouped according to node type) into field name groups
+				{
+					List<ContentNode> fieldnodes;
+					if (!nodesByFieldName.TryGetValue(node.FieldName, out fieldnodes))
+					{
+						fieldnodes = new List<ContentNode>();
+						nodesByFieldName.Add(node.FieldName, fieldnodes);
+					}
+					fieldnodes.Add(node);
+				}
+				IContentNodeDatabaseInterface dbi = ContentManager.GetNodeTypeDatabaseInterface(list.Key);
+				if (dbi == null) continue;
+				dbi.LoadNodeData(list.Value);
+			}
+			// now sort nodesByFieldName in ascending order, ready to be matched to the template admin fields
+			foreach (List<ContentNode> list in nodesByFieldName.Values)
+				list.Sort();
+
+			/* the next step is to store nodesByFieldName as a property of this class and then when the
+			 * admin for the page is displayed, each content field in the template admin definition should
+			 * be compared against nodesByFieldName to get the existing data. */
+			return nodesByFieldName;
+		}
 	}
 }

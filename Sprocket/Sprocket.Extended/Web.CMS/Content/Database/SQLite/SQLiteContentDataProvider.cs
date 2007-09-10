@@ -169,5 +169,34 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				}
 			}
 		}
+		public Dictionary<string, List<ContentNode>> ListContentNodesForPage(long pageRevisionID)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SQLiteCommand cmd = new SQLiteCommand(Procedures["List Pages"], conn);
+					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
+					{
+						// group all of the nodes according to type so that they can have their individual type's id list loaded
+						Dictionary<string, List<ContentNode>> map = new Dictionary<string, List<ContentNode>>();
+						while (reader.Read())
+						{
+							ContentNode node = new ContentNode(reader);
+							List<ContentNode> list;
+							if (!map.TryGetValue(node.FieldName, out list))
+							{
+								list = new List<ContentNode>();
+								map.Add(node.FieldName, list);
+							}
+							list.Add(node);
+						}
+						reader.Close();
+						return map;
+					}
+				}
+			}
+		}
 	}
 }

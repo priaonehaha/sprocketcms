@@ -52,11 +52,21 @@ namespace Sprocket.Web.CMS.Content
 				{
 					long pageID;
 					if (long.TryParse(SprocketPath.Sections[3], out pageID))
-						page = ContentManager.Instance.DataProvider.SelectPage(pageID);
+					{
+						try
+						{
+							DatabaseManager.DatabaseEngine.GetConnection();
+							page = ContentManager.Instance.DataProvider.SelectPage(pageID);
+							FormValues.Set("Revision", null, page.RevisionInformation, false);
+							FormValues.Set("AllRevisions", null, page.RevisionInformation, false);
+						}
+						finally
+						{
+							DatabaseManager.DatabaseEngine.ReleaseConnection();
+						}
+					}
 				}
 				FormValues.Set("Page", page == null ? "The requested page was not found." : null, page, page == null);
-				if (page != null)
-					FormValues.Set("Revision", null, page.RevisionInformation, false);
 			}
 		}
 
@@ -66,11 +76,11 @@ namespace Sprocket.Web.CMS.Content
 			long pageID = -1;
 			long.TryParse(Request.Form["PageID"], out pageID);
 			Page page;
-			if(pageID == 0)
+			if (pageID == 0)
 				page = new Page();
 			else
 				page = ContentManager.Instance.DataProvider.SelectPage(pageID);
-			if(page == null)
+			if (page == null)
 			{
 				WebUtility.Redirect("admin/pages/edit/notfound");
 				return;

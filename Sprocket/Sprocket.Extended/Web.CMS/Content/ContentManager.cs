@@ -53,6 +53,13 @@ namespace Sprocket.Web.CMS.Content
 			return t == null ? null : t.Create();
 		}
 
+		public static IContentNodeDatabaseInterface GetNodeTypeDatabaseInterface(string nodeTypeName)
+		{
+			IContentNodeTypeCreator t = null;
+			Instance.stateValues.ContentNodeTypes.TryGetValue(nodeTypeName, out t);
+			return t == null ? null : t.CreateDatabaseInterface();
+		}
+
 		public static void AddPagePreprocessor(string pageCode, PagePreprocessorHandler method)
 		{
 			if (!Values.PagePreProcessors.ContainsKey(pageCode))
@@ -140,15 +147,15 @@ namespace Sprocket.Web.CMS.Content
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			WebEvents.Instance.OnPathNotFound += new WebEvents.RequestedPathEventHandler(WebEvents_OnPathNotFound);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(WebEvents_OnEndHttpRequest);
-			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Instance_OnInitialise);
+			Core.Instance.OnInitialise += new ModuleInitialisationHandler(Core_OnInitialise);
 			base.AttachEventHandlers(registry);
 		}
 
-		void Instance_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
+		void Core_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
 		{
 			List<Type> list;
 			interfaceImplementations.TryGetValue(typeof(IContentNodeTypeCreator), out list);
-			if(list != null)
+			if (list != null)
 				foreach (Type t in list)
 				{
 					IContentNodeTypeCreator cntc = (IContentNodeTypeCreator)Activator.CreateInstance(t);
