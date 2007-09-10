@@ -17,6 +17,12 @@ SELECT *
 --# Delete Revision By RevisionID
 DELETE FROM RevisionInformation WHERE RevisionID = @RevisionID;
 
+--# List Revisions By Source
+	SELECT *
+	  FROM RevisionInformation
+	 WHERE RevisionSourceID = @RevisionSourceID
+  ORDER BY RevisionDate DESC
+
 -----------
 -- PAGES --
 -----------
@@ -55,3 +61,9 @@ INNER JOIN RevisionInformation r
 		ON p.RevisionID = r.RevisionID
 	   AND r.RevisionID = (SELECT r2.RevisionID FROM RevisionInformation r2 WHERE r2.RevisionSourceID = p.PageID ORDER BY r2.RevisionDate DESC)
   ORDER BY r.RevisionDate DESC
+
+--# List ContentNodes
+	SELECT *
+	  FROM ContentNode
+	 WHERE PageRevisionID = @PageRevisionID
+  ORDER BY NodeTypeIdentifier

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.IO;
+using System.Web;
 using Sprocket.Utility;
 
 using Sprocket.Web.CMS.Script;
@@ -26,6 +27,7 @@ namespace Sprocket.Web.CMS.Content
 			{
 				case "name":
 				case "type":
+				case "content_fields":
 				case "source":
 					return true;
 				default: return false;
@@ -38,6 +40,7 @@ namespace Sprocket.Web.CMS.Content
 			{
 				case "name": return name;
 				case "type": return GetType().Name;
+				case "content_fields": return pageAdminSections;
 				case "source":
 					if (this is MasterTemplate)
 					{
@@ -98,58 +101,162 @@ namespace Sprocket.Web.CMS.Content
 			return state.ReadAndRemoveBranch();
 		}
 
-		protected void ReadAdminXml(XmlElement xml)
+		protected void ReadPageAdminSections(XmlElement xml)
 		{
-			foreach (XmlElement cfxml in xml.SelectNodes("ContentFields/ContentField"))
-			{
-				ContentField cf = new ContentField();
+			foreach (XmlElement cfxml in xml.SelectNodes("PageAdminSections/PageAdminSection"))
+				pageAdminSections.Add(ReadPageAdminSectionXml(cfxml));
+		}
 
-				XmlElement e = xml.SelectSingleNode("Label") as XmlElement;
-				cf.Label = e == null ? null : e.InnerText == "" ? null : e.InnerText;
-				e = xml.SelectSingleNode("DefaultContentType") as XmlElement;
-				if (e != null)
+		internal static PageAdminSection ReadPageAdminSectionXml(XmlElement cfxml)
+		{
+			PageAdminSection cf = new PageAdminSection();
+
+			XmlElement e = cfxml.SelectSingleNode("Label") as XmlElement;
+			cf.Label = e == null ? null : e.InnerText == "" ? null : e.InnerText;
+
+			e = cfxml.SelectSingleNode("Hint") as XmlElement;
+			cf.Hint = e == null ? null : e.InnerText == "" ? null : e.InnerText;
+
+			if (cfxml.HasAttribute("InSection"))
+			{
+				string inSection = cfxml.GetAttribute("InSection");
+				if (inSection != null && inSection != String.Empty)
+					cf.InSection = inSection;
+			}
+
+			e = cfxml.SelectSingleNode("DefaultContentType") as XmlElement;
+			if (e != null)
+			{
+				XmlElement def = e.SelectSingleNode("*") as XmlElement;
+				if (def != null)
 				{
-					XmlElement def = e.SelectSingleNode("*") as XmlElement;
-					if (def != null)
-					{
-						cf.AllowDeleteDefaultNode = StringUtilities.BoolFromString(e.GetAttribute("AllowDelete"));
-						cf.DefaultContentNode = ContentManager.GetNodeType(def.Name);
-						cf.DefaultContentNode.Initialise(def);
-					}
+					cf.AllowDeleteDefaultNode = StringUtilities.BoolFromString(e.GetAttribute("AllowDelete"));
+					cf.DefaultContentNode = ContentManager.GetNodeType(def.Name);
+					cf.DefaultContentNode.Initialise(def);
+				}
+			}
+
+			e = cfxml.SelectSingleNode("AllowableNodeTypes") as XmlElement;
+			if (e != null)
+			{
+				if (e.HasAttribute("Maximum"))
+				{
+					int max;
+					if (int.TryParse(e.GetAttribute("Maximum"), out max))
+						cf.MaxAdditionalContentNodes = max;
 				}
 
-				e = xml.SelectSingleNode("AllowableNodeTypes") as XmlElement;
-				if (e != null)
+				foreach (XmlElement x in e.SelectNodes("*"))
 				{
-					if (e.HasAttribute("Maximum"))
+					IContentNodeType cnt = ContentManager.GetNodeType(x.Name);
+					if (cnt != null)
 					{
-						int max;
-						if (int.TryParse(e.GetAttribute("Maximum"), out max))
-							cf.MaxAdditionalContentNodes = max;
-					}
-
-					foreach (XmlElement x in e.SelectNodes("*"))
-					{
-						IContentNodeType cnt = ContentManager.GetNodeType(x.Name);
-						if (cnt != null)
-						{
-							cnt.Initialise(x);
-							cf.AllowableNodeTypes.Add(cnt);
-						}
+						cnt.Initialise(x);
+						cf.AllowableNodeTypes.Add(cnt);
 					}
 				}
 			}
+			return cf;
 		}
 
-		private List<ContentField> contentFields = new List<ContentField>();
-		public List<ContentField> ContentFields
+		public List<PageAdminSection> GetPageAdminSections()
 		{
-			get { return contentFields; }
+			List<Template> descendentlist = new List<Template>();
+			Template add = this;
+			while (true)
+			{
+				descendentlist.Add(add);
+				if (add is MasterTemplate)
+					break;
+				add = ContentManager.Templates[((SubTemplate)add).MasterTemplateName];
+				if (add == null)
+					break;
+			}
+
+			if (descendentlist[descendentlist.Count - 1] is SubTemplate)
+				throw new Exception("Can't load page admin sections. The template hierarchy doesn't end with a master template.");
+
+			// the final list of page admin sections in the correct order:
+			List<PageAdminSection> list = new List<PageAdminSection>();
+			// maps page admin sections to the template section that they specify they appear in (if any) so that they can be overridden in subtemplates:
+			Dictionary<string, List<PageAdminSection>> sectionmap = new Dictionary<string, List<PageAdminSection>>();
+
+			// start from the master template and starting building the final page admin section list
+			for (int i = descendentlist.Count - 1; i >= 0; i--)
+			{
+				// if this is a subtemplate, we need to perform surgery on the final list and replace the relevant admin sections as dictated in the xml
+				if (descendentlist[i] is SubTemplate)
+				{
+					// go through each replaced section in the template and extract the page admin sections for that replacement
+					foreach (TemplateSectionReplacement rep in ((SubTemplate)descendentlist[i]).ReplacedSections.Values)
+					{
+						List<PageAdminSection> repseclist;
+						int index = list.Count; // where to insert the new list of page admin sections
+						if (sectionmap.TryGetValue(rep.Name, out repseclist))
+							if (repseclist.Count > 0)
+							{
+								// find where the first replaced page admin section appears in the final list
+								index = list.IndexOf(repseclist[0]);
+								if (index == -1)
+									index = list.Count;
+
+								// remove the to-be-replaced admin sections from the final list
+								foreach (PageAdminSection sect in repseclist)
+									list.Remove(sect);
+
+								// remove the items from the sectionmap now that they're not relevant or needed
+								sectionmap.Remove(rep.Name);
+
+								// insert the new page admin sections at the appropriate point in the final list
+								list.InsertRange(index, rep.PageAdminSections);
+
+								// go through each section in the new inserts and add them to the map where relevant
+								foreach (PageAdminSection sect in rep.PageAdminSections)
+									if (sect.InSection != null)
+									{
+										List<PageAdminSection> sectlist;
+										if (!sectionmap.TryGetValue(sect.InSection, out sectlist))
+										{
+											sectlist = new List<PageAdminSection>();
+											sectionmap.Add(sect.InSection, sectlist);
+										}
+										sectlist.Add(sect);
+									}
+							}
+					}
+				}
+
+				// insert the standard page admin sections into the final list
+				foreach (PageAdminSection section in descendentlist[i].PageAdminSections)
+				{
+					list.Add(section);
+
+					// if the new section is specified as "InSection", make a record of that
+					if (section.InSection != null)
+					{
+						List<PageAdminSection> sectlist;
+						if (!sectionmap.TryGetValue(section.InSection, out sectlist))
+						{
+							sectlist = new List<PageAdminSection>();
+							sectionmap.Add(section.InSection, sectlist);
+						}
+						sectlist.Add(section);
+					}
+				}
+			}
+
+			return list;
 		}
 
-		public class ContentField
+		private List<PageAdminSection> pageAdminSections = new List<PageAdminSection>();
+		public List<PageAdminSection> PageAdminSections
 		{
-			private string label = String.Empty;
+			get { return pageAdminSections; }
+		}
+
+		public class PageAdminSection : IPropertyEvaluatorExpression
+		{
+			private string label = String.Empty, hint = String.Empty, inSection = null;
 			private IContentNodeType defaultContentNode = null;
 			private bool allowDeleteDefaultNode = false;
 			private int? maxAdditionalContentNodes = null;
@@ -188,6 +295,51 @@ namespace Sprocket.Web.CMS.Content
 			{
 				get { return label; }
 				internal set { label = value; }
+			}
+
+			public string Hint
+			{
+				get { return hint; }
+				internal set { hint = value; }
+			}
+
+			public string InSection
+			{
+				get { return inSection; }
+				internal set { inSection = value; }
+			}
+
+			public bool IsValidPropertyName(string propertyName)
+			{
+				switch (propertyName)
+				{
+					case "label":
+					case "hint":
+						return true;
+				}
+				return false;
+			}
+
+			public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+			{
+				switch (propertyName)
+				{
+					case "label":
+						return Label;
+					case "hint":
+						return Hint;
+				}
+				throw new InstructionExecutionException("\"" + propertyName + "\" is not a valid property for this object", token);
+			}
+
+			public object Evaluate(ExecutionState state, Token contextToken)
+			{
+				return "PageAdminSection: " + label;
+			}
+
+			private string RenderUI()
+			{
+				return "ui";
 			}
 		}
 	}
@@ -240,9 +392,7 @@ namespace Sprocket.Web.CMS.Content
 					text = body.InnerText;
 				script = new SprocketScript(text, "Template: " + name, "Template: " + name);
 			}
-			XmlElement adminxml = xml.SelectSingleNode("Admin") as XmlElement;
-			if (adminxml != null)
-				ReadAdminXml(adminxml);
+			ReadPageAdminSections(xml);
 		}
 
 		public override bool IsOutOfDate
@@ -296,9 +446,7 @@ namespace Sprocket.Web.CMS.Content
 					throw new Exception("Error building subpage template. There is more than one replacement defined for section \"" + replacement.Name + "\"");
 				replacedSections.Add(replacement.Name, replacement);
 			}
-			XmlElement adminxml = xml.SelectSingleNode("Admin") as XmlElement;
-			if (adminxml != null)
-				ReadAdminXml(adminxml);
+			ReadPageAdminSections(xml);
 		}
 
 		public override bool IsOutOfDate
@@ -352,7 +500,13 @@ namespace Sprocket.Web.CMS.Content
 		private SprocketScript script = null;
 		private DateTime fileDate = DateTime.MinValue;
 		private string filePath = null;
-		Guid guid = Guid.NewGuid();
+		private Guid guid = Guid.NewGuid();
+		private List<Template.PageAdminSection> pageAdminSections = new List<Template.PageAdminSection>();
+
+		public List<Template.PageAdminSection> PageAdminSections
+		{
+			get { return pageAdminSections; }
+		}
 
 		public TemplateSectionReplacement(XmlElement xml)
 		{
@@ -369,10 +523,17 @@ namespace Sprocket.Web.CMS.Content
 					script = new SprocketScript(File.ReadAllText(filePath), "Template Section Replacement: " + sectionName, guid.ToString());
 				}
 			}
-			//else if (xml.HasAttribute("Template"))
-			//    templateName = xml.GetAttribute("Template");
 			else
-				script = new SprocketScript(xml.InnerText, "Template Section Replacement: " + sectionName, guid.ToString());
+			{
+				XmlElement inner = xml.SelectSingleNode("Body") as XmlElement;
+				script = new SprocketScript(inner == null ?
+					"[Template replacement for section \"" + sectionName + "\" must specify a File attribute or Body child element"
+					: inner.InnerText, "Template Section Replacement: " + sectionName, guid.ToString());
+			}
+
+			XmlNodeList cfnodes = xml.SelectNodes("PageAdminSections/PageAdminSection");
+			foreach (XmlElement cfnode in cfnodes)
+				pageAdminSections.Add(Template.ReadPageAdminSectionXml(cfnode));
 		}
 
 		public string Name
