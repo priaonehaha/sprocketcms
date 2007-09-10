@@ -1,0 +1,24 @@
+		#region Expression Methods
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return "[[classname]: " + [classidfield] + "]";
+		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch(propertyName)
+			{
+				[evaluateproperty_casestatements2]	return true;
+				default:
+					return false;
+			}
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch(propertyName)
+			{
+				[evaluateproperty_casestatements]default: return null;
+			}
+		}
+		#endregion

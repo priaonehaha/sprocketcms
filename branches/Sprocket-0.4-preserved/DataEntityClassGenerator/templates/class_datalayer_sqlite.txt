@@ -1,0 +1,96 @@
+		public SQLiteParameter NewParameter(string name, object value, DbType dbType)
+		{
+			SQLiteParameter prm = new SQLiteParameter(name, value);
+			prm.DbType = dbType;
+			if(prm.Value == null) prm.Value = DBNull.Value;
+			return prm;
+		}
+		
+		#region Members for [classname]
+
+		public Result Store([classname] [lesserclassname])
+		{
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection conn = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = new SQLiteCommand(procs["Store [classname]"], conn);
+					if([lesserclassname].[primarykey] == 0)
+						[lesserclassname].[primarykey] = DatabaseManager.GetUniqueID();
+					cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", [lesserclassname].[primarykey]));
+					[commandparameters]
+					cmd.ExecuteNonQuery();
+					scope.Complete();
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Result(ex.Message);
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+			return new Result();
+		}
+		
+		public event InterruptableEventHandler<[classname]> OnBeforeDelete[classname];
+		public event NotificationEventHandler<[classname]> On[classname]Deleted;
+		public Result Delete([classname] [lesserclassname])
+		{
+			Result result = new Result();
+			if (OnBeforeDelete[classname] != null)
+				OnBeforeDelete[classname]([lesserclassname], result);
+			SQLiteConnection conn = null;
+			if (result.Succeeded)
+			{
+				try
+				{
+					using (TransactionScope scope = new TransactionScope())
+					{
+						conn = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+						SQLiteCommand cmd = new SQLiteCommand("[classname]_Delete", conn);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", [lesserclassname].[primarykey]));
+						cmd.ExecuteNonQuery();
+						scope.Complete();
+					}
+				}
+				catch (Exception ex)
+				{
+					return new Result(ex.Message);
+				}
+				finally
+				{
+					DatabaseManager.DatabaseEngine.ReleaseConnection(conn);
+				}
+				if (On[classname]Deleted != null)
+					On[classname]Deleted([lesserclassname]);
+			}
+			return result;
+		}
+
+		public [classname] Select[classname]([classidfieldtype] id)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SQLiteCommand cmd = new SQLiteCommand("[classname]_Select", conn);
+					cmd.CommandType = CommandType.StoredProcedure;
+					cmd.Parameters.Add(new SQLiteParameter("@[primarykey]", id));
+					SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					[classname] entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new [classname](reader);
+					reader.Close();
+					return entity;
+				}
+			}
+		}
+
+		#endregion

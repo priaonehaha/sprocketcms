@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+       "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <title>Sprocket Overview</title>
+  <style>
+    h1 { font-family: "Lucida Grande", verdana, arial, helvetica, sans-serif; font-size: 22px; font-weight: bold; }
+  div.writeboardbody { font-family: "Lucida Grande", verdana, arial, helvetica, sans-serif; font-size: 14px; line-height: 19px; color: #000; }
+  div.writeboardbody h1 { font-size: 130%; }
+  div.writeboardbody h2 { font-size: 100%; }
+  div.writeboardbody h3 { font-size: 100%; }
+  </style>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h1>Sprocket Overview</h1>
+
+<div class="writeboardbody">
+  <p>Sprocket is, at the most basic level, a pluggable framework. This means that it provides an abstract interface that is used for plugging functional components together and allowing them to provide their own mechanisms by which other components (modules) can access their functionality independently. A well-designed Sprocket module will provide events at every relevant point where it is conceivable that another module may want to interrupt, cancel or alter the process underway. It should provide a means of letting modules plugged into those events provide feedback (if relevant) so that those modules can say &#8220;stop performing this process&#8221; or &#8220;keep performing the process, but take into account some new information&#8221;. In some cases the process will want to go ahead unchanged but we still need to notify other modules that some event has occurred or is about to occur so that those modules have the opportunity to respond accordingly.</p>
+
+
+The order of operation for initialisation of a Sprocket application is:
+	<ol>
+	<li>Search the directory (and subdirectories) where assemblies (DLLs) are located and interrogate any assemblies for classes that define Sprocket modules.</li>
+		<li>Load discovered modules into a central registry of modules which will stay resident in memory for use as required.</li>
+		<li>Check to see if any of the modules are dependent on other modules that don&#8217;t exist. If modules with missing dependencies are found, they are unregistered so that the application doesn&#8217;t break.</li>
+		<li>Provide each module with a reference to the module registry so that they can go through and attach any event handlers to relevant modules that they want to hook into. Essentially, allow the modules to wire themselves together.</li>
+		<li>With all event handlers having been configured, allow each module to perform any initial processing to make sure that their environment is ready for operation. (e.g. creating directories they need, setting up database schemas, etc)</li>
+		<li>Now that we have a complete wired-together &#8220;machine&#8221; ready for operation, control can be passed back to whatever custom mechanism has been created to utilise the framework.</li>
+	</ol>
+
+
+	<p>It should be noted that the web application aspect of Sprocket is simply a module (or set of modules) that plug into the <span class="caps">ASP</span>.Net pipeline, perform some utility tasks to simplify processing of web requests and then pipe those web requests to any appropriate modules that want to handle them.</p>
+</div>
+
+</body>
+</html>
