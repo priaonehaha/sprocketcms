@@ -62,6 +62,12 @@
     <Compile Include="Web.CMS\Content\ContentManager.cs" />
     <Compile Include="Web.CMS\Content\ContentAdmin.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\ContentNodeExpression.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\ContentNode.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\PageAdminSection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Web.CMS\Content\ContentNodes\PageAdminSectionDefinition.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\TextBoxContentNode.cs" />
     <Compile Include="Web.CMS\Content\Database\IContentDataProvider.cs" />
     <Compile Include="Web.CMS\Content\Database\SQLite\SQLiteContentDataProvider.cs" />
     <Compile Include="Web.CMS\Content\Entities\Page.cs" />

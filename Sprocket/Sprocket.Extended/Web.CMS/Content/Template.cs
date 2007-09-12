@@ -107,9 +107,10 @@ namespace Sprocket.Web.CMS.Content
 				pageAdminSections.Add(ReadPageAdminSectionXml(cfxml));
 		}
 
-		internal static PageAdminSection ReadPageAdminSectionXml(XmlElement cfxml)
+		internal static PageAdminSectionDefinition ReadPageAdminSectionXml(XmlElement cfxml)
 		{
-			PageAdminSection cf = new PageAdminSection();
+			PageAdminSectionDefinition cf = new PageAdminSectionDefinition();
+			cf.FieldName = cfxml.GetAttribute("Name");
 
 			XmlElement e = cfxml.SelectSingleNode("Label") as XmlElement;
 			cf.Label = e == null ? null : e.InnerText == "" ? null : e.InnerText;
@@ -159,7 +160,7 @@ namespace Sprocket.Web.CMS.Content
 			return cf;
 		}
 
-		public List<PageAdminSection> GetPageAdminSections()
+		public List<PageAdminSectionDefinition> GetPageAdminSections()
 		{
 			List<Template> descendentlist = new List<Template>();
 			Template add = this;
@@ -177,9 +178,9 @@ namespace Sprocket.Web.CMS.Content
 				throw new Exception("Can't load page admin sections. The template hierarchy doesn't end with a master template.");
 
 			// the final list of page admin sections in the correct order:
-			List<PageAdminSection> list = new List<PageAdminSection>();
+			List<PageAdminSectionDefinition> list = new List<PageAdminSectionDefinition>();
 			// maps page admin sections to the template section that they specify they appear in (if any) so that they can be overridden in subtemplates:
-			Dictionary<string, List<PageAdminSection>> sectionmap = new Dictionary<string, List<PageAdminSection>>();
+			Dictionary<string, List<PageAdminSectionDefinition>> sectionmap = new Dictionary<string, List<PageAdminSectionDefinition>>();
 
 			// start from the master template and starting building the final page admin section list
 			for (int i = descendentlist.Count - 1; i >= 0; i--)
@@ -190,7 +191,7 @@ namespace Sprocket.Web.CMS.Content
 					// go through each replaced section in the template and extract the page admin sections for that replacement
 					foreach (TemplateSectionReplacement rep in ((SubTemplate)descendentlist[i]).ReplacedSections.Values)
 					{
-						List<PageAdminSection> repseclist;
+						List<PageAdminSectionDefinition> repseclist;
 						int index = list.Count; // where to insert the new list of page admin sections
 						if (sectionmap.TryGetValue(rep.Name, out repseclist))
 							if (repseclist.Count > 0)
@@ -201,7 +202,7 @@ namespace Sprocket.Web.CMS.Content
 									index = list.Count;
 
 								// remove the to-be-replaced admin sections from the final list
-								foreach (PageAdminSection sect in repseclist)
+								foreach (PageAdminSectionDefinition sect in repseclist)
 									list.Remove(sect);
 
 								// remove the items from the sectionmap now that they're not relevant or needed
@@ -211,13 +212,13 @@ namespace Sprocket.Web.CMS.Content
 								list.InsertRange(index, rep.PageAdminSections);
 
 								// go through each section in the new inserts and add them to the map where relevant
-								foreach (PageAdminSection sect in rep.PageAdminSections)
+								foreach (PageAdminSectionDefinition sect in rep.PageAdminSections)
 									if (sect.InSection != null)
 									{
-										List<PageAdminSection> sectlist;
+										List<PageAdminSectionDefinition> sectlist;
 										if (!sectionmap.TryGetValue(sect.InSection, out sectlist))
 										{
-											sectlist = new List<PageAdminSection>();
+											sectlist = new List<PageAdminSectionDefinition>();
 											sectionmap.Add(sect.InSection, sectlist);
 										}
 										sectlist.Add(sect);
@@ -227,17 +228,17 @@ namespace Sprocket.Web.CMS.Content
 				}
 
 				// insert the standard page admin sections into the final list
-				foreach (PageAdminSection section in descendentlist[i].PageAdminSections)
+				foreach (PageAdminSectionDefinition section in descendentlist[i].PageAdminSections)
 				{
 					list.Add(section);
 
 					// if the new section is specified as "InSection", make a record of that
 					if (section.InSection != null)
 					{
-						List<PageAdminSection> sectlist;
+						List<PageAdminSectionDefinition> sectlist;
 						if (!sectionmap.TryGetValue(section.InSection, out sectlist))
 						{
-							sectlist = new List<PageAdminSection>();
+							sectlist = new List<PageAdminSectionDefinition>();
 							sectionmap.Add(section.InSection, sectlist);
 						}
 						sectlist.Add(section);
@@ -248,99 +249,10 @@ namespace Sprocket.Web.CMS.Content
 			return list;
 		}
 
-		private List<PageAdminSection> pageAdminSections = new List<PageAdminSection>();
-		public List<PageAdminSection> PageAdminSections
+		private List<PageAdminSectionDefinition> pageAdminSections = new List<PageAdminSectionDefinition>();
+		public List<PageAdminSectionDefinition> PageAdminSections
 		{
 			get { return pageAdminSections; }
-		}
-
-		public class PageAdminSection : IPropertyEvaluatorExpression
-		{
-			private string label = String.Empty, hint = String.Empty, inSection = null;
-			private IContentNodeType defaultContentNode = null;
-			private bool allowDeleteDefaultNode = false;
-			private int? maxAdditionalContentNodes = null;
-			private List<IContentNodeType> allowableNodeTypes = new List<IContentNodeType>();
-
-			/// <summary>
-			/// If this list is empty, any kind of node can be added to the page.
-			/// If MaxAdditionalContentNodes > 0 or is null and this list has one or more items, only items of those types can be added.
-			/// If MaxAdditionalContentNodes = 0 OR (AllowableContentNodes is omitted and there is a default node type specified),
-			///		new content nodes can't be added to this field on the page.
-			/// </summary>
-			public List<IContentNodeType> AllowableNodeTypes
-			{
-				get { return allowableNodeTypes; }
-			}
-
-			public int? MaxAdditionalContentNodes
-			{
-				get { return maxAdditionalContentNodes; }
-				internal set { maxAdditionalContentNodes = value; }
-			}
-
-			public bool AllowDeleteDefaultNode
-			{
-				get { return allowDeleteDefaultNode; }
-				internal set { allowDeleteDefaultNode = value; }
-			}
-
-			public IContentNodeType DefaultContentNode
-			{
-				get { return defaultContentNode; }
-				internal set { defaultContentNode = value; }
-			}
-
-			public string Label
-			{
-				get { return label; }
-				internal set { label = value; }
-			}
-
-			public string Hint
-			{
-				get { return hint; }
-				internal set { hint = value; }
-			}
-
-			public string InSection
-			{
-				get { return inSection; }
-				internal set { inSection = value; }
-			}
-
-			public bool IsValidPropertyName(string propertyName)
-			{
-				switch (propertyName)
-				{
-					case "label":
-					case "hint":
-						return true;
-				}
-				return false;
-			}
-
-			public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
-			{
-				switch (propertyName)
-				{
-					case "label":
-						return Label;
-					case "hint":
-						return Hint;
-				}
-				throw new InstructionExecutionException("\"" + propertyName + "\" is not a valid property for this object", token);
-			}
-
-			public object Evaluate(ExecutionState state, Token contextToken)
-			{
-				return "PageAdminSection: " + label;
-			}
-
-			private string RenderUI()
-			{
-				return "ui";
-			}
 		}
 	}
 
@@ -501,9 +413,9 @@ namespace Sprocket.Web.CMS.Content
 		private DateTime fileDate = DateTime.MinValue;
 		private string filePath = null;
 		private Guid guid = Guid.NewGuid();
-		private List<Template.PageAdminSection> pageAdminSections = new List<Template.PageAdminSection>();
+		private List<PageAdminSectionDefinition> pageAdminSections = new List<PageAdminSectionDefinition>();
 
-		public List<Template.PageAdminSection> PageAdminSections
+		public List<PageAdminSectionDefinition> PageAdminSections
 		{
 			get { return pageAdminSections; }
 		}
