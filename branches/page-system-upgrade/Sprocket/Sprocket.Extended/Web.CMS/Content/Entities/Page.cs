@@ -329,7 +329,7 @@ namespace Sprocket.Web.CMS.Content
 			return result;
 		}
 
-		public Dictionary<string, List<ContentNode>> LoadContentNodes()
+		public List<PageAdminSection> LoadContentNodes()
 		{
 			Dictionary<string, List<ContentNode>> nodes = ContentManager.Instance.DataProvider.ListContentNodesForPage(revisionID);
 			Dictionary<string, List<ContentNode>> nodesByFieldName = new Dictionary<string, List<ContentNode>>();
@@ -345,6 +345,8 @@ namespace Sprocket.Web.CMS.Content
 					}
 					fieldnodes.Add(node);
 				}
+				// seeing as each iteration in this loop identifies the full set of nodes for a single content node type,
+				// get the database interface for that node type and load the data for all the nodes of that type.
 				IContentNodeDatabaseInterface dbi = ContentManager.GetNodeTypeDatabaseInterface(list.Key);
 				if (dbi == null) continue;
 				dbi.LoadNodeData(list.Value);
@@ -353,10 +355,40 @@ namespace Sprocket.Web.CMS.Content
 			foreach (List<ContentNode> list in nodesByFieldName.Values)
 				list.Sort();
 
-			/* the next step is to store nodesByFieldName as a property of this class and then when the
-			 * admin for the page is displayed, each content field in the template admin definition should
-			 * be compared against nodesByFieldName to get the existing data. */
-			return nodesByFieldName;
+			List<PageAdminSection> final = new List<PageAdminSection>();
+			Template t = ContentManager.Templates[TemplateName];
+			if (t == null)
+				return final;
+
+			// combine t.GetPageAdminSections() with nodesByFieldName
+			PageAdminSection pas = new PageAdminSection();
+			foreach (PageAdminSectionDefinition def in t.PageAdminSections)
+			{
+				PageAdminSection section = new PageAdminSection();
+				List<ContentNode> list = nodesByFieldName[def.FieldName] as List<ContentNode>;
+				section.SectionDefinition = def;
+				section.NodeList = new List<ContentNode>();
+
+				// if there is a default node, try to find it in the list and add it, removing it from the old list.
+				// if it's not there and the default node is non-delete, create a new blank one.
+				if (def.DefaultContentNode != null)
+				{
+					/* STOP!!
+					 * ARCHIVE THIS CODE INTO A COMMENTED OUT REGION AND CHANGE THE CODE:
+					 * - THE NUMBER OF NODES IN AN ADMIN FIELD IS DEFINED EXACTLY IN THE XML
+					 * - THERE IS NO REASON FOR THE USER TO ADD EXTRA FIELD TYPES TO A SINGLE LOCATION (OVERLY COMPLEX)
+					 * - AS SUCH, THERE IS NO "DEFAULT" NODE TYPE, JUST A SEQUENTIAL SET OF NODES FOR A FIELD PREDEFINED IN THE XML
+					 * - IF MORE FLEXIBILITY BECOMES AN ISSUE LATER, WORRY ABOUT THAT THEN, BUT IT LIKELY WON'T BE AN ISSUE.
+					 */
+					
+					ContentNode node = null;
+					foreach(ContentNode listnode in list)
+						if (listnode.Type.TypeName == def.DefaultContentNode.TypeName)
+						{ }
+				}
+			}
+
+			return final;
 		}
 	}
 }
