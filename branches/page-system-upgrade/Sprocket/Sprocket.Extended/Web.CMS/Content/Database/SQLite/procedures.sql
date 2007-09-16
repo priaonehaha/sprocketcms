@@ -67,3 +67,20 @@ INNER JOIN RevisionInformation r
 	  FROM ContentNode
 	 WHERE PageRevisionID = @PageRevisionID
   ORDER BY NodeTypeIdentifier
+
+-----------------
+-- EDIT FIELDS --
+-----------------
+
+--# List EditFields For Page Revision
+	SELECT *
+	  FROM EditFieldInfo
+	 WHERE PageRevisionID = @PageRevisionID
+  ORDER BY EditFieldTypeIdentifier
+
+--# Store EditFieldInfo
+INSERT OR REPLACE INTO EditFieldInfo (PageRevisionID, EditFieldID, EditFieldTypeIdentifier, SectionName, FieldName, Rank)
+VALUES (@PageRevisionID, @EditFieldID, @EditFieldTypeIdentifier, @SectionName, @FieldName, @Rank);
+
+--# Store EditField_TextBox
+INSERT OR REPLACE INTO EditField_TextBox (EditFieldID, Value) VALUES (@EditFieldID, @Value);

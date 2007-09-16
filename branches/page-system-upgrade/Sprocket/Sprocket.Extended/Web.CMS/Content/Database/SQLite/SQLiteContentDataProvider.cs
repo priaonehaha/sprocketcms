@@ -169,31 +169,131 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				}
 			}
 		}
-		public Dictionary<string, List<ContentNode>> ListContentNodesForPage(long pageRevisionID)
+		public Dictionary<string, List<EditFieldInfo>> ListPageEditFieldsByFieldType(long pageRevisionID)
 		{
 			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
 				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 				{
 					conn.Open();
-					SQLiteCommand cmd = new SQLiteCommand(Procedures["List Pages"], conn);
+					SQLiteCommand cmd = new SQLiteCommand(Procedures["List EditFields For Page Revision"], conn);
+					cmd.Parameters.Add(NewParameter("@PageRevisionID", pageRevisionID, DbType.Int64));
 					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
 					{
 						// group all of the nodes according to type so that they can have their individual type's id list loaded
-						Dictionary<string, List<ContentNode>> map = new Dictionary<string, List<ContentNode>>();
+						Dictionary<string, List<EditFieldInfo>> map = new Dictionary<string, List<EditFieldInfo>>();
 						while (reader.Read())
 						{
-							ContentNode node = new ContentNode(reader);
-							List<ContentNode> list;
-							if (!map.TryGetValue(node.FieldName, out list))
+							EditFieldInfo field = new EditFieldInfo();
+							if (!field.Read(reader))
+								continue;
+
+							List<EditFieldInfo> list;
+							if (!map.TryGetValue(field.Handler.TypeName, out list))
 							{
-								list = new List<ContentNode>();
-								map.Add(node.FieldName, list);
+								list = new List<EditFieldInfo>();
+								map.Add(field.Handler.TypeName, list);
 							}
-							list.Add(node);
+							list.Add(field);
 						}
 						reader.Close();
 						return map;
+					}
+				}
+			}
+		}
+
+		public Result StoreEditFieldInfo(long pageRevisionID, EditFieldInfo info)
+		{
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					if (info.Data != null && info.DataID == 0)
+						info.DataID = DatabaseManager.GetUniqueID();
+
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.CommandText = Procedures["Store EditFieldInfo"];
+					cmd.Connection = connection;
+					cmd.Parameters.Add(NewParameter("@PageRevisionID", pageRevisionID, DbType.Int64));
+					cmd.Parameters.Add(NewParameter("@EditFieldID", info.DataID, DbType.Int64));
+					cmd.Parameters.Add(NewParameter("@EditFieldTypeIdentifier", info.Handler.TypeName, DbType.String));
+					cmd.Parameters.Add(NewParameter("@SectionName", info.SectionName, DbType.String));
+					cmd.Parameters.Add(NewParameter("@FieldName", info.FieldName, DbType.String));
+					cmd.Parameters.Add(NewParameter("@Rank", info.Rank, DbType.Int64));
+					cmd.ExecuteNonQuery();
+					scope.Complete();
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Result("SQLiteContentDataProvider.StoreEditFieldInfo: " + ex.Message);
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+			return new Result();
+		}
+
+		public Result StoreEditField_TextBox(long dataID, string text)
+		{
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.CommandText = Procedures["Store EditField_TextBox"];
+					cmd.Connection = connection;
+					cmd.Parameters.Add(NewParameter("@EditFieldID", dataID, DbType.Int64));
+					cmd.Parameters.Add(NewParameter("@Value", text, DbType.String));
+					cmd.ExecuteNonQuery();
+					scope.Complete();
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Result("SQLiteContentDataProvider.StoreEditField_TextBox: " + ex.Message);
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+			return new Result();
+		}
+		public void LoadDataList_TextBox(List<EditFieldInfo> fields)
+		{
+			if (fields.Count == 0)
+				return;
+
+			StringBuilder ids = new StringBuilder();
+			Dictionary<long, EditFieldInfo> map = new Dictionary<long, EditFieldInfo>();
+			foreach(EditFieldInfo info in fields)
+				if (info.DataID > 0)
+				{
+					map.Add(info.DataID, info);
+					if (ids.Length > 0)
+						ids.Append(",");
+					ids.Append(info.DataID);
+				}
+
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SQLiteCommand cmd = new SQLiteCommand("SELECT * FROM EditField_TextBox WHERE EditFieldID IN (" + ids + ")", conn);
+					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
+					{
+						while (reader.Read())
+						{
+							TextBoxEditField.TextBoxData data = new TextBoxEditField.TextBoxData();
+							data.Text = reader["Value"].ToString();
+							map[Convert.ToInt64(reader["EditFieldID"])].Data = data;
+						}
+						reader.Close();
 					}
 				}
 			}

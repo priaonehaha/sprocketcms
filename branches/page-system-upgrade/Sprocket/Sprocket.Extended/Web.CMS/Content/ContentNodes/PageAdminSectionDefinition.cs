@@ -8,44 +8,24 @@ using Sprocket.Web.CMS.Script;
 
 namespace Sprocket.Web.CMS.Content
 {
+	/// <summary>
+	/// Defines the arrangement of a labelled editable area for a page in edit mode.
+	/// No page-specific data is held by the class; the fields provided are not for
+	/// any purpose other than defining the editable field arrangement for a specific
+	/// section in a specific template.
+	/// </summary>
 	public class PageAdminSectionDefinition : IPropertyEvaluatorExpression
 	{
 		private string name = String.Empty, label = String.Empty, hint = String.Empty, inSection = null;
-		private IContentNodeType defaultContentNode = null;
-		private bool allowDeleteDefaultNode = false;
-		private int? maxAdditionalContentNodes = null;
-		private List<IContentNodeType> allowableNodeTypes = new List<IContentNodeType>();
+		private List<IEditFieldHandler> editFieldHandlers = new List<IEditFieldHandler>();
 
-		/// <summary>
-		/// If this list is empty, any kind of node can be added to the page.
-		/// If MaxAdditionalContentNodes > 0 or is null and this list has one or more items, only items of those types can be added.
-		/// If MaxAdditionalContentNodes = 0 OR (AllowableContentNodes is omitted and there is a default node type specified),
-		///		new content nodes can't be added to this field on the page.
-		/// </summary>
-		public List<IContentNodeType> AllowableNodeTypes
+		public List<IEditFieldHandler> EditFieldHandlers
 		{
-			get { return allowableNodeTypes; }
+			get { return editFieldHandlers; }
+			internal set { editFieldHandlers = value; }
 		}
 
-		public int? MaxAdditionalContentNodes
-		{
-			get { return maxAdditionalContentNodes; }
-			internal set { maxAdditionalContentNodes = value; }
-		}
-
-		public bool AllowDeleteDefaultNode
-		{
-			get { return allowDeleteDefaultNode; }
-			internal set { allowDeleteDefaultNode = value; }
-		}
-
-		public IContentNodeType DefaultContentNode
-		{
-			get { return defaultContentNode; }
-			internal set { defaultContentNode = value; }
-		}
-
-		public string FieldName
+		public string SectionName
 		{
 			get { return name; }
 			internal set { name = value; }

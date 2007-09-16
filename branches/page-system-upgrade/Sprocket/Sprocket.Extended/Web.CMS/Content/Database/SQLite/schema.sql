@@ -38,19 +38,20 @@ CREATE TABLE IF NOT EXISTS Page
 	PRIMARY KEY (PageID, RevisionID)
 );
 
-CREATE TABLE IF NOT EXISTS ContentNode
+CREATE TABLE IF NOT EXISTS EditFieldInfo -- links a page revision to its edit fields and data and specifies the order in which they appear
 (
 	PageRevisionID INTEGER,
-	ContentNodeID INTEGER NOT NULL, -- FK to ContentNode_XXX where XXX = NodeTypeIdentifier
-	NodeTypeIdentifier TEXT NOT NULL, -- e.g. 'TextBox'
-	Name TEXT NOT NULL, -- identifies the content field in which the node appears
+	EditFieldID INTEGER NOT NULL, -- FK to EditField_XXX where XXX = EditFieldTypeIdentifier
+	EditFieldTypeIdentifier TEXT NOT NULL, -- e.g. 'TextBox'
+	SectionName TEXT NOT NULL, -- identifies the content field in which the node appears
+	FieldName TEXT NOT NULL,
 	Rank INTEGER NOT NULL,
-	PRIMARY KEY (PageRevisionID, ContentNodeID, NodeTypeIdentifier)
+	PRIMARY KEY (PageRevisionID, EditFieldID, EditFieldTypeIdentifier)
 );
 
-CREATE TABLE IF NOT EXISTS ContentNode_TextBox
+CREATE TABLE IF NOT EXISTS EditField_TextBox
 (
-	ContentNodeID INTEGER PRIMARY KEY,
+	EditFieldID INTEGER PRIMARY KEY,
 	Value TEXT NOT NULL
 );
 

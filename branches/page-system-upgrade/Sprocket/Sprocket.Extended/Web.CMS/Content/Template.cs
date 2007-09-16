@@ -27,7 +27,7 @@ namespace Sprocket.Web.CMS.Content
 			{
 				case "name":
 				case "type":
-				case "content_fields":
+				case "page_admin_sections":
 				case "source":
 					return true;
 				default: return false;
@@ -40,7 +40,7 @@ namespace Sprocket.Web.CMS.Content
 			{
 				case "name": return name;
 				case "type": return GetType().Name;
-				case "content_fields": return pageAdminSections;
+				case "page_admin_sections": return pageAdminSections;
 				case "source":
 					if (this is MasterTemplate)
 					{
@@ -109,55 +109,35 @@ namespace Sprocket.Web.CMS.Content
 
 		internal static PageAdminSectionDefinition ReadPageAdminSectionXml(XmlElement cfxml)
 		{
-			PageAdminSectionDefinition cf = new PageAdminSectionDefinition();
-			cf.FieldName = cfxml.GetAttribute("Name");
+			PageAdminSectionDefinition def = new PageAdminSectionDefinition();
+			def.SectionName = cfxml.GetAttribute("Name");
 
 			XmlElement e = cfxml.SelectSingleNode("Label") as XmlElement;
-			cf.Label = e == null ? null : e.InnerText == "" ? null : e.InnerText;
+			def.Label = e == null ? null : e.InnerText == "" ? null : e.InnerText;
 
 			e = cfxml.SelectSingleNode("Hint") as XmlElement;
-			cf.Hint = e == null ? null : e.InnerText == "" ? null : e.InnerText;
+			def.Hint = e == null ? null : e.InnerText == "" ? null : e.InnerText;
 
 			if (cfxml.HasAttribute("InSection"))
 			{
 				string inSection = cfxml.GetAttribute("InSection");
 				if (inSection != null && inSection != String.Empty)
-					cf.InSection = inSection;
+					def.InSection = inSection;
 			}
 
-			e = cfxml.SelectSingleNode("DefaultContentType") as XmlElement;
-			if (e != null)
+			XmlNodeList efnodes = cfxml.SelectNodes("EditFields/*");
+			foreach (XmlElement xml in efnodes)
 			{
-				XmlElement def = e.SelectSingleNode("*") as XmlElement;
-				if (def != null)
+				IEditFieldObjectCreator creator = ContentManager.GetEditFieldObjectCreator(xml.Name);
+				if (creator != null)
 				{
-					cf.AllowDeleteDefaultNode = StringUtilities.BoolFromString(e.GetAttribute("AllowDelete"));
-					cf.DefaultContentNode = ContentManager.GetNodeType(def.Name);
-					cf.DefaultContentNode.Initialise(def);
+					IEditFieldHandler handler = creator.CreateHandler();
+					handler.Initialise(xml);
+					def.EditFieldHandlers.Add(handler);
 				}
 			}
 
-			e = cfxml.SelectSingleNode("AllowableNodeTypes") as XmlElement;
-			if (e != null)
-			{
-				if (e.HasAttribute("Maximum"))
-				{
-					int max;
-					if (int.TryParse(e.GetAttribute("Maximum"), out max))
-						cf.MaxAdditionalContentNodes = max;
-				}
-
-				foreach (XmlElement x in e.SelectNodes("*"))
-				{
-					IContentNodeType cnt = ContentManager.GetNodeType(x.Name);
-					if (cnt != null)
-					{
-						cnt.Initialise(x);
-						cf.AllowableNodeTypes.Add(cnt);
-					}
-				}
-			}
-			return cf;
+			return def;
 		}
 
 		public List<PageAdminSectionDefinition> GetPageAdminSections()
