@@ -61,18 +61,18 @@
     <Compile Include="Web.CMS\Admin\Interfaces.cs" />
     <Compile Include="Web.CMS\Content\ContentManager.cs" />
     <Compile Include="Web.CMS\Content\ContentAdmin.cs" />
-    <Compile Include="Web.CMS\Content\ContentNodes\ContentNodeExpression.cs" />
-    <Compile Include="Web.CMS\Content\ContentNodes\ContentNode.cs" />
-    <Compile Include="Web.CMS\Content\ContentNodes\PageAdminSection.cs">
+    <Compile Include="Web.CMS\Content\ContentNodes\EditFieldExpression.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\EditFieldInfo.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\PreparedPageAdminSection.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Web.CMS\Content\ContentNodes\PageAdminSectionDefinition.cs" />
-    <Compile Include="Web.CMS\Content\ContentNodes\TextBoxContentNode.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\TextBoxEditField.cs" />
     <Compile Include="Web.CMS\Content\Database\IContentDataProvider.cs" />
     <Compile Include="Web.CMS\Content\Database\SQLite\SQLiteContentDataProvider.cs" />
     <Compile Include="Web.CMS\Content\Entities\Page.cs" />
     <Compile Include="Web.CMS\Content\Entities\RevisionInformation.cs" />
-    <Compile Include="Web.CMS\Content\ContentNodes\IContentNodeType.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\IEditFieldHandler.cs" />
     <Compile Include="Web.CMS\Content\PageEntry.cs" />
     <Compile Include="Web.CMS\Content\PageRegistry.cs" />
     <Compile Include="Web.CMS\Content\PagesAdminMenuItem.cs" />

@@ -65,7 +65,7 @@ namespace Sprocket
 		{
 			if (result.succeeded) return;
 			succeeded = false;
-			this.message += Environment.NewLine + message;
+			this.message += Environment.NewLine + result.Message;
 		}
 
 		public virtual void WriteJSON(System.IO.StringWriter writer)

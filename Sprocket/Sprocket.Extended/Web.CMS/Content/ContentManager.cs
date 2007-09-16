@@ -37,7 +37,7 @@ namespace Sprocket.Web.CMS.Content
 			public PageRegistry Pages = null;
 			public Stack<PageEntry> PageStack = new Stack<PageEntry>();
 			public Dictionary<string, List<PagePreprocessorHandler>> PagePreProcessors = new Dictionary<string,List<PagePreprocessorHandler>>();
-			public Dictionary<string, IContentNodeTypeCreator> ContentNodeTypes = new Dictionary<string, IContentNodeTypeCreator>();
+			public Dictionary<string, IEditFieldObjectCreator> EditFieldTypes = new Dictionary<string, IEditFieldObjectCreator>();
 		}
 		
 		private StateValues stateValues = new StateValues();
@@ -46,18 +46,11 @@ namespace Sprocket.Web.CMS.Content
 			get { return Instance.stateValues; }
 		}
 
-		public static IContentNodeType GetNodeType(string nodeTypeName)
+		public static IEditFieldObjectCreator GetEditFieldObjectCreator(string editFieldTypeName)
 		{
-			IContentNodeTypeCreator t = null;
-			Instance.stateValues.ContentNodeTypes.TryGetValue(nodeTypeName, out t);
-			return t == null ? null : t.Create();
-		}
-
-		public static IContentNodeDatabaseInterface GetNodeTypeDatabaseInterface(string nodeTypeName)
-		{
-			IContentNodeTypeCreator t = null;
-			Instance.stateValues.ContentNodeTypes.TryGetValue(nodeTypeName, out t);
-			return t == null ? null : t.CreateDatabaseInterface();
+			IEditFieldObjectCreator t = null;
+			Instance.stateValues.EditFieldTypes.TryGetValue(editFieldTypeName, out t);
+			return t;
 		}
 
 		public static void AddPagePreprocessor(string pageCode, PagePreprocessorHandler method)
@@ -154,12 +147,12 @@ namespace Sprocket.Web.CMS.Content
 		void Core_OnInitialise(Dictionary<Type, List<Type>> interfaceImplementations)
 		{
 			List<Type> list;
-			interfaceImplementations.TryGetValue(typeof(IContentNodeTypeCreator), out list);
+			interfaceImplementations.TryGetValue(typeof(IEditFieldObjectCreator), out list);
 			if (list != null)
 				foreach (Type t in list)
 				{
-					IContentNodeTypeCreator cntc = (IContentNodeTypeCreator)Activator.CreateInstance(t);
-					Values.ContentNodeTypes.Add(cntc.Identifier, cntc);
+					IEditFieldObjectCreator cntc = (IEditFieldObjectCreator)Activator.CreateInstance(t);
+					Values.EditFieldTypes.Add(cntc.Identifier, cntc);
 				}
 		}
 

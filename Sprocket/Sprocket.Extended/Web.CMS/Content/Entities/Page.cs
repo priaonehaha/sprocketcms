@@ -233,6 +233,7 @@ namespace Sprocket.Web.CMS.Content
 				case "requestable":
 				case "requestpath":
 				case "contenttype":
+				case "adminsectionlist":
 					return true;
 				default:
 					return false;
@@ -252,6 +253,7 @@ namespace Sprocket.Web.CMS.Content
 				case "requestable": return Requestable;
 				case "requestpath": return RequestPath;
 				case "contenttype": return ContentType;
+				case "adminsectionlist": return AdminSectionList;
 				default: return null;
 			}
 		}
@@ -329,66 +331,91 @@ namespace Sprocket.Web.CMS.Content
 			return result;
 		}
 
-		public List<PageAdminSection> LoadContentNodes()
+		private List<PreparedPageAdminSection> adminSectionList = null;
+		public List<PreparedPageAdminSection> AdminSectionList
 		{
-			Dictionary<string, List<ContentNode>> nodes = ContentManager.Instance.DataProvider.ListContentNodesForPage(revisionID);
-			Dictionary<string, List<ContentNode>> nodesByFieldName = new Dictionary<string, List<ContentNode>>();
-			foreach (KeyValuePair<string, List<ContentNode>> list in nodes)
+			get
 			{
-				foreach (ContentNode node in list.Value) // group all of the nodes (currently grouped according to node type) into field name groups
+				if (adminSectionList != null)
+					return adminSectionList;
+
+				Dictionary<string, List<EditFieldInfo>> editFieldsByFieldType = ContentManager.Instance.DataProvider.ListPageEditFieldsByFieldType(revisionID);
+				Dictionary<string, List<EditFieldInfo>> editFieldsBySectionName = new Dictionary<string, List<EditFieldInfo>>();
+
+				// build a map of field sections to the fields they contain
+				foreach (KeyValuePair<string, List<EditFieldInfo>> fieldListWithCommonFieldType in editFieldsByFieldType)
 				{
-					List<ContentNode> fieldnodes;
-					if (!nodesByFieldName.TryGetValue(node.FieldName, out fieldnodes))
+					// group all of the nodes (currently grouped according to node type) into field name groups
+					foreach (EditFieldInfo info in fieldListWithCommonFieldType.Value)
 					{
-						fieldnodes = new List<ContentNode>();
-						nodesByFieldName.Add(node.FieldName, fieldnodes);
+						List<EditFieldInfo> editfields;
+						if (!editFieldsBySectionName.TryGetValue(info.SectionName, out editfields))
+						{
+							editfields = new List<EditFieldInfo>();
+							editFieldsBySectionName.Add(info.SectionName, editfields);
+						}
+						editfields.Add(info);
 					}
-					fieldnodes.Add(node);
+					// seeing as each iteration in this loop identifies the full set of nodes for a single content node type,
+					// get the database interface for that node type and load the data for all the nodes of that type. Note
+					// that fieldListWithCommonFieldType, due to the program logic, will always have at least one element, so
+					// as such, the first element can be used to retrieve the field type.
+					IEditFieldHandlerDatabaseInterface dbi = fieldListWithCommonFieldType.Value[0].DataHandler;
+					if (dbi == null) continue;
+					dbi.LoadDataList(fieldListWithCommonFieldType.Value);
 				}
-				// seeing as each iteration in this loop identifies the full set of nodes for a single content node type,
-				// get the database interface for that node type and load the data for all the nodes of that type.
-				IContentNodeDatabaseInterface dbi = ContentManager.GetNodeTypeDatabaseInterface(list.Key);
-				if (dbi == null) continue;
-				dbi.LoadNodeData(list.Value);
-			}
-			// now sort nodesByFieldName in ascending order, ready to be matched to the template admin fields
-			foreach (List<ContentNode> list in nodesByFieldName.Values)
-				list.Sort();
+				// now sort nodesByFieldName in ascending order, ready to be matched to the template admin fields
+				foreach (List<EditFieldInfo> list in editFieldsBySectionName.Values)
+					list.Sort();
 
-			List<PageAdminSection> final = new List<PageAdminSection>();
-			Template t = ContentManager.Templates[TemplateName];
-			if (t == null)
-				return final;
+				adminSectionList = new List<PreparedPageAdminSection>();
+				Template t = ContentManager.Templates[TemplateName];
+				if (t == null)
+					return adminSectionList;
 
-			// combine t.GetPageAdminSections() with nodesByFieldName
-			PageAdminSection pas = new PageAdminSection();
-			foreach (PageAdminSectionDefinition def in t.PageAdminSections)
-			{
-				PageAdminSection section = new PageAdminSection();
-				List<ContentNode> list = nodesByFieldName[def.FieldName] as List<ContentNode>;
-				section.SectionDefinition = def;
-				section.NodeList = new List<ContentNode>();
-
-				// if there is a default node, try to find it in the list and add it, removing it from the old list.
-				// if it's not there and the default node is non-delete, create a new blank one.
-				if (def.DefaultContentNode != null)
+				// combine t.GetPageAdminSections() with nodesByFieldName
+				PreparedPageAdminSection pas = new PreparedPageAdminSection();
+				foreach (PageAdminSectionDefinition def in t.PageAdminSections)
 				{
-					/* STOP!!
-					 * ARCHIVE THIS CODE INTO A COMMENTED OUT REGION AND CHANGE THE CODE:
-					 * - THE NUMBER OF NODES IN AN ADMIN FIELD IS DEFINED EXACTLY IN THE XML
-					 * - THERE IS NO REASON FOR THE USER TO ADD EXTRA FIELD TYPES TO A SINGLE LOCATION (OVERLY COMPLEX)
-					 * - AS SUCH, THERE IS NO "DEFAULT" NODE TYPE, JUST A SEQUENTIAL SET OF NODES FOR A FIELD PREDEFINED IN THE XML
-					 * - IF MORE FLEXIBILITY BECOMES AN ISSUE LATER, WORRY ABOUT THAT THEN, BUT IT LIKELY WON'T BE AN ISSUE.
-					 */
-					
-					ContentNode node = null;
-					foreach(ContentNode listnode in list)
-						if (listnode.Type.TypeName == def.DefaultContentNode.TypeName)
-						{ }
-				}
-			}
+					PreparedPageAdminSection section = new PreparedPageAdminSection();
+					List<EditFieldInfo> list;
+					if (!editFieldsBySectionName.TryGetValue(def.SectionName, out list))
+						list = new List<EditFieldInfo>();
 
-			return final;
+					section.SectionDefinition = def;
+					section.FieldList = new List<EditFieldInfo>();
+
+					// now that we've preliminarily prepared the section, fill its field list with what will appear in the admin ui
+					foreach (IEditFieldHandler handler in def.EditFieldHandlers)
+					{
+						int index = list.FindIndex(delegate(EditFieldInfo obj)
+						{
+							return handler.FieldName == obj.FieldName && handler.TypeName == obj.Handler.TypeName;
+						});
+						EditFieldInfo info;
+						if (index == -1) // create a new field to handle it
+						{
+							IEditFieldHandlerDatabaseInterface dbi = ContentManager.GetEditFieldObjectCreator(handler.TypeName).CreateDatabaseInterface();
+							info = new EditFieldInfo(0, def.SectionName, handler.FieldName, section.FieldList.Count, handler, dbi);
+							IEditFieldObjectCreator creator = ContentManager.GetEditFieldObjectCreator(handler.TypeName);
+							IEditFieldData data = creator.CreateDataObject();
+							handler.InitialiseData(data);
+							info.Data = data;
+						}
+						else
+						{
+							info = list[index];
+							info.Handler = handler; // set it to the template's handler as the one created during database retrieval was for type name purposes only
+							list.RemoveAt(index);
+							info.Rank = section.FieldList.Count;
+						}
+						section.FieldList.Add(info);
+					}
+					adminSectionList.Add(section);
+				}
+
+				return adminSectionList;
+			}
 		}
 	}
 }

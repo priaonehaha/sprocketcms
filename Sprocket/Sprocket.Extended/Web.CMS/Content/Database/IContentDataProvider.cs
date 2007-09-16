@@ -14,6 +14,11 @@ namespace Sprocket.Web.CMS.Content
 		Page SelectPage(long pageID);
 		Page SelectPageByPageCode(string pageCode);
 		List<Page> ListPages();
-		Dictionary<string, List<ContentNode>> ListContentNodesForPage(long pageRevisionID);
+		
+		Dictionary<string, List<EditFieldInfo>> ListPageEditFieldsByFieldType(long pageRevisionID);
+		Result StoreEditFieldInfo(long pageRevisionID, EditFieldInfo info);
+
+		Result StoreEditField_TextBox(long dataID, string text);
+		void LoadDataList_TextBox(List<EditFieldInfo> fields);
 	}
 }
