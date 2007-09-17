@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Transactions;
 using System.Web;
+using System.Text;
 
 using Sprocket;
 using Sprocket.Data;
@@ -375,7 +376,7 @@ namespace Sprocket.Web.CMS.Content
 
 				// combine t.GetPageAdminSections() with nodesByFieldName
 				PreparedPageAdminSection pas = new PreparedPageAdminSection();
-				foreach (PageAdminSectionDefinition def in t.PageAdminSections)
+				foreach (PageAdminSectionDefinition def in t.GetPageAdminSections())
 				{
 					PreparedPageAdminSection section = new PreparedPageAdminSection();
 					List<EditFieldInfo> list;
@@ -416,6 +417,27 @@ namespace Sprocket.Web.CMS.Content
 
 				return adminSectionList;
 			}
+		}
+
+		public string Render()
+		{
+			Dictionary<string, StringBuilder> content = new Dictionary<string, StringBuilder>();
+			foreach (PreparedPageAdminSection section in AdminSectionList)
+			{
+				StringBuilder sb;
+				if (!content.TryGetValue(section.SectionDefinition.SectionName, out sb))
+				{
+					sb = new StringBuilder();
+					content.Add(section.SectionDefinition.SectionName.ToLower(), sb);
+				}
+				foreach (EditFieldInfo info in section.FieldList)
+					sb.Append(info.Handler.RenderContent(info.Data));
+			}
+			CurrentRequest.Value["ContentSectionExpression.content"] = content;
+			Template t = ContentManager.Templates[TemplateName];
+			if (t == null)
+				return "[Unable to render page; Template \"" + t.Name + "\" does not exist]";
+			return t.Render();
 		}
 	}
 }

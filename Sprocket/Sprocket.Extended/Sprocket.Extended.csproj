@@ -77,6 +77,7 @@
     <Compile Include="Web.CMS\Content\PageRegistry.cs" />
     <Compile Include="Web.CMS\Content\PagesAdminMenuItem.cs" />
     <Compile Include="Web.CMS\Content\Script Extensions\AjaxScriptsExpression.cs" />
+    <Compile Include="Web.CMS\Content\Script Extensions\ContentSectionExpression.cs" />
     <Compile Include="Web.CMS\Content\Script Extensions\FormValuesExpressions.cs" />
     <Compile Include="Web.CMS\Content\Script Extensions\PageExpression.cs" />
     <Compile Include="Web.CMS\Content\Script Extensions\PathExpression.cs" />
