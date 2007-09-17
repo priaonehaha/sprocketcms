@@ -12,6 +12,7 @@ namespace Sprocket.Web.CMS.Content
 
 		RevisionInformation SelectRevisionInformation(long revisionID);
 		Page SelectPage(long pageID);
+		Page SelectPageBySprocketPath(string sprocketPath);
 		Page SelectPageByPageCode(string pageCode);
 		List<Page> ListPages();
 		

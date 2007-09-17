@@ -104,6 +104,27 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				}
 			}
 		}
+		public Page SelectPageBySprocketPath(string sprocketPath)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SQLiteCommand cmd = new SQLiteCommand(Procedures["Select Page By RequestPath"], conn);
+					cmd.Parameters.Add(new SQLiteParameter("@RequestPath", sprocketPath));
+					cmd.Parameters.Add(new SQLiteParameter("@ExcludeDraft", true));
+					SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					Page entity;
+					if (!reader.Read())
+						entity = null;
+					else
+						entity = new Page(reader);
+					reader.Close();
+					return entity;
+				}
+			}
+		}
 		public Page SelectPageByPageCode(string pageCode)
 		{
 			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
