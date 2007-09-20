@@ -55,16 +55,24 @@ CREATE TABLE IF NOT EXISTS EditField_TextBox
 	Value TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS EditField_Image
+(
+	EditFieldID INTEGER,
+	SprocketFileID INTEGER,
+	PRIMARY KEY (EditFieldID, SprocketFileID)
+);
+
 ------------------------------------------------------------------------------------------------------
 
 -- ON DELETE FROM RevisionInformation
 DROP TRIGGER IF EXISTS trigger_RevisionInformation_Delete;
-CREATE TRIGGER trigger_RevisionInformation_Delete BEFORE DELETE ON RevisionInformation
+CREATE TRIGGER trigger_RevisionInformation_Delete AFTER DELETE ON RevisionInformation
 BEGIN
 	DELETE FROM Page WHERE RevisionID = OLD.RevisionID;
+	DELETE FROM EditFieldInfo WHERE PageRevisionID = OLD.RevisionID;
 END;
 
--- ON DELETE FROM RevisionInformation
+-- ON DELETE FROM Page
 DROP TRIGGER IF EXISTS trigger_Page_Delete;
 CREATE TRIGGER trigger_Page_Delete AFTER DELETE ON Page
 BEGIN
@@ -80,4 +88,28 @@ BEGIN
 		WHEN OLD.UserID IN (SELECT UserID FROM RevisionInformation)
 		THEN RAISE(ABORT, 'Error deleting user; they have data attached to their user ID')
 	END;
+END;
+
+-- ON DELETE FROM EditField
+DROP TRIGGER IF EXISTS trigger_EditField_Delete;
+CREATE TRIGGER trigger_EditField_Delete AFTER DELETE ON EditFieldInfo
+BEGIN
+	DELETE FROM RevisionInformation WHERE RevisionID = OLD.PageRevisionID;
+	DELETE FROM EditField_TextBox WHERE EditFieldID = OLD.EditFieldID;
+	DELETE FROM EditField_Image WHERE EditFieldID = OLD.EditFieldID;
+END;
+
+-- ON DELETE FROM EditField_TextBox
+DROP TRIGGER IF EXISTS trigger_EditField_Image_Delete;
+CREATE TRIGGER trigger_EditField_Image_Delete AFTER DELETE ON EditField_TextBox
+BEGIN
+	DELETE FROM EditFieldInfo WHERE EditFieldID = OLD.EditFieldID;
+END;
+
+-- ON DELETE FROM EditField_Image
+DROP TRIGGER IF EXISTS trigger_EditField_Image_Delete;
+CREATE TRIGGER trigger_EditField_Image_Delete AFTER DELETE ON EditField_Image
+BEGIN
+	DELETE FROM EditFieldInfo WHERE EditFieldID = OLD.EditFieldID;
+	DELETE FROM SprocketFile WHERE SprocketFileID = OLD.SprocketFileID;
 END;

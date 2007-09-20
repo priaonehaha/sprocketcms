@@ -85,6 +85,15 @@ namespace Sprocket.Web.FileManager
 			}
 		}
 
+		public void TransmitImage(SizingOptions options)
+		{
+			MemoryStream stream = new MemoryStream();
+			ResizeImage(options, stream);
+			HttpContext.Current.Response.ContentType = "image/jpeg";
+			HttpContext.Current.Response.BinaryWrite(stream.ToArray());
+			HttpContext.Current.Response.End();
+		}
+
 		public void DeleteFile(SprocketFile file)
 		{
 			ContentCache.ClearMultiple("Sprocket.Web.FileManager.CachedImage." + file.SprocketFileID + ".%");

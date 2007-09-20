@@ -428,10 +428,13 @@ namespace Sprocket.Web.CMS.Content
 				if (!content.TryGetValue(section.SectionDefinition.SectionName, out sb))
 				{
 					sb = new StringBuilder();
-					content.Add(section.SectionDefinition.SectionName.ToLower(), sb);
+					string name = section.SectionDefinition.SectionName.ToLower();
+					if (content.ContainsKey(name))
+						return "[The definitions.xml file defines more than one PageAdminSection with the name \"" + name + "\"]";
+					content.Add(name, sb);
 				}
 				foreach (EditFieldInfo info in section.FieldList)
-					sb.Append(info.Handler.RenderContent(info.Data));
+					sb.Append(info.Handler.GetOutputValue(info.Data));
 			}
 			CurrentRequest.Value["ContentSectionExpression.content"] = content;
 			Template t = ContentManager.Templates[TemplateName];

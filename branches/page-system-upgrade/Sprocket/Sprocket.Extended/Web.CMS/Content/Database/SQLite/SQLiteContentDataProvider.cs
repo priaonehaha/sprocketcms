@@ -319,5 +319,67 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				}
 			}
 		}
+
+		public Result StoreEditField_Image(long dataID, long sprocketFileID)
+		{
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.CommandText = Procedures["Store EditField_Image"];
+					cmd.Connection = connection;
+					cmd.Parameters.Add(NewParameter("@EditFieldID", dataID, DbType.Int64));
+					cmd.Parameters.Add(NewParameter("@SprocketFileID", sprocketFileID, DbType.Int64));
+					cmd.ExecuteNonQuery();
+					scope.Complete();
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Result("SQLiteContentDataProvider.StoreEditField_Image: " + ex.Message);
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+			return new Result();
+		}
+		public void LoadDataList_Image(List<EditFieldInfo> fields)
+		{
+			if (fields.Count == 0)
+				return;
+
+			StringBuilder ids = new StringBuilder();
+			Dictionary<long, EditFieldInfo> map = new Dictionary<long, EditFieldInfo>();
+			foreach (EditFieldInfo info in fields)
+				if (info.DataID > 0)
+				{
+					map.Add(info.DataID, info);
+					if (ids.Length > 0)
+						ids.Append(",");
+					ids.Append(info.DataID);
+				}
+
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SQLiteCommand cmd = new SQLiteCommand("SELECT * FROM EditField_Image WHERE EditFieldID IN (" + ids + ")", conn);
+					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
+					{
+						while (reader.Read())
+						{
+							ImageEditField.ImageEditFieldData data = new ImageEditField.ImageEditFieldData();
+							data.SprocketFileID = Convert.ToInt64(reader["SprocketFileID"]);
+							map[Convert.ToInt64(reader["EditFieldID"])].Data = data;
+						}
+						reader.Close();
+					}
+				}
+			}
+		}
 	}
 }

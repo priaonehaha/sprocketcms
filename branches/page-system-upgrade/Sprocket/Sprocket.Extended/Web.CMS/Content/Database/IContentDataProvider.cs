@@ -21,5 +21,8 @@ namespace Sprocket.Web.CMS.Content
 
 		Result StoreEditField_TextBox(long dataID, string text);
 		void LoadDataList_TextBox(List<EditFieldInfo> fields);
+
+		Result StoreEditField_Image(long dataID, long sprocketFileID);
+		void LoadDataList_Image(List<EditFieldInfo> fields);
 	}
 }
