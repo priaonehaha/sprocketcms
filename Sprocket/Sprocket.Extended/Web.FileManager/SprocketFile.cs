@@ -254,5 +254,27 @@ namespace Sprocket.Web.FileManager
 		}
 
 		#endregion
+
+		public Result ValidateImageData()
+		{
+			Image img;
+			return ValidateImageData(out img);
+		}
+
+		public Result ValidateImageData(out Image img)
+		{
+			try
+			{
+				img = Image.FromStream(new MemoryStream(fileData));
+				if (img.Width == 0 && img.Height == 0)
+					return new Result("Corrupt image file. The image has no dimensions.");
+			}
+			catch (Exception ex)
+			{
+				img = null;
+				return new Result(ex.Message);
+			}
+			return new Result();
+		}
 	}
 }

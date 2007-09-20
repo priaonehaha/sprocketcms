@@ -10,6 +10,7 @@ using Sprocket.Web.CMS.Script;
 using Sprocket.Utility;
 using Sprocket.Web.CMS.Admin;
 using Sprocket.Data;
+using Sprocket.Web.FileManager;
 
 namespace Sprocket.Web.CMS.Content
 {
@@ -32,7 +33,49 @@ namespace Sprocket.Web.CMS.Content
 		{
 			AdminHandler.Instance.OnLoadAdminPage += new AdminHandler.AdminRequestHandler(AdminHandler_OnLoadAdminPage);
 			WebEvents.AddFormProcessor(new WebEvents.FormPostAction(null, null, "page-edit-button", "Save Page", SavePage));
+			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			AdminHandler.AddPagePreprocessor("PageEdit", PreEditPage);
+		}
+
+		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
+		{
+			if (!WebAuthentication.IsLoggedIn) return;
+			if (!WebAuthentication.VerifyAccess(PermissionType.ModifyPages)) return;
+
+			if (SprocketPath.Sections.Length >= 4 && SprocketPath.Sections[0] == "admin")
+			{
+				switch (SprocketPath.Sections[1])
+				{
+					case "pages":
+						switch (SprocketPath.Sections[2])
+						{
+							case "delete":
+								{
+									long id;
+									if (long.TryParse(SprocketPath.Sections[3], out id))
+									{
+										Page page = ContentManager.Instance.DataProvider.SelectPage(id);
+										if (page != null)
+											page.SaveRevision("** Page deleted.", page.RevisionInformation.Draft, page.RevisionInformation.Hidden, true);
+									}
+								}
+								WebUtility.Redirect("admin/pages");
+								break;
+
+							case "imgthumb":
+								{
+									long id;
+									if (long.TryParse(SprocketPath.Sections[3], out id))
+									{
+										SizingOptions options = new SizingOptions(60, 45, SizingOptions.Display.Constrain, id);
+										FileManager.FileManager.Instance.TransmitImage(options);
+									}
+								}
+								break;
+						}
+						break;
+				}
+			}
 		}
 
 		void AdminHandler_OnLoadAdminPage(AdminInterface admin, PageEntry page, HandleFlag handled)
@@ -145,9 +188,9 @@ namespace Sprocket.Web.CMS.Content
 										fld.Rank = rank++;
 										// we stil loop through each field to make sure the values are read from the form. if a failure has
 										// occurred at some point though, the following checks ensure we don't bother trying to hit the db.
-										if(result.Succeeded)
+										if (result.Succeeded)
 											result.Merge(ContentManager.Instance.DataProvider.StoreEditFieldInfo(page.RevisionID, fld));
-										if(result.Succeeded && isdifferent)
+										if (result.Succeeded && isdifferent)
 											result.Merge(fld.DataHandler.SaveData(fld.DataID, fld.Data));
 									}
 								}
@@ -167,7 +210,7 @@ namespace Sprocket.Web.CMS.Content
 			{
 				DatabaseManager.DatabaseEngine.ReleaseConnection();
 			}
-			if(success)
+			if (success)
 				WebUtility.Redirect("admin/pages/edit/" + page.PageID + "/?saved");
 		}
 

@@ -61,6 +61,8 @@
     <Compile Include="Web.CMS\Admin\Interfaces.cs" />
     <Compile Include="Web.CMS\Content\ContentManager.cs" />
     <Compile Include="Web.CMS\Content\ContentAdmin.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\ImageEditField.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\TextAreaEditField.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\EditFieldExpression.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\EditFieldInfo.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\PreparedPageAdminSection.cs">

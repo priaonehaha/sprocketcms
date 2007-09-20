@@ -46,13 +46,14 @@ INNER JOIN RevisionInformation r
 --# Select Page By RequestPath
 	SELECT p.*
 	  FROM Page p
-INNER JOIN RevisionInformation r
-		ON p.RevisionID = r.RevisionID
 	 WHERE p.RequestPath LIKE @RequestPath
-	   AND r.Deleted = 0
-	   AND (@ExcludeDraft = 0 OR (@ExcludeDraft = 1 AND r.Draft = 0))
-  ORDER BY r.RevisionDate DESC
-	 LIMIT 1
+	   AND p.RevisionID IN (SELECT ri.RevisionID
+							  FROM RevisionInformation ri
+							 WHERE (@ExcludeDraft = 0 OR (@ExcludeDraft = 1 AND ri.Draft = 0))
+							   AND ri.Deleted = 0
+							   AND ri.RevisionSourceID = p.PageID
+						  ORDER BY RevisionDate DESC
+							 LIMIT 1)
 
 --# List Pages
 	SELECT p.*
@@ -60,6 +61,7 @@ INNER JOIN RevisionInformation r
 INNER JOIN RevisionInformation r
 		ON p.RevisionID = r.RevisionID
 	   AND r.RevisionID = (SELECT r2.RevisionID FROM RevisionInformation r2 WHERE r2.RevisionSourceID = p.PageID ORDER BY r2.RevisionDate DESC)
+	   AND r.Deleted = 0
   ORDER BY r.RevisionDate DESC
 
 --# List ContentNodes
@@ -84,3 +86,6 @@ VALUES (@PageRevisionID, @EditFieldID, @EditFieldTypeIdentifier, @SectionName, @
 
 --# Store EditField_TextBox
 INSERT OR REPLACE INTO EditField_TextBox (EditFieldID, Value) VALUES (@EditFieldID, @Value);
+
+--# Store EditField_Image
+INSERT OR REPLACE INTO EditField_Image (EditFieldID, SprocketFileID) VALUES (@EditFieldID, @SprocketFileID);

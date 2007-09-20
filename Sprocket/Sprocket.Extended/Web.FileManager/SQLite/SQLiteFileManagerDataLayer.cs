@@ -145,7 +145,7 @@ namespace Sprocket.Web.FileManager.SQLite
 					cmd.CommandText = procs["Select SprocketFile"];
 					cmd.Parameters.Add(new SQLiteParameter("@SprocketFileID", id));
 					cmd.Parameters.Add(new SQLiteParameter("@GetFileData", getFileData));
-					SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+					SQLiteDataReader reader = cmd.ExecuteReader();
 					SprocketFile entity;
 					if (!reader.Read())
 						entity = null;

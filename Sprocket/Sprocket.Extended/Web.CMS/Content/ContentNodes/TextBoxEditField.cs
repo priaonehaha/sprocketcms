@@ -85,7 +85,7 @@ namespace Sprocket.Web.CMS.Content
 			((TextBoxData)data).Text = String.Empty;
 		}
 
-		public string RenderContent(IEditFieldData data)
+		public object GetOutputValue(IEditFieldData data)
 		{
 			return data == null ? "" : data.ToString();
 		}

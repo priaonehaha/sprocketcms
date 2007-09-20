@@ -18,7 +18,7 @@ namespace Sprocket.Web.CMS.Content
 		string TypeName { get; }
 		string FieldName { get; }
 		void InitialiseData(IEditFieldData data);
-		string RenderContent(IEditFieldData data);
+		object GetOutputValue(IEditFieldData data);
 		string RenderAdminField(IEditFieldData data);
 		Result ReadAdminField(out IEditFieldData data);
 		bool IsContentDifferent(IEditFieldData a, IEditFieldData b);

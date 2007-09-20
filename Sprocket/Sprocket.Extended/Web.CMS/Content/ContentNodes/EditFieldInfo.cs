@@ -118,7 +118,7 @@ namespace Sprocket.Web.CMS.Content
 			switch (propertyName)
 			{
 				case "render_admin": return Handler.RenderAdminField(data);
-				case "render_content": return Handler.RenderContent(data);
+				case "render_content": return Handler.GetOutputValue(data);
 				case "field_name": return fieldName;
 			}
 			throw new InstructionExecutionException("\"" + propertyName + "\" is not a valid property for this field.", token);
