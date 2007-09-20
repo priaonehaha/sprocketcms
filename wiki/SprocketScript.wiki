@@ -85,3 +85,4 @@ show htmlencode(username) ~ html encodes the currently-logged-in user's username
 show page("home"):path ~ shows the path of the page identified in the definitions.xml file with Code="home" ~
 show page("home"):path:length ~ shows the length of the path of the page identified in the definitions.xml file with Code="home" ~
 }}}
+ 
