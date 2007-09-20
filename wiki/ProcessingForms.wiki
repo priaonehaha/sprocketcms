@@ -81,7 +81,40 @@ Notice the SprocketScript expression `formfield`. This takes two arguments. The 
 
 ===3. Handle Form Submission===
 
-to be continued...
+Processing form submission in Sprocket is very easy. In your AttachEventHandlers method, you need to make a call to `WebEvents.AddFormProcessor(...)`, specifying a `FormPostAction` object as the argument. The `FormPostAction` constructor takes four arguments and a delegate method. The first four arguments are optional filters that determine conditions under which the delegate method is called. Specify `null` to indicate that the option is not to be considered as a condition of calling the delegate method. The arguments are:
+
+  # *!PostToPath*: Represents the SprocketPath to which the form must be posted.
+  # *!PostFromPath*: Represents the SprocketPath from which the form must be posted.
+  # *!FieldName*: Represents the name of a field that must exist in the Request.Form collection
+  # *!FieldValue*: Represents the value of the field specified by !FieldName.
+  # *!PostHandler*: A delegate method defined as:
+
+{{{
+void YourHandler()
+{
+  // handler code here
+}
+}}}
+
+Considering the fact that any of the first four arguments can be specified as null, you can set simple conditions for the form post handler method to be called, such as the path posted to must be X, or a particular field Y must be submitted. Specific examples that have been used in the past:
+{{{
+void AttachEventsHandlers(ModuleRegistry registry)
+{
+    // handle a delete request (hidden fields have the details)
+    WebEvents.AddFormProcessor(new FormPostHandler("product/delete",null,null,null,MyHandler1));
+
+    // handle a specific button click on a page posting back to itself, making sure that
+    // the page did indeed post back to itself. ensure that the button "SaveButton" was
+    // clicked, but the value of the button is irrelevant.
+    WebEvents.AddFormProcessor(new FormPostHandler("product/edit","product/edit","SaveButton",null,MyHandler2));
+
+    // have a generic form post handler path that simply requires that the source form
+    // specify, via a hidden field, what the form post action is.
+    WebEvents.AddFormProcessor(new FormPostHandler(null,null,"FormPostAction","save_product",MyHandler3));
+}
+}}}
+
+Note that forms are processed directly BEFORE the WebEvents.OnLoadRequestedPath event fires and thus, before any CMS page handling, etc. This provides a good opportunity to redirect to another page upon successful form processing if desired, or whatever else is relevant for the operation in question.
 
 ==Processing Forms the Custom Way==
 
@@ -123,3 +156,4 @@ public class MyRequestHandler : ISprocketModule
 	}
 }
 }}}
+ 
