@@ -205,7 +205,7 @@ namespace Sprocket.Web.Cache
 		{
 			bool fileExists = File.Exists(info.PhysicalPath);
 			SQLiteCommand cmd;
-			if (info.ExpiryDate < SprocketDate.Now || !fileExists)
+			if (info.ExpiryDate < DateTime.UtcNow || !fileExists)
 			{
 				cmd = new SQLiteCommand(sqlDelete, conn);
 				cmd.Parameters.Add(new SQLiteParameter("@Identifier", info.IdentifierString));
@@ -216,8 +216,8 @@ namespace Sprocket.Web.Cache
 				return null;
 			}
 			if (!info.ForceExpiryAfterDuration && info.ExpiryDate != DateTime.MaxValue)
-				info.ExpiryDate = SprocketDate.Now.Add(info.ExpiryDate - info.LastAccess);
-			info.LastAccess = SprocketDate.Now;
+				info.ExpiryDate = DateTime.UtcNow.Add(info.ExpiryDate - info.LastAccess);
+			info.LastAccess = DateTime.UtcNow;
 			cmd = new SQLiteCommand(sqlUpdate, conn);
 			cmd.Parameters.Add(new SQLiteParameter("@Identifier", info.IdentifierString));
 			cmd.Parameters.Add(new SQLiteParameter("@LastAccess", info.LastAccess));

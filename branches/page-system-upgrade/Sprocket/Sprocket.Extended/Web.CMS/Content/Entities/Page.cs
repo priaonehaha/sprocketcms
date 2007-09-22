@@ -5,6 +5,7 @@ using System.IO;
 using System.Transactions;
 using System.Web;
 using System.Text;
+using System.Globalization;
 
 using Sprocket;
 using Sprocket.Data;
@@ -29,6 +30,8 @@ namespace Sprocket.Web.CMS.Content
 		protected bool requestable = false;
 		protected string requestPath = "";
 		protected string contentType = "";
+		protected DateTime publishDate = DateTime.MinValue;
+		protected DateTime? expiryDate = null;
 
 		#endregion
 
@@ -115,6 +118,24 @@ namespace Sprocket.Web.CMS.Content
 			set { contentType = value; }
 		}
 
+		///<summary>
+		///Gets or sets the value for PublishDate
+		///</summary>
+		public DateTime PublishDate
+		{
+			get { return publishDate; }
+			set { publishDate = value; }
+		}
+
+		///<summary>
+		///Gets or sets the value for ExpiryDate
+		///</summary>
+		public DateTime? ExpiryDate
+		{
+			get { return expiryDate; }
+			set { expiryDate = value; }
+		}
+
 		#endregion
 
 		#region Constructors
@@ -123,7 +144,7 @@ namespace Sprocket.Web.CMS.Content
 		{
 		}
 
-		public Page(long pageID, long revisionID, string pageName, string pageCode, string parentPageCode, string templateName, bool requestable, string requestPath, string contentType)
+		public Page(long pageID, long revisionID, string pageName, string pageCode, string parentPageCode, string templateName, bool requestable, string requestPath, string contentType, DateTime publishDate, DateTime? expiryDate)
 		{
 			this.pageID = pageID;
 			this.revisionID = revisionID;
@@ -134,6 +155,8 @@ namespace Sprocket.Web.CMS.Content
 			this.requestable = requestable;
 			this.requestPath = requestPath;
 			this.contentType = contentType;
+			this.publishDate = publishDate;
+			this.expiryDate = expiryDate;
 		}
 
 		public Page(IDataReader reader)
@@ -147,6 +170,8 @@ namespace Sprocket.Web.CMS.Content
 			if (reader["Requestable"] != DBNull.Value) requestable = (bool)reader["Requestable"];
 			if (reader["RequestPath"] != DBNull.Value) requestPath = (string)reader["RequestPath"];
 			if (reader["ContentType"] != DBNull.Value) contentType = (string)reader["ContentType"];
+			if (reader["PublishDate"] != DBNull.Value) publishDate = (DateTime)reader["PublishDate"];
+			if (reader["ExpiryDate"] != DBNull.Value) expiryDate = (DateTime?)reader["ExpiryDate"];
 		}
 
 		#endregion
@@ -164,6 +189,8 @@ namespace Sprocket.Web.CMS.Content
 			copy.requestable = requestable;
 			copy.requestPath = requestPath;
 			copy.contentType = contentType;
+			copy.publishDate = publishDate;
+			copy.expiryDate = expiryDate;
 			return copy;
 		}
 		#endregion
@@ -193,6 +220,10 @@ namespace Sprocket.Web.CMS.Content
 			JSON.EncodeNameValuePair(writer, "RequestPath", requestPath);
 			writer.Write(",");
 			JSON.EncodeNameValuePair(writer, "ContentType", contentType);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "PublishDate", publishDate);
+			writer.Write(",");
+			JSON.EncodeNameValuePair(writer, "ExpiryDate", expiryDate);
 			writer.Write("}");
 		}
 
@@ -209,6 +240,8 @@ namespace Sprocket.Web.CMS.Content
 			requestable = (bool)values["Requestable"];
 			requestPath = (string)values["RequestPath"];
 			contentType = (string)values["ContentType"];
+			publishDate = (DateTime)values["PublishDate"];
+			expiryDate = (DateTime?)values["ExpiryDate"];
 		}
 
 		#endregion
@@ -234,7 +267,10 @@ namespace Sprocket.Web.CMS.Content
 				case "requestable":
 				case "requestpath":
 				case "contenttype":
+				case "publishdate":
+				case "expirydate":
 				case "adminsectionlist":
+				case "categoryselections":
 					return true;
 				default:
 					return false;
@@ -254,11 +290,34 @@ namespace Sprocket.Web.CMS.Content
 				case "requestable": return Requestable;
 				case "requestpath": return RequestPath;
 				case "contenttype": return ContentType;
+				case "publishdate": return PublishDate;
+				case "expirydate": return ExpiryDate;
 				case "adminsectionlist": return AdminSectionList;
-				default: return null;
+				case "categoryselections": return CategorySelections;
+				default: throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of the Page object type.", token);
 			}
 		}
 		#endregion
+
+		private Dictionary<string, List<string>> categorySelections = null;
+		public Dictionary<string, List<string>> CategorySelections
+		{
+			get
+			{
+				if (categorySelections == null)
+				{
+					if (pageID == 0 || revisionID == 0)
+						categorySelections = new Dictionary<string, List<string>>();
+					else
+						categorySelections = ContentManager.Instance.DataProvider.ListPageCategories(revisionID);
+				}
+				return categorySelections;
+			}
+			set
+			{
+				categorySelections = value;
+			}
+		}
 
 		private RevisionInformation revisionInformation = null;
 		public RevisionInformation RevisionInformation
@@ -282,7 +341,7 @@ namespace Sprocket.Web.CMS.Content
 				using (TransactionScope scope = new TransactionScope())
 				{
 					DatabaseManager.DatabaseEngine.GetConnection();
-					RevisionInformation rev = new RevisionInformation(0, 0, SprocketDate.Now, SecurityProvider.CurrentUser.UserID, notes, hidden, draft, deleted);
+					RevisionInformation rev = new RevisionInformation(0, 0, DateTime.UtcNow, SecurityProvider.CurrentUser.UserID, notes, hidden, draft, deleted);
 					rev.RevisionID = DatabaseManager.GetUniqueID();
 					if (pageID == 0) pageID = DatabaseManager.GetUniqueID();
 					rev.RevisionSourceID = pageID;
@@ -290,6 +349,8 @@ namespace Sprocket.Web.CMS.Content
 					Result r = ContentManager.Instance.DataProvider.Store(rev);
 					if (r.Succeeded)
 						r = ContentManager.Instance.DataProvider.Store(this);
+					if (r.Succeeded && categorySelections != null)
+						r = ContentManager.Instance.DataProvider.StorePageCategories(revisionID, categorySelections);
 					if (!r.Succeeded)
 						return r;
 					scope.Complete();
@@ -325,6 +386,25 @@ namespace Sprocket.Web.CMS.Content
 					if (templateName != String.Empty)
 						if (ContentManager.Templates[templateName] == null)
 							result.SetFailed("The template \"" + templateName + "\" is not valid. It may have been deleted.");
+					break;
+				case "PublishDate":
+					{
+						if (!DateTime.TryParseExact(val, "yyyy-MM-dd hh:mmtt", DateTimeFormatInfo.CurrentInfo, DateTimeStyles.AllowWhiteSpaces, out publishDate))
+							if (!DateTime.TryParse(val, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.AllowWhiteSpaces, out publishDate))
+								result.SetFailed("The publish date should be in the format yyyy-mm-dd hh:mmtt (see the grey help text for that field)");
+					}
+					break;
+				case "ExpiryDate":
+					{
+						DateTime dt = DateTime.MinValue;
+						if (val.Trim() == String.Empty)
+							expiryDate = null;
+						else if (!DateTime.TryParseExact(val, "yyyy-MM-dd hh:mmtt", DateTimeFormatInfo.CurrentInfo, DateTimeStyles.AllowWhiteSpaces, out dt))
+							if (!DateTime.TryParse(val, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.AllowWhiteSpaces, out dt))
+								result.SetFailed("The expiry date should be in the format yyyy-mm-dd hh:mmtt (see the grey help text for that field)");
+						if(dt != DateTime.MinValue)
+							expiryDate = dt;
+					}
 					break;
 				case "ContentType": value = contentType = val.Trim(); break;
 			}

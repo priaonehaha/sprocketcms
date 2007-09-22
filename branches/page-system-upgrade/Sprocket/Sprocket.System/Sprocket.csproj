@@ -122,7 +122,6 @@
     <Compile Include="Web\Controls\AjaxForm\AjaxFormField.cs" />
     <Compile Include="Web\Controls\MultiPageNav.cs" />
     <Compile Include="Web\Controls\WebControls.cs" />
-    <Compile Include="SprocketDate.cs" />
     <Compile Include="Web\DatabaseSetup.cs" />
     <Compile Include="Web\JavaScriptCondenser.cs" />
     <Compile Include="Web\JSONParser.cs" />

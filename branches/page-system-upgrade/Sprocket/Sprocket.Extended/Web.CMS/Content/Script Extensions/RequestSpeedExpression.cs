@@ -11,12 +11,12 @@ namespace Sprocket.Web.CMS.Content
 	{
 		public static void Set()
 		{
-			CurrentRequest.Value["RequestSpeedExpression.Start"] = SprocketDate.Now;
+			CurrentRequest.Value["RequestSpeedExpression.Start"] = DateTime.UtcNow;
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			TimeSpan ts = SprocketDate.Now.Subtract((DateTime)CurrentRequest.Value["RequestSpeedExpression.Start"]);
+			TimeSpan ts = DateTime.UtcNow.Subtract((DateTime)CurrentRequest.Value["RequestSpeedExpression.Start"]);
 			string s = ts.TotalSeconds.ToString("0.####") + "s";
 			if (s == "0s")
 				return "instant";

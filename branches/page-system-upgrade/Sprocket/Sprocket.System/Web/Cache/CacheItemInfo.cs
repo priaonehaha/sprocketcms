@@ -14,9 +14,9 @@ namespace Sprocket.Web.Cache
 	internal class CacheItemInfo
 	{
 		private string identifierString = "";
-		private DateTime lastAccess = SprocketDate.Now;
+		private DateTime lastAccess = DateTime.UtcNow;
 		private DateTime expiryDate = DateTime.MaxValue;
-		private DateTime createDate = SprocketDate.Now;
+		private DateTime createDate = DateTime.UtcNow;
 		private bool preventExpiryDateChange = false;
 		private string sprocketPath = "";
 		private string contentType = "text/html";

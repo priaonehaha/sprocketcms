@@ -35,7 +35,17 @@ CREATE TABLE IF NOT EXISTS Page
 	Requestable BOOLEAN NOT NULL, -- specifies that RequestPath is to be considered for identifying this page (i.e. that this is a standalone page)
 	RequestPath TEXT NOT NULL, -- e.g. 'widgets/yellow/yellow-useful-widget'
 	ContentType TEXT NOT NULL, -- e.g. text/html
+	PublishDate DATETIME NOT NULL, -- this counts as the "date created" as perceived by the public
+	ExpiryDate DATETIME NULL,
 	PRIMARY KEY (PageID, RevisionID)
+);
+
+CREATE TABLE IF NOT EXISTS PageCategory
+(
+	PageRevisionID INTEGER NOT NULL,
+	CategorySetName TEXT NOT NULL,
+	CategoryName TEXT NOT NULL,
+	PRIMARY KEY (PageRevisionID, CategorySetName, CategoryName)
 );
 
 CREATE TABLE IF NOT EXISTS EditFieldInfo -- links a page revision to its edit fields and data and specifies the order in which they appear
@@ -69,6 +79,7 @@ DROP TRIGGER IF EXISTS trigger_RevisionInformation_Delete;
 CREATE TRIGGER trigger_RevisionInformation_Delete AFTER DELETE ON RevisionInformation
 BEGIN
 	DELETE FROM Page WHERE RevisionID = OLD.RevisionID;
+	DELETE FROM PageCategory WHERE PageRevisionID = OLD.RevisionID;
 	DELETE FROM EditFieldInfo WHERE PageRevisionID = OLD.RevisionID;
 END;
 
@@ -76,8 +87,8 @@ END;
 DROP TRIGGER IF EXISTS trigger_Page_Delete;
 CREATE TRIGGER trigger_Page_Delete AFTER DELETE ON Page
 BEGIN
-	DELETE FROM RevisionInformation WHERE RevisionSourceID = OLD.PageID;
-	DELETE FROM PageContentNode WHERE PageRevisionID = OLD.RevisionID;
+	DELETE FROM RevisionInformation WHERE RevisionID = OLD.RevisionID;
+	DELETE FROM EditFieldInfo WHERE PageRevisionID = OLD.RevisionID;
 END;
 
 -- ON DELETE FROM Users
@@ -94,22 +105,21 @@ END;
 DROP TRIGGER IF EXISTS trigger_EditField_Delete;
 CREATE TRIGGER trigger_EditField_Delete AFTER DELETE ON EditFieldInfo
 BEGIN
-	DELETE FROM RevisionInformation WHERE RevisionID = OLD.PageRevisionID;
-	DELETE FROM EditField_TextBox WHERE EditFieldID = OLD.EditFieldID;
-	DELETE FROM EditField_Image WHERE EditFieldID = OLD.EditFieldID;
+	DELETE FROM EditField_TextBox WHERE EditFieldID NOT IN (SELECT EditFieldID FROM EditFieldInfo);
+	DELETE FROM EditField_Image WHERE EditFieldID NOT IN (SELECT EditFieldID FROM EditFieldInfo);
 END;
 
 -- ON DELETE FROM EditField_TextBox
-DROP TRIGGER IF EXISTS trigger_EditField_Image_Delete;
-CREATE TRIGGER trigger_EditField_Image_Delete AFTER DELETE ON EditField_TextBox
+DROP TRIGGER IF EXISTS trigger_EditField_TextBox_Delete;
+CREATE TRIGGER trigger_EditField_TextBox_Delete AFTER DELETE ON EditField_TextBox
 BEGIN
-	DELETE FROM EditFieldInfo WHERE EditFieldID = OLD.EditFieldID;
+	DELETE FROM EditFieldInfo WHERE EditFieldID = OLD.EditFieldID AND PageRevisionID NOT IN (SELECT RevisionID FROM RevisionInformation);
 END;
 
 -- ON DELETE FROM EditField_Image
 DROP TRIGGER IF EXISTS trigger_EditField_Image_Delete;
 CREATE TRIGGER trigger_EditField_Image_Delete AFTER DELETE ON EditField_Image
 BEGIN
-	DELETE FROM EditFieldInfo WHERE EditFieldID = OLD.EditFieldID;
+	DELETE FROM EditFieldInfo WHERE EditFieldID = OLD.EditFieldID AND PageRevisionID NOT IN (SELECT RevisionID FROM RevisionInformation);
 	DELETE FROM SprocketFile WHERE SprocketFileID = OLD.SprocketFileID;
 END;
