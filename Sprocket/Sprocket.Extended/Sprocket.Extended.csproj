@@ -59,8 +59,10 @@
     <Compile Include="Web.CMS\Admin\AdminInterfaceSections.cs" />
     <Compile Include="Web.CMS\Admin\AdminWindow.cs" />
     <Compile Include="Web.CMS\Admin\Interfaces.cs" />
+    <Compile Include="Web.CMS\Content\Categories.cs" />
     <Compile Include="Web.CMS\Content\ContentManager.cs" />
     <Compile Include="Web.CMS\Content\ContentAdmin.cs" />
+    <Compile Include="Web.CMS\Content\ContentNodes\EditFieldsModule.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\ImageEditField.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\TextAreaEditField.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\EditFieldExpression.cs" />
@@ -115,6 +117,7 @@
     <Compile Include="Web.CMS\Script\Tokeniser.cs" />
     <Compile Include="Web.CMS\Script\TokenList.cs" />
     <Compile Include="Web.CMS\Script\TokenParser.cs" />
+    <Compile Include="Web.FileManager\Script Extensions\GetImageOptionsExpression.cs" />
     <Compile Include="Web.FileManager\FileManager.cs" />
     <Compile Include="Web.FileManager\IFileManagerDataLayer.cs" />
     <Compile Include="Web.FileManager\SizingOptions.cs" />

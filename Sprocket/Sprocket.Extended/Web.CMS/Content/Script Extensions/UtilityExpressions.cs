@@ -175,7 +175,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 			if (o == null)
 				return "Never";
 			if (o is DateTime)
-				return StringUtilities.ApproxHowLongAgo(SprocketDate.Now, (DateTime)o);
+				return StringUtilities.ApproxHowLongAgo(DateTime.UtcNow, (DateTime)o);
 			throw new InstructionExecutionException("the argument being fed to how_long_ago turned out to evaluate to something other than a date. (Underlying type: " + (o == null ? "null" : o.GetType().Name) + ")", contextToken);
 		}
 
@@ -289,7 +289,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			return SprocketDate.Now;
+			return DateTime.UtcNow;
 		}
 	}
 	class CurrentDateExpressionCreator : IExpressionCreator
@@ -439,6 +439,51 @@ namespace Sprocket.Web.CMS.Content.Expressions
 		public IExpression Create()
 		{
 			return new JSONEncodeExpression();
+		}
+	}
+
+	class ListContainsExpression : IArgumentListEvaluatorExpression
+	{
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 2)
+				throw new InstructionExecutionException("\"formatdate\" expects two arguments; one specifying which date to evaluate, then one specifying the format string.", contextToken);
+			object o = args[0].Expression.Evaluate(state, args[0].Token);
+			if (o is DateTime)
+			{
+				object s = args[1].Expression.Evaluate(state, args[1].Token);
+				if (s is string)
+				{
+					try
+					{
+						return ((DateTime)o).ToString((string)s);
+					}
+					catch (Exception ex)
+					{
+						throw new InstructionExecutionException("The date format you specified was not valid. Try Googling for \"custom .Net DateTime formats\".", ex, args[1].Token);
+					}
+				}
+			}
+			else if (o == null)
+				return null;
+			throw new InstructionExecutionException("the first argument being fed to \"formatdate\" turned out to evaluate to something other than a date. (Underlying type: " + (o == null ? "null" : o.GetType().Name) + ")", contextToken);
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			throw new InstructionExecutionException("\"list_contains\" expects two arguments; i.e. list_contains(yourlist, \"item to check for\")", contextToken);
+		}
+	}
+	class ListContainsExpressionCreator : IExpressionCreator
+	{
+		public string Keyword
+		{
+			get { return "list_contains"; }
+		}
+
+		public IExpression Create()
+		{
+			return new ListContainsExpression();
 		}
 	}
 }

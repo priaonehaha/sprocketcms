@@ -107,9 +107,17 @@ namespace Sprocket.Web.FileManager
 			{
 				SprocketFile file = dataLayer.SelectSprocketFile(options.SprocketFileID, true);
 				sourceImage = Image.FromStream(new MemoryStream(file.FileData));
+				if (options.DisplayType == SizingOptions.Display.Constrain && options.Width == 0 && options.Height == 0)
+				{
+					outStream.Write(file.FileData, 0, file.FileData.Length);
+					if (outStream.CanSeek)
+						outStream.Seek(0, SeekOrigin.Begin);
+					return;
+				}
 			}
 			else
 				sourceImage = options.Image;
+
 			Size imageSize;
 			if (options.DisplayType == SizingOptions.Display.Constrain)
 			{

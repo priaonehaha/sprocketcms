@@ -23,15 +23,21 @@ DELETE FROM RevisionInformation WHERE RevisionID = @RevisionID;
 	 WHERE RevisionSourceID = @RevisionSourceID
   ORDER BY RevisionDate DESC
 
+--# Delete Draft Revisions
+DELETE
+  FROM RevisionInformation
+ WHERE RevisionSourceID = @RevisionSourceID
+   AND Draft = 1
+
 -----------
 -- PAGES --
 -----------
 
 --# Store Page
 INSERT OR REPLACE INTO Page
-	(PageID, RevisionID, PageName, PageCode, ParentPageCode, TemplateName, Requestable, RequestPath, ContentType)
+	(PageID, RevisionID, PageName, PageCode, ParentPageCode, TemplateName, Requestable, RequestPath, ContentType, PublishDate, ExpiryDate)
 VALUES
-	(@PageID, @RevisionID, @PageName, @PageCode, @ParentPageCode, @TemplateName, @Requestable, @RequestPath, @ContentType)
+	(@PageID, @RevisionID, @PageName, @PageCode, @ParentPageCode, @TemplateName, @Requestable, @RequestPath, @ContentType, @PublishDate, @ExpiryDate)
 
 --# Select Page By PageID
 	SELECT p.*
@@ -47,13 +53,15 @@ INNER JOIN RevisionInformation r
 	SELECT p.*
 	  FROM Page p
 	 WHERE p.RequestPath LIKE @RequestPath
-	   AND p.RevisionID IN (SELECT ri.RevisionID
-							  FROM RevisionInformation ri
-							 WHERE (@ExcludeDraft = 0 OR (@ExcludeDraft = 1 AND ri.Draft = 0))
-							   AND ri.Deleted = 0
-							   AND ri.RevisionSourceID = p.PageID
-						  ORDER BY RevisionDate DESC
-							 LIMIT 1)
+	   AND datetime('now') >= p.PublishDate
+	   AND (p.ExpiryDate IS NULL OR p.ExpiryDate >= datetime('now'))
+	   AND p.RevisionID = (SELECT ri.RevisionID
+							 FROM RevisionInformation ri
+							WHERE (@ExcludeDraft = 0 OR (@ExcludeDraft = 1 AND ri.Draft = 0))
+							  AND ri.Deleted = 0
+							  AND ri.RevisionSourceID = p.PageID
+						 ORDER BY RevisionDate DESC
+							LIMIT 1)
 
 --# List Pages
 	SELECT p.*
@@ -64,11 +72,18 @@ INNER JOIN RevisionInformation r
 	   AND r.Deleted = 0
   ORDER BY r.RevisionDate DESC
 
---# List ContentNodes
+----------------
+-- CATEGORIES --
+----------------
+
+--# List Categories for Page Revision
 	SELECT *
-	  FROM ContentNode
+	  FROM PageCategory
 	 WHERE PageRevisionID = @PageRevisionID
-  ORDER BY NodeTypeIdentifier
+  ORDER BY CategorySetName, CategoryName
+
+--# Store Page Category
+INSERT OR REPLACE INTO PageCategory (PageRevisionID, CategorySetName, CategoryName) VALUES (@PageRevisionID, @CategorySetName, @CategoryName);
 
 -----------------
 -- EDIT FIELDS --

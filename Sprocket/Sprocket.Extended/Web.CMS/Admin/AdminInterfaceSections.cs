@@ -11,7 +11,7 @@ namespace Sprocket.Web.CMS.Admin
 {
 	public class AdminMenuLink : IRankable, IComparable
 	{
-		private string name, link;
+		private string name, link, idsuffix;
 		private ObjectRank rank;
 
 		public AdminMenuLink(string name, string link, ObjectRank rank)
@@ -19,6 +19,15 @@ namespace Sprocket.Web.CMS.Admin
 			this.name = name;
 			this.link = link;
 			this.rank = rank;
+			this.idsuffix = link.Trim('/').Replace(':', '_').Replace('/', '_').Replace('\\', '_').Replace('.', '_').Replace(' ', '_');
+		}
+
+		public AdminMenuLink(string name, string link, ObjectRank rank, string idsuffix)
+		{
+			this.name = name;
+			this.link = link;
+			this.rank = rank;
+			this.idsuffix = idsuffix;
 		}
 
 		public ObjectRank Rank
@@ -33,7 +42,7 @@ namespace Sprocket.Web.CMS.Admin
 				return name;
 
 			return string.Format("<a class=\"AdminMenuLink\" id=\"AdminMenuLink_{2}\" href=\"{0}\">{1}</a>",
-				link, name, link.Trim('/').Replace(':','_').Replace('/','_').Replace('\\','_').Replace('.','_').Replace(' ','_'));
+				link, name, idsuffix);
 		}
 
 		public int CompareTo(object obj)

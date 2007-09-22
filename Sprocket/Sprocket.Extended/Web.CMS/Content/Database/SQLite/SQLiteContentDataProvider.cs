@@ -68,6 +68,8 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 					cmd.Parameters.Add(NewParameter("@Requestable", page.Requestable, DbType.Boolean));
 					cmd.Parameters.Add(NewParameter("@RequestPath", page.RequestPath, DbType.String));
 					cmd.Parameters.Add(NewParameter("@ContentType", page.ContentType, DbType.String));
+					cmd.Parameters.Add(NewParameter("@PublishDate", page.PublishDate, DbType.DateTime));
+					cmd.Parameters.Add(NewParameter("@ExpiryDate", page.ExpiryDate, DbType.DateTime));
 					cmd.ExecuteNonQuery();
 					scope.Complete();
 				}
@@ -224,6 +226,114 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 			}
 		}
 
+		public Dictionary<string, List<EditFieldInfo>> ListPageEditFieldsByFieldType(List<long> pageRevisionIDs)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					StringBuilder ids = new StringBuilder();
+					foreach (long id in pageRevisionIDs)
+					{
+						ids.Append(",");
+						ids.Append(id);
+					}
+					SQLiteCommand cmd = new SQLiteCommand("SELECT * FROM EditFieldInfo WHERE PageRevisionID IN (0" + ids + ") ORDER BY EditFieldTypeIdentifier", conn);
+					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
+					{
+						// group all of the nodes according to type so that they can have their individual type's id list loaded
+						Dictionary<string, List<EditFieldInfo>> map = new Dictionary<string, List<EditFieldInfo>>();
+						while (reader.Read())
+						{
+							EditFieldInfo field = new EditFieldInfo();
+							if (!field.Read(reader))
+								continue;
+
+							List<EditFieldInfo> list;
+							if (!map.TryGetValue(field.Handler.TypeName, out list))
+							{
+								list = new List<EditFieldInfo>();
+								map.Add(field.Handler.TypeName, list);
+							}
+							list.Add(field);
+						}
+						reader.Close();
+						return map;
+					}
+				}
+			}
+		}
+
+		public Dictionary<string, List<string>> ListPageCategories(long pageRevisionID)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SQLiteCommand cmd = new SQLiteCommand(Procedures["List Categories for Page Revision"], conn);
+					cmd.Parameters.Add(NewParameter("@PageRevisionID", pageRevisionID, DbType.Int64));
+					Dictionary<string, List<string>> cats = new Dictionary<string, List<string>>();
+					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
+					{
+						while (reader.Read())
+						{
+							string catsetname = reader["CategorySetName"].ToString();
+							string catname = reader["CategoryName"].ToString();
+							List<string> catlist;
+							if (!cats.TryGetValue(catsetname, out catlist))
+							{
+								catlist = new List<string>();
+								cats.Add(catsetname, catlist);
+							}
+							catlist.Add(catname);
+						}
+						reader.Close();
+						return cats;
+					}
+				}
+			}
+		}
+
+		public Result StorePageCategories(long pageRevisionID, Dictionary<string, List<string>> categories)
+		{
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.Connection = connection;
+					cmd.CommandText = Procedures["Store Page Category"];
+					cmd.Parameters.Add(new SQLiteParameter("@PageRevisionID", pageRevisionID));
+					SQLiteParameter prmCatSetName = new SQLiteParameter("@CategorySetName", DbType.String);
+					SQLiteParameter prmCatName = new SQLiteParameter("@CategoryName", DbType.String);
+					cmd.Parameters.Add(prmCatSetName);
+					cmd.Parameters.Add(prmCatName);
+					foreach (KeyValuePair<string, List<string>> kvp in categories)
+					{
+						prmCatSetName.Value = kvp.Key;
+						foreach (string cat in kvp.Value)
+						{
+							prmCatName.Value = cat;
+							cmd.ExecuteNonQuery();
+						}
+					}
+					scope.Complete();
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Result("SQLiteContentDataProvider.StorePageCategories: " + ex.Message);
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+			return new Result();
+		}
+
 		public Result StoreEditFieldInfo(long pageRevisionID, EditFieldInfo info)
 		{
 			try
@@ -250,6 +360,32 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 			catch (Exception ex)
 			{
 				return new Result("SQLiteContentDataProvider.StoreEditFieldInfo: " + ex.Message);
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+			return new Result();
+		}
+
+		public Result DeleteDraftRevisions(long pageID)
+		{
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.CommandText = Procedures["Delete Draft Revisions"];
+					cmd.Connection = connection;
+					cmd.Parameters.Add(NewParameter("@RevisionSourceID", pageID, DbType.Int64));
+					cmd.ExecuteNonQuery();
+					scope.Complete();
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Result("SQLiteContentDataProvider.DeleteDraftRevisions: " + ex.Message);
 			}
 			finally
 			{
@@ -291,7 +427,7 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 
 			StringBuilder ids = new StringBuilder();
 			Dictionary<long, EditFieldInfo> map = new Dictionary<long, EditFieldInfo>();
-			foreach(EditFieldInfo info in fields)
+			foreach (EditFieldInfo info in fields)
 				if (info.DataID > 0)
 				{
 					map.Add(info.DataID, info);

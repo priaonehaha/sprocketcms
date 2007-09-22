@@ -105,12 +105,12 @@ namespace Sprocket.Web.CMS.Admin
 
 				AdminInterface admin = new AdminInterface();
 				WebClientScripts scripts = WebClientScripts.Instance;
-				admin.AddMainMenuLink(new AdminMenuLink("Go to Website Home Page", WebUtility.MakeFullPath(""), ObjectRank.Last));
-				admin.AddMainMenuLink(new AdminMenuLink("Overview", WebUtility.MakeFullPath("admin"), ObjectRank.First));
-				admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), ObjectRank.Last));
+				admin.AddMainMenuLink(new AdminMenuLink("Website Home", WebUtility.MakeFullPath(""), ObjectRank.Last, "website_home"));
+				admin.AddMainMenuLink(new AdminMenuLink("Overview", WebUtility.MakeFullPath("admin"), ObjectRank.First, "website_overview"));
+				admin.AddMainMenuLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), ObjectRank.Last, "log_out"));
 
 				admin.AddFooterLink(new AdminMenuLink("Log Out", WebUtility.MakeFullPath("admin/logout"), ObjectRank.Early));
-				admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + SprocketDate.Now.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", ObjectRank.Late));
+				admin.AddFooterLink(new AdminMenuLink("&copy; 2005-" + DateTime.UtcNow.Year + " " + SprocketSettings.GetValue("WebsiteName"), "", ObjectRank.Late));
 				admin.AddFooterLink(new AdminMenuLink("Powered by Sprocket", "http://www.sprocketcms.com", ObjectRank.Last));
 				admin.AddHeadSection(new AdminSection(scripts.BuildStandardScriptsBlock(), ObjectRank.Late));
 				admin.WebsiteName = GetWebsiteName();

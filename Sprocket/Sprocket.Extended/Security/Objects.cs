@@ -85,7 +85,7 @@ namespace Sprocket.Security
 		protected bool hidden = false; // for special users used internally only
 		protected int localTimeOffsetHours = 0;
 		protected DateTime? activationReminderSent = null, lastAuthenticated = null;
-		protected DateTime created = SprocketDate.Now;
+		protected DateTime created = DateTime.UtcNow;
 
 		private Dictionary<string, PermissionState> permissions = null;
 		//private Dictionary<string, PermissionState> roles = null;
@@ -110,7 +110,7 @@ namespace Sprocket.Security
 			this.deleted = false;
 			this.hidden = hidden;
 			this.activated = false;
-			this.created = SprocketDate.Now;
+			this.created = DateTime.UtcNow;
 			this.activationReminderSent = null;
 			this.localTimeOffsetHours = localTimeOffsetHours;
 		}

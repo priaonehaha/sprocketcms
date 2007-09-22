@@ -160,7 +160,7 @@ namespace Sprocket.Web.FileManager
 			this.contentType = fileData.ContentType;
 			this.title = title;
 			this.description = description;
-			this.uploadDate = SprocketDate.Now;
+			this.uploadDate = DateTime.UtcNow;
 			dataLength = fileData.ContentLength;
 		}
 

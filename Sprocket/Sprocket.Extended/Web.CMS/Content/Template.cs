@@ -29,6 +29,7 @@ namespace Sprocket.Web.CMS.Content
 				case "type":
 				case "page_admin_sections":
 				case "source":
+				case "categorysets":
 					return true;
 				default: return false;
 			}
@@ -41,6 +42,7 @@ namespace Sprocket.Web.CMS.Content
 				case "name": return name;
 				case "type": return GetType().Name;
 				case "page_admin_sections": return pageAdminSections;
+				case "categorysets": return categorySets;
 				case "source":
 					if (this is MasterTemplate)
 					{
@@ -101,10 +103,19 @@ namespace Sprocket.Web.CMS.Content
 			return state.ReadAndRemoveBranch();
 		}
 
-		protected void ReadPageAdminSections(XmlElement xml)
+		protected void ReadPageAdminSettings(XmlElement xml)
 		{
-			foreach (XmlElement cfxml in xml.SelectNodes("PageAdminSections/PageAdminSection"))
+			foreach (XmlElement cfxml in xml.SelectNodes("PageAdmin/PageAdminSection"))
 				pageAdminSections.Add(ReadPageAdminSectionXml(cfxml));
+
+			foreach (XmlElement cxml in xml.SelectNodes("PageAdmin/CategorySets/CategorySet"))
+				categorySets.Add(new CategorySet(cxml));
+		}
+
+		private List<CategorySet> categorySets = new List<CategorySet>();
+		public List<CategorySet> CategorySets
+		{
+			get { return categorySets; }
 		}
 
 		internal static PageAdminSectionDefinition ReadPageAdminSectionXml(XmlElement cfxml)
@@ -284,7 +295,7 @@ namespace Sprocket.Web.CMS.Content
 					text = body.InnerText;
 				script = new SprocketScript(text, "Template: " + name, "Template: " + name);
 			}
-			ReadPageAdminSections(xml);
+			ReadPageAdminSettings(xml);
 		}
 
 		public override bool IsOutOfDate
@@ -338,7 +349,7 @@ namespace Sprocket.Web.CMS.Content
 					throw new Exception("Error building subpage template. There is more than one replacement defined for section \"" + replacement.Name + "\"");
 				replacedSections.Add(replacement.Name, replacement);
 			}
-			ReadPageAdminSections(xml);
+			ReadPageAdminSettings(xml);
 		}
 
 		public override bool IsOutOfDate
