@@ -240,6 +240,12 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 					field = "r.RevisionDate";
 					dir = "DESC";
 					break;
+
+				case PageResultSetOrder.Random:
+					field = "random(*)";
+					dir = "ASC";
+					break;
+
 				default:
 					throw new Exception("Unexpected value for PageResultSetOrder (" + pageOrder + ")");
 			}

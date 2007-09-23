@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Sprocket.Web.CMS.Script;
+
 namespace Sprocket.Web.CMS.Content
 {
 	public class PageSearchOptions
@@ -72,7 +74,7 @@ namespace Sprocket.Web.CMS.Content
 		}
 	}
 
-	public class PageResultSet
+	public class PageResultSet : IPropertyEvaluatorExpression, IListExpression
 	{
 		private List<Page> pages;
 		private long totalResults, pageCount, pageNumber, pageSize, firstResultIndex = -1, lastResultIndex = -1;
@@ -174,11 +176,53 @@ namespace Sprocket.Web.CMS.Content
 			foreach (KeyValuePair<long, Dictionary<string, List<EditFieldInfo>>> kvp in editFieldsBySectionNameByRevisionID)
 				pagesByRevisionID[kvp.Key].BuildAdminSectionList(kvp.Value);
 		}
+
+		public bool IsValidPropertyName(string propertyName)
+		{
+			switch (propertyName)
+			{
+				case "pages":
+				case "totalresults":
+				case "pagecount":
+				case "pagenumber":
+				case "pagesize":
+				case "firstresultindex":
+				case "lastresultindex":
+					return true;
+			}
+			return false;
+		}
+
+		public object EvaluateProperty(string propertyName, Token token, ExecutionState state)
+		{
+			switch (propertyName)
+			{
+				case "pages": return pages;
+				case "totalresults": return totalResults;
+				case "pagecount": return pageCount;
+				case "pagenumber": return pageNumber;
+				case "pagesize": return pageSize;
+				case "firstresultindex": return firstResultIndex;
+				case "lastresultindex": return lastResultIndex;
+			}
+			throw new InstructionExecutionException("\"" + propertyName + "\" is not a valid property of PageResultSet.", token);
+		}
+
+		public object Evaluate(ExecutionState state, Token contextToken)
+		{
+			return pages;
+		}
+
+		public System.Collections.IList GetList(ExecutionState state)
+		{
+			return pages;
+		}
 	}
 
 	public enum PageResultSetOrder
 	{
 		PublishDateDescending = 1,
-		PublishDateAscending = 2
+		PublishDateAscending = 2,
+		Random = 999
 	}
 }
