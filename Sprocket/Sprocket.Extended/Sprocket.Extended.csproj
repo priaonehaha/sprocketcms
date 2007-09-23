@@ -73,6 +73,7 @@
     <Compile Include="Web.CMS\Content\ContentNodes\PageAdminSectionDefinition.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\TextBoxEditField.cs" />
     <Compile Include="Web.CMS\Content\Database\IContentDataProvider.cs" />
+    <Compile Include="Web.CMS\Content\Database\PageSearchOptions.cs" />
     <Compile Include="Web.CMS\Content\Database\SQLite\SQLiteContentDataProvider.cs" />
     <Compile Include="Web.CMS\Content\Entities\Page.cs" />
     <Compile Include="Web.CMS\Content\Entities\RevisionInformation.cs" />

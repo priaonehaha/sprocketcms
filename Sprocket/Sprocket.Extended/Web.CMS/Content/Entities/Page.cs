@@ -412,6 +412,59 @@ namespace Sprocket.Web.CMS.Content
 			return result;
 		}
 
+		internal void BuildAdminSectionList(Dictionary<string, List<EditFieldInfo>> editFieldsBySectionName)
+		{
+			// sort nodesByFieldName in ascending order, ready to be matched to the template admin fields
+			foreach (List<EditFieldInfo> list in editFieldsBySectionName.Values)
+				list.Sort();
+
+			adminSectionList = new List<PreparedPageAdminSection>();
+			Template t = ContentManager.Templates[TemplateName];
+			if (t == null)
+				return;
+
+			// combine t.GetPageAdminSections() with nodesByFieldName
+			PreparedPageAdminSection pas = new PreparedPageAdminSection();
+			foreach (PageAdminSectionDefinition def in t.GetPageAdminSections())
+			{
+				PreparedPageAdminSection section = new PreparedPageAdminSection();
+				List<EditFieldInfo> list;
+				if (!editFieldsBySectionName.TryGetValue(def.SectionName, out list))
+					list = new List<EditFieldInfo>();
+
+				section.SectionDefinition = def;
+				section.FieldList = new List<EditFieldInfo>();
+
+				// now that we've preliminarily prepared the section, fill its field list with what will appear in the admin ui
+				foreach (IEditFieldHandler handler in def.EditFieldHandlers)
+				{
+					int index = list.FindIndex(delegate(EditFieldInfo obj)
+					{
+						return handler.FieldName == obj.FieldName && handler.TypeName == obj.Handler.TypeName;
+					});
+					EditFieldInfo info;
+					if (index == -1) // create a new field to handle it
+					{
+						IEditFieldHandlerDatabaseInterface dbi = ContentManager.GetEditFieldObjectCreator(handler.TypeName).CreateDatabaseInterface();
+						info = new EditFieldInfo(0, def.SectionName, handler.FieldName, section.FieldList.Count, handler, dbi);
+						IEditFieldObjectCreator creator = ContentManager.GetEditFieldObjectCreator(handler.TypeName);
+						IEditFieldData data = creator.CreateDataObject();
+						handler.InitialiseData(data);
+						info.Data = data;
+					}
+					else
+					{
+						info = list[index];
+						info.Handler = handler; // set it to the template's handler as the one created during database retrieval was for type name purposes only
+						list.RemoveAt(index);
+						info.Rank = section.FieldList.Count;
+					}
+					section.FieldList.Add(info);
+				}
+				adminSectionList.Add(section);
+			}
+		}
+
 		private List<PreparedPageAdminSection> adminSectionList = null;
 		public List<PreparedPageAdminSection> AdminSectionList
 		{
@@ -445,55 +498,8 @@ namespace Sprocket.Web.CMS.Content
 					if (dbi == null) continue;
 					dbi.LoadDataList(fieldListWithCommonFieldType.Value);
 				}
-				// now sort nodesByFieldName in ascending order, ready to be matched to the template admin fields
-				foreach (List<EditFieldInfo> list in editFieldsBySectionName.Values)
-					list.Sort();
 
-				adminSectionList = new List<PreparedPageAdminSection>();
-				Template t = ContentManager.Templates[TemplateName];
-				if (t == null)
-					return adminSectionList;
-
-				// combine t.GetPageAdminSections() with nodesByFieldName
-				PreparedPageAdminSection pas = new PreparedPageAdminSection();
-				foreach (PageAdminSectionDefinition def in t.GetPageAdminSections())
-				{
-					PreparedPageAdminSection section = new PreparedPageAdminSection();
-					List<EditFieldInfo> list;
-					if (!editFieldsBySectionName.TryGetValue(def.SectionName, out list))
-						list = new List<EditFieldInfo>();
-
-					section.SectionDefinition = def;
-					section.FieldList = new List<EditFieldInfo>();
-
-					// now that we've preliminarily prepared the section, fill its field list with what will appear in the admin ui
-					foreach (IEditFieldHandler handler in def.EditFieldHandlers)
-					{
-						int index = list.FindIndex(delegate(EditFieldInfo obj)
-						{
-							return handler.FieldName == obj.FieldName && handler.TypeName == obj.Handler.TypeName;
-						});
-						EditFieldInfo info;
-						if (index == -1) // create a new field to handle it
-						{
-							IEditFieldHandlerDatabaseInterface dbi = ContentManager.GetEditFieldObjectCreator(handler.TypeName).CreateDatabaseInterface();
-							info = new EditFieldInfo(0, def.SectionName, handler.FieldName, section.FieldList.Count, handler, dbi);
-							IEditFieldObjectCreator creator = ContentManager.GetEditFieldObjectCreator(handler.TypeName);
-							IEditFieldData data = creator.CreateDataObject();
-							handler.InitialiseData(data);
-							info.Data = data;
-						}
-						else
-						{
-							info = list[index];
-							info.Handler = handler; // set it to the template's handler as the one created during database retrieval was for type name purposes only
-							list.RemoveAt(index);
-							info.Rank = section.FieldList.Count;
-						}
-						section.FieldList.Add(info);
-					}
-					adminSectionList.Add(section);
-				}
+				BuildAdminSectionList(editFieldsBySectionName);
 
 				return adminSectionList;
 			}
