@@ -16,7 +16,7 @@ using Sprocket.Security;
 
 namespace Sprocket.Web.CMS.Content
 {
-	public class Page : IJSONEncoder, IJSONReader, IPropertyEvaluatorExpression
+	public class Page : IJSONEncoder, IJSONReader, IPropertyEvaluatorExpression, IArgumentListEvaluatorExpression
 	{
 		#region Constructor, Fields, Properties, JSON Methods
 		#region Fields
@@ -297,6 +297,17 @@ namespace Sprocket.Web.CMS.Content
 				default: throw new InstructionExecutionException("\"" + propertyName + "\" is not a property of the Page object type.", token);
 			}
 		}
+
+		public object Evaluate(Token contextToken, List<ExpressionArgument> args, ExecutionState state)
+		{
+			if (args.Count != 1)
+				throw new InstructionExecutionException("A page can only take a single argument specifying the name of the field section to retrieve", contextToken);
+			string name = (TokenParser.VerifyUnderlyingType(args[0].Expression.Evaluate(state, args[0].Token)) ?? "").ToString();
+			PreparedPageAdminSection section;
+			if (!adminSectionsByName.TryGetValue(name, out section))
+				throw new InstructionExecutionException("\"" + name + "\" is not the name of a field section in the referenced page.", args[0].Token);
+			return section;
+		}
 		#endregion
 
 		private Dictionary<string, List<string>> categorySelections = null;
@@ -461,10 +472,13 @@ namespace Sprocket.Web.CMS.Content
 					}
 					section.FieldList.Add(info);
 				}
+				section.UpdateFieldsByName();
 				adminSectionList.Add(section);
+				adminSectionsByName[section.SectionDefinition.SectionName] = section;
 			}
 		}
 
+		private Dictionary<string, PreparedPageAdminSection> adminSectionsByName = new Dictionary<string, PreparedPageAdminSection>();
 		private List<PreparedPageAdminSection> adminSectionList = null;
 		public List<PreparedPageAdminSection> AdminSectionList
 		{

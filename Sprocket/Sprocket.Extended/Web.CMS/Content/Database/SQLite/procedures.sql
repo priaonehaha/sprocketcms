@@ -75,7 +75,7 @@ INNER JOIN RevisionInformation r
 	   AND (@CategorySetName IS NULL OR @CategoryName IS NULL OR 1 <= (SELECT COUNT(*)
 																		 FROM PageCategory c
 																		WHERE c.CategoryName = @CategoryName
-																		  AND c.CategorySetName = @CategoryName
+																		  AND c.CategorySetName = @CategorySetName
 																		  AND c.PageRevisionID = p.RevisionID));
 	   
 	SELECT p.*
@@ -89,7 +89,7 @@ INNER JOIN RevisionInformation r
 	   AND (@CategorySetName IS NULL OR @CategoryName IS NULL OR 1 <= (SELECT COUNT(*)
 																		 FROM PageCategory c
 																		WHERE c.CategoryName = @CategoryName
-																		  AND c.CategorySetName = @CategoryName
+																		  AND c.CategorySetName = @CategorySetName
 																		  AND c.PageRevisionID = p.RevisionID))
   ORDER BY $FIELD $DIRECTION
 	 LIMIT @Offset, @PageSize;
