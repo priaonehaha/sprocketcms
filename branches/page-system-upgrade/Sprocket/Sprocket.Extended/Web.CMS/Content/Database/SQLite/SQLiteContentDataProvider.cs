@@ -172,26 +172,80 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				}
 			}
 		}
+		public Result DeleteDraftRevisions(long pageID)
+		{
+			try
+			{
+				using (TransactionScope scope = new TransactionScope())
+				{
+					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
+					SQLiteCommand cmd = connection.CreateCommand();
+					cmd.CommandText = Procedures["Delete Draft Revisions"];
+					cmd.Connection = connection;
+					cmd.Parameters.Add(NewParameter("@RevisionSourceID", pageID, DbType.Int64));
+					cmd.ExecuteNonQuery();
+					scope.Complete();
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Result("SQLiteContentDataProvider.DeleteDraftRevisions: " + ex.Message);
+			}
+			finally
+			{
+				DatabaseManager.DatabaseEngine.ReleaseConnection();
+			}
+			return new Result();
+		}
 
-		public List<Page> ListPages()
+		public PageResultSet ListPages(PageSearchOptions options)
 		{
 			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
 				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
 				{
 					conn.Open();
-					SQLiteCommand cmd = new SQLiteCommand(Procedures["List Pages"], conn);
+					SQLiteCommand cmd = new SQLiteCommand(ReplacePageSortOrder(Procedures["List Pages"], options.PageOrder), conn);
+					cmd.Parameters.Add(NewParameter("@Hidden", options.Hidden, DbType.Boolean));
+					cmd.Parameters.Add(NewParameter("@Deleted", options.Deleted, DbType.Boolean));
+					cmd.Parameters.Add(NewParameter("@Draft", options.Draft, DbType.Boolean));
+					cmd.Parameters.Add(NewParameter("@Offset", Math.Max((options.PageNumber - 1) * options.PageSize, 0), DbType.Int64));
+					cmd.Parameters.Add(NewParameter("@PageSize", options.PageSize <= 0 ? -1 : options.PageSize, DbType.Int64));
+					cmd.Parameters.Add(NewParameter("@CategorySetName", options.CategorySetName, DbType.String));
+					cmd.Parameters.Add(NewParameter("@CategoryName", options.CategoryName, DbType.String));
 					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
 					{
+						reader.Read();
+						long totalResults = Convert.ToInt64(reader[0]);
+						reader.NextResult();
 						List<Page> list = new List<Page>();
 						while (reader.Read())
 							list.Add(new Page(reader));
 						reader.Close();
-						return list;
+						return new PageResultSet(list, totalResults, options.PageSize, options.PageNumber, options.PageOrder);
 					}
 				}
 			}
 		}
+		private string ReplacePageSortOrder(string sql, PageResultSetOrder pageOrder)
+		{
+			string dir, field;
+			switch (pageOrder)
+			{
+				case PageResultSetOrder.PublishDateAscending:
+					field = "r.RevisionDate";
+					dir = "ASC";
+					break;
+				case PageResultSetOrder.PublishDateDescending:
+					field = "r.RevisionDate";
+					dir = "DESC";
+					break;
+				default:
+					throw new Exception("Unexpected value for PageResultSetOrder (" + pageOrder + ")");
+			}
+			return sql.Replace("$FIELD", field).Replace("$DIRECTION", dir);
+		}
+
 		public Dictionary<string, List<EditFieldInfo>> ListPageEditFieldsByFieldType(long pageRevisionID)
 		{
 			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
@@ -225,7 +279,6 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				}
 			}
 		}
-
 		public Dictionary<string, List<EditFieldInfo>> ListPageEditFieldsByFieldType(List<long> pageRevisionIDs)
 		{
 			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
@@ -264,76 +317,6 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				}
 			}
 		}
-
-		public Dictionary<string, List<string>> ListPageCategories(long pageRevisionID)
-		{
-			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
-			{
-				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
-				{
-					conn.Open();
-					SQLiteCommand cmd = new SQLiteCommand(Procedures["List Categories for Page Revision"], conn);
-					cmd.Parameters.Add(NewParameter("@PageRevisionID", pageRevisionID, DbType.Int64));
-					Dictionary<string, List<string>> cats = new Dictionary<string, List<string>>();
-					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
-					{
-						while (reader.Read())
-						{
-							string catsetname = reader["CategorySetName"].ToString();
-							string catname = reader["CategoryName"].ToString();
-							List<string> catlist;
-							if (!cats.TryGetValue(catsetname, out catlist))
-							{
-								catlist = new List<string>();
-								cats.Add(catsetname, catlist);
-							}
-							catlist.Add(catname);
-						}
-						reader.Close();
-						return cats;
-					}
-				}
-			}
-		}
-
-		public Result StorePageCategories(long pageRevisionID, Dictionary<string, List<string>> categories)
-		{
-			try
-			{
-				using (TransactionScope scope = new TransactionScope())
-				{
-					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
-					SQLiteCommand cmd = connection.CreateCommand();
-					cmd.Connection = connection;
-					cmd.CommandText = Procedures["Store Page Category"];
-					cmd.Parameters.Add(new SQLiteParameter("@PageRevisionID", pageRevisionID));
-					SQLiteParameter prmCatSetName = new SQLiteParameter("@CategorySetName", DbType.String);
-					SQLiteParameter prmCatName = new SQLiteParameter("@CategoryName", DbType.String);
-					cmd.Parameters.Add(prmCatSetName);
-					cmd.Parameters.Add(prmCatName);
-					foreach (KeyValuePair<string, List<string>> kvp in categories)
-					{
-						prmCatSetName.Value = kvp.Key;
-						foreach (string cat in kvp.Value)
-						{
-							prmCatName.Value = cat;
-							cmd.ExecuteNonQuery();
-						}
-					}
-					scope.Complete();
-				}
-			}
-			catch (Exception ex)
-			{
-				return new Result("SQLiteContentDataProvider.StorePageCategories: " + ex.Message);
-			}
-			finally
-			{
-				DatabaseManager.DatabaseEngine.ReleaseConnection();
-			}
-			return new Result();
-		}
-
 		public Result StoreEditFieldInfo(long pageRevisionID, EditFieldInfo info)
 		{
 			try
@@ -368,7 +351,37 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 			return new Result();
 		}
 
-		public Result DeleteDraftRevisions(long pageID)
+		public Dictionary<string, List<string>> ListPageCategories(long pageRevisionID)
+		{
+			using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Suppress))
+			{
+				using (SQLiteConnection conn = new SQLiteConnection(DatabaseManager.DatabaseEngine.ConnectionString))
+				{
+					conn.Open();
+					SQLiteCommand cmd = new SQLiteCommand(Procedures["List Categories for Page Revision"], conn);
+					cmd.Parameters.Add(NewParameter("@PageRevisionID", pageRevisionID, DbType.Int64));
+					Dictionary<string, List<string>> cats = new Dictionary<string, List<string>>();
+					using (SQLiteDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection))
+					{
+						while (reader.Read())
+						{
+							string catsetname = reader["CategorySetName"].ToString();
+							string catname = reader["CategoryName"].ToString();
+							List<string> catlist;
+							if (!cats.TryGetValue(catsetname, out catlist))
+							{
+								catlist = new List<string>();
+								cats.Add(catsetname, catlist);
+							}
+							catlist.Add(catname);
+						}
+						reader.Close();
+						return cats;
+					}
+				}
+			}
+		}
+		public Result StorePageCategories(long pageRevisionID, Dictionary<string, List<string>> categories)
 		{
 			try
 			{
@@ -376,16 +389,28 @@ namespace Sprocket.Web.CMS.Content.Database.SQLite
 				{
 					SQLiteConnection connection = (SQLiteConnection)DatabaseManager.DatabaseEngine.GetConnection();
 					SQLiteCommand cmd = connection.CreateCommand();
-					cmd.CommandText = Procedures["Delete Draft Revisions"];
 					cmd.Connection = connection;
-					cmd.Parameters.Add(NewParameter("@RevisionSourceID", pageID, DbType.Int64));
-					cmd.ExecuteNonQuery();
+					cmd.CommandText = Procedures["Store Page Category"];
+					cmd.Parameters.Add(new SQLiteParameter("@PageRevisionID", pageRevisionID));
+					SQLiteParameter prmCatSetName = new SQLiteParameter("@CategorySetName", DbType.String);
+					SQLiteParameter prmCatName = new SQLiteParameter("@CategoryName", DbType.String);
+					cmd.Parameters.Add(prmCatSetName);
+					cmd.Parameters.Add(prmCatName);
+					foreach (KeyValuePair<string, List<string>> kvp in categories)
+					{
+						prmCatSetName.Value = kvp.Key;
+						foreach (string cat in kvp.Value)
+						{
+							prmCatName.Value = cat;
+							cmd.ExecuteNonQuery();
+						}
+					}
 					scope.Complete();
 				}
 			}
 			catch (Exception ex)
 			{
-				return new Result("SQLiteContentDataProvider.DeleteDraftRevisions: " + ex.Message);
+				return new Result("SQLiteContentDataProvider.StorePageCategories: " + ex.Message);
 			}
 			finally
 			{

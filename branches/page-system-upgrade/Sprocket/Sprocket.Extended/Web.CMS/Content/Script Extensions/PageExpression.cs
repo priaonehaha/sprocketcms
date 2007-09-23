@@ -49,7 +49,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 	{
 		public object Evaluate(ExecutionState state, Token contextToken)
 		{
-			return ContentManager.Instance.DataProvider.ListPages();
+			return ContentManager.Instance.DataProvider.ListPages(new PageSearchOptions()).Pages;
 		}
 	}
 	public class AllPagesExpressionCreator : IExpressionCreator

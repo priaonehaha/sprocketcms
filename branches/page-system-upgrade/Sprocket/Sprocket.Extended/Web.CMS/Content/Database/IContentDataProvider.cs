@@ -15,7 +15,7 @@ namespace Sprocket.Web.CMS.Content
 		Page SelectPage(long pageID);
 		Page SelectPageBySprocketPath(string sprocketPath);
 		Page SelectPageByPageCode(string pageCode);
-		List<Page> ListPages();
+		PageResultSet ListPages(PageSearchOptions options);
 
 		Dictionary<string, List<string>> ListPageCategories(long pageRevisionID);
 		Result StorePageCategories(long pageRevisionID, Dictionary<string, List<string>> categories);

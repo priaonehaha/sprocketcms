@@ -19,9 +19,14 @@ namespace Sprocket.Web.CMS.Content
 		private IEditFieldHandler editFieldHandler;
 		private IEditFieldHandlerDatabaseInterface dataHandler;
 		private IEditFieldData data;
-		private long editFieldID;
+		private long editFieldID, pageRevisionID;
 		private int rank;
 		private string fieldName, sectionName;
+
+		public long PageRevisionID
+		{
+			get { return pageRevisionID; }
+		}
 
 		public string SectionName
 		{
@@ -82,6 +87,7 @@ namespace Sprocket.Web.CMS.Content
 			fieldName = (string)reader["FieldName"];
 			sectionName = (string)reader["SectionName"];
 			rank = Convert.ToInt32(reader["Rank"]);
+			pageRevisionID = Convert.ToInt64(reader["PageRevisionID"]);
 			IEditFieldObjectCreator c = ContentManager.GetEditFieldObjectCreator(reader["EditFieldTypeIdentifier"].ToString());
 			if (c == null)
 				return false;

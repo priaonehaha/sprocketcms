@@ -64,13 +64,35 @@ INNER JOIN RevisionInformation r
 							LIMIT 1)
 
 --# List Pages
+	SELECT COUNT(*)
+	  FROM Page p
+INNER JOIN RevisionInformation r
+		ON p.RevisionID = r.RevisionID
+	 WHERE r.RevisionID = (SELECT r2.RevisionID FROM RevisionInformation r2 WHERE r2.RevisionSourceID = p.PageID ORDER BY r2.RevisionDate DESC)
+	   AND (@Deleted IS NULL OR (@Deleted = 1 AND r.Deleted = 1) OR (@Deleted = 0 AND r.Deleted = 0))
+	   AND (@Draft IS NULL OR (@Draft = 1 AND r.Draft = 1) OR (@Draft = 0 AND r.Draft = 0))
+	   AND (@Hidden IS NULL OR (@Hidden = 1 AND r.Hidden = 1) OR (@Hidden = 0 AND r.Hidden = 0))
+	   AND (@CategorySetName IS NULL OR @CategoryName IS NULL OR 1 <= (SELECT COUNT(*)
+																		 FROM PageCategory c
+																		WHERE c.CategoryName = @CategoryName
+																		  AND c.CategorySetName = @CategoryName
+																		  AND c.PageRevisionID = p.RevisionID));
+	   
 	SELECT p.*
 	  FROM Page p
 INNER JOIN RevisionInformation r
 		ON p.RevisionID = r.RevisionID
-	   AND r.RevisionID = (SELECT r2.RevisionID FROM RevisionInformation r2 WHERE r2.RevisionSourceID = p.PageID ORDER BY r2.RevisionDate DESC)
-	   AND r.Deleted = 0
-  ORDER BY r.RevisionDate DESC
+	 WHERE r.RevisionID = (SELECT r2.RevisionID FROM RevisionInformation r2 WHERE r2.RevisionSourceID = p.PageID ORDER BY r2.RevisionDate DESC)
+	   AND (@Deleted IS NULL OR (@Deleted = 1 AND r.Deleted = 1) OR (@Deleted = 0 AND r.Deleted = 0))
+	   AND (@Draft IS NULL OR (@Draft = 1 AND r.Draft = 1) OR (@Draft = 0 AND r.Draft = 0))
+	   AND (@Hidden IS NULL OR (@Hidden = 1 AND r.Hidden = 1) OR (@Hidden = 0 AND r.Hidden = 0))
+	   AND (@CategorySetName IS NULL OR @CategoryName IS NULL OR 1 <= (SELECT COUNT(*)
+																		 FROM PageCategory c
+																		WHERE c.CategoryName = @CategoryName
+																		  AND c.CategorySetName = @CategoryName
+																		  AND c.PageRevisionID = p.RevisionID))
+  ORDER BY $FIELD $DIRECTION
+	 LIMIT @Offset, @PageSize;
 
 ----------------
 -- CATEGORIES --
