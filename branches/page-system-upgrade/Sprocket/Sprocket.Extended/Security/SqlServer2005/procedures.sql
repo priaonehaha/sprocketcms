@@ -24,13 +24,13 @@ BEGIN
 
 		EXEC dbo.StoreClientSpace @ClientSpaceID, 'SprocketCMS', 1, @newUserID
 		EXEC dbo.StoreUser @newUserID, @ClientSpaceID, 'admin', @PasswordHash, 'System', 'Administrator', 'admin@localhost', 1, 0, 1, 0, 1, null, @date, null, 0
-		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='SUPERUSER')
+		IF NOT EXISTS (SELECT PermissionTypeID FROM ProspectorPermissionTypes WHERE PermissionTypeCode='SUPERUSER')
 			EXEC dbo.StorePermissionType @perm1ID, 'SUPERUSER', 'Unrestricted Access', 0
-		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='ACCESS_ADMIN')
+		IF NOT EXISTS (SELECT PermissionTypeID FROM ProspectorPermissionTypes WHERE PermissionTypeCode='ACCESS_ADMIN')
 			EXEC dbo.StorePermissionType @perm2ID, 'ACCESS_ADMIN', 'Allow General Administrative Access', 0
-		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='USERADMINISTRATOR')
+		IF NOT EXISTS (SELECT PermissionTypeID FROM ProspectorPermissionTypes WHERE PermissionTypeCode='USERADMINISTRATOR')
 			EXEC dbo.StorePermissionType @perm3ID, 'USERADMINISTRATOR', 'Access User Administration', 0
-		IF NOT EXISTS (SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeCode='ROLEADMINISTRATOR')
+		IF NOT EXISTS (SELECT PermissionTypeID FROM ProspectorPermissionTypes WHERE PermissionTypeCode='ROLEADMINISTRATOR')
 			EXEC dbo.StorePermissionType @perm4ID, 'ROLEADMINISTRATOR', 'Create and Modify Roles', 0
 		EXEC dbo.AssignPermissionToUser 'SUPERUSER', NULL, @newUserID
 	END
@@ -247,9 +247,9 @@ CREATE PROCEDURE dbo.StorePermissionType
 	@DefaultValue				bit
 AS
 BEGIN
-	IF EXISTS(SELECT PermissionTypeID FROM PermissionTypes WHERE PermissionTypeID = @PermissionTypeID)
+	IF EXISTS(SELECT PermissionTypeID FROM ProspectorPermissionTypes WHERE PermissionTypeID = @PermissionTypeID)
 	BEGIN
-		UPDATE PermissionTypes SET
+		UPDATE ProspectorPermissionTypes SET
 			PermissionTypeCode = COALESCE(@PermissionTypeCode, PermissionTypeCode),
 			Description = COALESCE(@Description, Description),
 			DefaultValue = COALESCE(@DefaultValue, DefaultValue)
@@ -260,7 +260,7 @@ BEGIN
 	BEGIN
 		IF @PermissionTypeID = 0 OR @PermissionTypeID IS NULL
 			EXEC GetUniqueID @PermissionTypeID OUTPUT
-		INSERT INTO PermissionTypes
+		INSERT INTO ProspectorPermissionTypes
 			(PermissionTypeID, PermissionTypeCode, Description, DefaultValue)
 		VALUES
 			(@PermissionTypeID, @PermissionTypeCode, @Description, @DefaultValue)
@@ -359,7 +359,7 @@ CREATE PROCEDURE dbo.DeletePermissionType
 AS
 BEGIN
 	DELETE
-	  FROM PermissionTypes
+	  FROM ProspectorPermissionTypes
 	 WHERE PermissionTypeID = @PermissionTypeID
 		OR PermissionTypeCode = @PermissionTypeCode
 END
@@ -591,7 +591,7 @@ AS
 BEGIN
 	IF @PermissionTypeID IS NULL
 		SELECT @PermissionTypeID = PermissionTypeID
-		  FROM PermissionTypes
+		  FROM ProspectorPermissionTypes
 		 WHERE PermissionTypeCode = @PermissionTypeCode
 
 	DELETE FROM [Permissions]
@@ -616,7 +616,7 @@ AS
 BEGIN
 	IF @PermissionTypeID IS NULL
 		SELECT @PermissionTypeID = PermissionTypeID
-		  FROM PermissionTypes
+		  FROM ProspectorPermissionTypes
 		 WHERE PermissionTypeCode = @PermissionTypeCode
 	DELETE
 	  FROM Permissions
@@ -669,10 +669,10 @@ BEGIN
 		IF EXISTS (SELECT Value
 					 FROM [Permissions]
 					WHERE (PermissionTypeID = (SELECT PermissionTypeID
-												FROM PermissionTypes
+												FROM ProspectorPermissionTypes
 											   WHERE PermissionTypeCode = @PermissionTypeCode)
 					   OR PermissionTypeID = (SELECT PermissionTypeID
-												FROM PermissionTypes
+												FROM ProspectorPermissionTypes
 											   WHERE PermissionTypeCode = 'SUPERUSER'))
 					  AND (UserID = @UserID
 					   OR RoleID IN (SELECT RoleID FROM #r)))
@@ -783,7 +783,7 @@ BEGIN
 	SELECT pt.PermissionTypeID, PermissionTypeCode, Description, DefaultValue,
 		   CAST(CASE WHEN COUNT(Value) > 0 THEN 1 ELSE 0 END AS bit) AS [HasPermission],
 		   CAST(CASE WHEN p.UserID = @UserID OR COUNT(Value) = 0 THEN 0 ELSE 1 END AS bit) AS [Inherited]
-	  FROM PermissionTypes pt
+	  FROM ProspectorPermissionTypes pt
  LEFT JOIN [Permissions] p
 		ON pt.PermissionTypeID = p.PermissionTypeID
 	   AND (p.UserID = @UserID
@@ -802,7 +802,7 @@ CREATE PROCEDURE dbo.ListPermissionsForRole
 AS
 BEGIN
 	SELECT *
-	  FROM PermissionTypes pt
+	  FROM ProspectorPermissionTypes pt
  LEFT JOIN [Permissions] p
 		ON p.PermissionTypeID = pt.PermissionTypeID
 	   AND p.RoleID = @RoleID
@@ -853,7 +853,7 @@ CREATE PROCEDURE dbo.ListAllPermissionTypesAgainstRole
 AS
 BEGIN
 	SELECT *
-	  FROM PermissionTypes pt
+	  FROM ProspectorPermissionTypes pt
  LEFT JOIN Permissions p
 		ON p.PermissionTypeID = pt.PermissionTypeID
 	   AND p.RoleID = @RoleID
