@@ -31,8 +31,6 @@ namespace Sprocket.Web
 			get { return (AjaxRequestHandler)Core.Instance[typeof(AjaxRequestHandler)].Module; }
 		}
 
-		#region ISprocketModule Members
-
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
 			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(OnBeginHttpRequest);
@@ -54,8 +52,6 @@ namespace Sprocket.Web
 		void OnEndHttpRequest()
 		{
 		}
-
-		#endregion
 
 		private bool isAjaxRequest = false;
 		public static bool IsAjaxRequest
@@ -128,15 +124,15 @@ namespace Sprocket.Web
 				IDictionary<string, object> data = (IDictionary<string, object>)JSON.Parse(strData);
 				
 				// extract the base page time stamp
-				pageTimeStamp = new DateTime(long.Parse(data["LoadTimeStamp"].ToString()));
-				System.Diagnostics.Debug.WriteLine("Extracted page time stamp of " + pageTimeStamp.Ticks.ToString());
-				if (OnAjaxRequestTimeStampCheck != null)
-				{
-					Result result = new Result();
-					OnAjaxRequestTimeStampCheck(pageTimeStamp, result);
-					if (!result.Succeeded)
-						throw new AjaxSessionExpiredException(result.Message);
-				}
+				//pageTimeStamp = new DateTime(long.Parse(data["LoadTimeStamp"].ToString()));
+				//System.Diagnostics.Debug.WriteLine("Extracted page time stamp of " + pageTimeStamp.Ticks.ToString());
+				//if (OnAjaxRequestTimeStampCheck != null)
+				//{
+				//    Result result = new Result();
+				//    OnAjaxRequestTimeStampCheck(pageTimeStamp, result);
+				//    if (!result.Succeeded)
+				//        throw new AjaxSessionExpiredException(result.Message);
+				//}
 
 				// extract the module and method name
 				string fullname = data["ModuleName"].ToString();

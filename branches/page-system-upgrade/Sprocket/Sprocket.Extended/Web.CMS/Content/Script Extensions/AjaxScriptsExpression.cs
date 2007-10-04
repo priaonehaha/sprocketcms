@@ -24,6 +24,7 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
 				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.ajax.js")
+				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.browser-tools.js")
 					.Replace("$APPLICATIONROOT$", WebUtility.BasePath)
 					.Replace("$LOADTIMESTAMP$", AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString())
 				+ WebClientScripts.Instance.GetAjaxMethodsScript(types);

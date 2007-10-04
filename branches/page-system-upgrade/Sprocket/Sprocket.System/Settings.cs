@@ -192,4 +192,9 @@ namespace Sprocket
 
 		#endregion
 	}
+
+	public class SprocketConfigSettings : ConfigurationSection
+	{
+
+	}
 }
