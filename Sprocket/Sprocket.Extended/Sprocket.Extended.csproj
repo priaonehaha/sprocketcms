@@ -75,6 +75,7 @@
     <Compile Include="Web.CMS\Content\Database\IContentDataProvider.cs" />
     <Compile Include="Web.CMS\Content\Database\PageSearchOptions.cs" />
     <Compile Include="Web.CMS\Content\Database\SQLite\SQLiteContentDataProvider.cs" />
+    <Compile Include="Web.CMS\Content\Database\SqlServer2005\SqlServer2005ContentDataProvider.cs" />
     <Compile Include="Web.CMS\Content\Entities\Page.cs" />
     <Compile Include="Web.CMS\Content\Entities\RevisionInformation.cs" />
     <Compile Include="Web.CMS\Content\ContentNodes\IEditFieldHandler.cs" />
@@ -142,6 +143,8 @@
     <None Include="Security\SqlServer2005\_procedures.sql" />
     <EmbeddedResource Include="Web.CMS\Content\Database\SQLite\procedures.sql" />
     <EmbeddedResource Include="Web.CMS\Content\Database\SQLite\schema.sql" />
+    <EmbeddedResource Include="Web.CMS\Content\Database\SqlServer2005\procedures.sql" />
+    <EmbeddedResource Include="Web.CMS\Content\Database\SqlServer2005\schema.sql" />
     <None Include="Web.FileManager\DatabaseScripts\procedures.sql" />
     <EmbeddedResource Include="Web.FileManager\SQLite\procedures.sql" />
     <EmbeddedResource Include="Web.FileManager\SQLite\schema.sql" />

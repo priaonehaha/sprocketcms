@@ -39,6 +39,7 @@
     <Compile Include="Database\IMerchantDataProvider.cs" />
     <Compile Include="Database\Sql2005DataProvider\Sql2005DataProvider.cs" />
     <Compile Include="PayPal\InstantPaymentNotification.cs" />
+    <Compile Include="PayPal\PaypalExpression.cs" />
     <Compile Include="PayPal\PayPalPlaceHolderRenderer.cs" />
     <Compile Include="PayPal\PaypalSubscription.cs" />
     <Compile Include="PayPal\PayPalTransactionResponse.cs" />

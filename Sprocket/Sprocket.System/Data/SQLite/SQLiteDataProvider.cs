@@ -52,7 +52,6 @@ namespace Sprocket.Data
 					SQLiteCommand cmd = connection.CreateCommand();
 					cmd.CommandText = ResourceLoader.LoadTextResource(asm, ns);
 					cmd.ExecuteNonQuery();
-					cmd.Connection = connection;
 					scope.Complete();
 				}
 			}
