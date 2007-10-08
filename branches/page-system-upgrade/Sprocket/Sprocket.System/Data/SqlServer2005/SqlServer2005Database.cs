@@ -109,7 +109,7 @@ namespace Sprocket.Data
 						}
 						catch (Exception ex)
 						{
-							return new Result(ex.Message);
+							return new Result(ex.Message + Environment.NewLine + Environment.NewLine + "The offending SQL was:" + Environment.NewLine + sql[i]);
 						}
 						innerscope.Complete();
 					}

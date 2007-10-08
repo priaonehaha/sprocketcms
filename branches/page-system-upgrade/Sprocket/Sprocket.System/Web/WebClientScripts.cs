@@ -149,6 +149,7 @@ namespace Sprocket.Web
 		}
 
 		private string standardScripts = null;
+		private string basicScripts = null;
 
 		public string StandardScripts
 		{
@@ -156,15 +157,29 @@ namespace Sprocket.Web
 			{
 				if (standardScripts == null)
 				{
-					standardScripts = string.Concat(
-						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.generic.js"),
-						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.browser-tools.js"),
-						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.json.js"),
-						ResourceLoader.LoadTextResource("Sprocket.Web.javascript.ajax.js"),
-						GetAjaxMethodsScript()
-						);
+					standardScripts = new StringBuilder()
+						.Append(BasicScripts)
+						.Append(GetAjaxMethodsScript())
+						.ToString();
 				}
 				return standardScripts;
+			}
+		}
+
+		public string BasicScripts
+		{
+			get
+			{
+				if (basicScripts == null)
+				{
+					basicScripts = new StringBuilder()
+						.Append(ResourceLoader.LoadTextResource("Sprocket.Web.javascript.generic.js"))
+						.Append(ResourceLoader.LoadTextResource("Sprocket.Web.javascript.browser-tools.js"))
+						.Append(ResourceLoader.LoadTextResource("Sprocket.Web.javascript.json.js"))
+						.Append(ResourceLoader.LoadTextResource("Sprocket.Web.javascript.ajax.js"))
+						.ToString();
+				}
+				return basicScripts;
 			}
 		}
 

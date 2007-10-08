@@ -7,7 +7,7 @@ using Sprocket.Web.Merchant.PayPal;
 
 namespace Sprocket.Web.Merchant.Database
 {
-	public interface IMerchantDataProvider
+	public interface IMerchantDataProvider : IModuleDataProvider
 	{
 		void Initialise(Result result);
 

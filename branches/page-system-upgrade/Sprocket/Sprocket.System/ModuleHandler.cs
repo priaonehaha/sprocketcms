@@ -317,9 +317,9 @@ namespace Sprocket
 		public IEnumerator GetEnumerator()
 		{
 			if (sorted)
-				return new ModuleRegistryEnumerator(sortedRegistry);
+				return new ModuleRegistryEnumerator(sortedRegistry, true);
 			else
-				return new ModuleRegistryEnumerator(moduleRegistry.Values);
+				return new ModuleRegistryEnumerator(moduleRegistry.Values, true);
 		}
 	}
 	#endregion
@@ -328,9 +328,12 @@ namespace Sprocket
 	public class ModuleRegistryEnumerator : IEnumerator<RegisteredModule>
 	{
 		IEnumerator<RegisteredModule> regEnum;
-		public ModuleRegistryEnumerator(IEnumerable<RegisteredModule> registry)
+		bool isSorted;
+
+		public ModuleRegistryEnumerator(IEnumerable<RegisteredModule> registry, bool isSorted)
 		{
 			regEnum = registry.GetEnumerator();
+			this.isSorted = isSorted;
 		}
 
 		public void Reset()

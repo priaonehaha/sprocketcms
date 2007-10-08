@@ -30,8 +30,11 @@ namespace Sprocket.Security
 			DatabaseManager.Instance.OnDatabaseHandlerLoaded += new NotificationEventHandler<IDatabaseHandler>(Instance_OnDatabaseHandlerLoaded);
 			DatabaseSetup.Instance.Completed += new EmptyHandler(DatabaseSetup_Completed);
 			WebEvents.Instance.OnBeforeLoadExistingFile += new WebEvents.RequestedPathEventHandler(Instance_OnBeforeLoadExistingFile);
-			WebAuthentication.Instance.Authenticate = ValidateLogin;
-			WebAuthentication.Instance.VerifyUserAccess = VerifyUserAccess;
+			if (!DisableAuthenticationHooks)
+			{
+				WebAuthentication.Instance.Authenticate = ValidateLogin;
+				WebAuthentication.Instance.VerifyUserAccess = VerifyUserAccess;
+			}
 		}
 
 		void DatabaseSetup_Completed()
@@ -63,6 +66,11 @@ namespace Sprocket.Security
 					CurrentRequest.Value["CurrentUser"] = User.Select(ClientSpaceID, WebAuthentication.Instance.CurrentUsername);
 				return CurrentRequest.Value["CurrentUser"] as User;
 			}
+		}
+
+		internal static bool DisableAuthenticationHooks
+		{
+			get { return SprocketSettings.GetBooleanValue("DisableSecurityProviderAuthentication"); }
 		}
 
 		ISecurityProviderDataLayer dataLayer = null;

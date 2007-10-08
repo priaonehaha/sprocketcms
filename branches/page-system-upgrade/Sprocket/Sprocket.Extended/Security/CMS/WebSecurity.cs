@@ -54,9 +54,11 @@ namespace Sprocket.Web.CMS.Security
 			AjaxFormHandler.Instance.OnValidateField += new AjaxFormFieldValidationHandler(OnValidateField);
 			AjaxFormHandler.Instance.OnValidateForm += new AjaxFormSubmissionHandler(OnValidateForm);
 			AjaxFormHandler.Instance.OnSaveForm += new AjaxFormSubmissionHandler(OnSaveForm);
-			AjaxRequestHandler.Instance.OnAjaxRequestAuthenticationCheck += new InterruptableEventHandler<System.Reflection.MethodInfo>(OnAjaxRequestAuthenticationCheck);
 			WebEvents.Instance.OnLoadRequestedPath += new WebEvents.RequestedPathEventHandler(WebEvents_OnLoadRequestedPath);
 			Core.Instance.OnInitialiseComplete += new EmptyHandler(Core_OnInitialiseComplete);
+
+			if(!SecurityProvider.DisableAuthenticationHooks)
+				AjaxRequestHandler.Instance.AjaxAuthenticate = AuthenticateForAjaxRequest;
 		}
 
 		void Core_OnInitialiseComplete()
