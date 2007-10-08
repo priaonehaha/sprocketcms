@@ -11,10 +11,10 @@ namespace Sprocket.Web.CMS.Content
 {
 	public class PageRegistry
 	{
-		private List<PageEntry> pages = null;
-		private Dictionary<string, PageEntry> requestPaths = null;
-		private Dictionary<string, PageEntry> pageCodes = null;
-		private List<PageEntry> flexiblePaths = null;
+		private List<PageEntry> pages = new List<PageEntry>();
+		private Dictionary<string, PageEntry> requestPaths = new Dictionary<string,PageEntry>();
+		private Dictionary<string, PageEntry> pageCodes = new Dictionary<string,PageEntry>();
+		private List<PageEntry> flexiblePaths = new List<PageEntry>();
 		private DateTime fileDate = DateTime.MinValue;
 		private string prefixAllPathsWith = "";
 		private TemplateRegistry templates = null;
@@ -45,13 +45,6 @@ namespace Sprocket.Web.CMS.Content
 
 		public void Load(XmlElement pagesRootNode)
 		{
-			if (pages == null)
-			{
-				pages = new List<PageEntry>();
-				requestPaths = new Dictionary<string, PageEntry>();
-				pageCodes = new Dictionary<string, PageEntry>();
-				flexiblePaths = new List<PageEntry>();
-			}
 			foreach (XmlNode node in pagesRootNode.SelectNodes("*"))
 				if (node is XmlElement)
 					LoadEntry((XmlElement)node, null);

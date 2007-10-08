@@ -61,6 +61,11 @@ namespace Sprocket.Web.Merchant.Database
 			return prm;
 		}
 
+		public Type DatabaseHandlerType
+		{
+			get { return typeof(SqlServer2005Database); }
+		}
+
 		#region Members for PayPalTransactionResponse
 
 		public Result Store(PayPalTransactionResponse payPalTransactionResponse)

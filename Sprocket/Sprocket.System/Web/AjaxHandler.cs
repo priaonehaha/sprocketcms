@@ -84,17 +84,10 @@ namespace Sprocket.Web
 
 		/// <summary>
 		/// Called when an AjaxMethod that has a RequiresAuthentication value of true
-		/// passes the authentication check. This event can be used to perform further
-		/// attribute checks on the method to further authenticate the calling user,
-		/// such as for role and permission requirement checking.
+		/// passes the authentication check.
 		/// </summary>
-		public event InterruptableEventHandler<MethodInfo> OnAjaxRequestAuthenticationCheck;
-
-		/// <summary>
-		/// This is fired for each Ajax request to ensure that the page data has not expired and would
-		/// thus undermine the data integrity related to the ajax request.
-		/// </summary>
-		public event InterruptableEventHandler<DateTime> OnAjaxRequestTimeStampCheck;
+		public AjaxAuthenticationHandler AjaxAuthenticate = null;
+		public delegate Result AjaxAuthenticationHandler(System.Reflection.MethodInfo source);
 
 		/// <summary>
 		/// This method is called in response to any request where the URL ends with a .ajax
@@ -170,10 +163,9 @@ namespace Sprocket.Web
 					if (!WebAuthentication.IsLoggedIn)
 						AjaxRequestHandler.AbortAjaxCall("You're not currently logged in. Please refresh the page.");
 
-					if (OnAjaxRequestAuthenticationCheck != null)
+					if (AjaxAuthenticate != null)
 					{
-						Result result = new Result();
-						OnAjaxRequestAuthenticationCheck(info, result);
+						Result result = AjaxAuthenticate(info);
 						if (!result.Succeeded)
 							throw new AjaxException(result.Message);
 					}

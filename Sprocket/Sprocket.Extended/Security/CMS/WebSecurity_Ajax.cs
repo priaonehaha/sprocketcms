@@ -17,28 +17,20 @@ namespace Sprocket.Web.CMS.Security
 	[AjaxMethodHandler("WebSecurity")]
 	partial class WebSecurity
 	{
-		void OnAjaxRequestAuthenticationCheck(System.Reflection.MethodInfo source, Result result)
+		Result AuthenticateForAjaxRequest(System.Reflection.MethodInfo source)
 		{
 			if (!SecurityProvider.CurrentUser.Enabled)
-			{
-				result.SetFailed("Ajax method called failed because your account has been disabled.");
-				return;
-			}
+				return new Result("Ajax method called failed because your account has been disabled.");
 
 			Attribute[] roleAttr = Attribute.GetCustomAttributes(source, typeof(RequiresRoleAttribute));
 			Attribute[] permAttr = Attribute.GetCustomAttributes(source, typeof(RequiresPermissionAttribute));
 			for (int i = 0; i < roleAttr.Length; i++)
 				if (!SecurityProvider.CurrentUser.HasRole(((RequiresRoleAttribute)roleAttr[i]).RoleCode))
-				{
-					result.SetFailed("Ajax method call failed because you do not have one or more required roles.");
-					return;
-				}
+					return new Result("Ajax method call failed because you do not have one or more required roles.");
 			for (int i = 0; i < permAttr.Length; i++)
 				if (!WebAuthentication.VerifyAccess(((RequiresPermissionAttribute)permAttr[i]).PermissionTypeCode))
-				{
-					result.SetFailed("Ajax method call failed because you do not have one or more required permissions.");
-					return;
-				}
+					return new Result("Ajax method call failed because you do not have one or more required permissions.");
+			return new Result();
 		}
 
 		[AjaxMethod(RequiresAuthentication = true)]

@@ -29,7 +29,11 @@ namespace Sprocket.Web
 					WebUtility.Redirect("admin");
 				}
 				else
-					HttpContext.Current.Response.Write("<h2>Unable to Initialise Database</h2><p>" + result.Message + "</p>");
+				{
+					HttpContext.Current.Response.Write("<h2>Unable to Initialise Database</h2><p>" + result.Message.Replace(Environment.NewLine,"<br/>") + "</p>");
+					HttpContext.Current.Response.End();
+				}
+
 				handled.Set();
 			}
 		}

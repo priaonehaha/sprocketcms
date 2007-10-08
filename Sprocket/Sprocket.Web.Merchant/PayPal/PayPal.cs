@@ -17,11 +17,11 @@ namespace Sprocket.Web.Merchant.PayPal
 	[ModuleDependency(typeof(SprocketSettings))]
 	[ModuleTitle("PayPal Module")]
 	[ModuleDescription("Encapsulates PayPal features and merchant facilities")]
-	public sealed class PayPal : ISprocketModule //, IDataHandlerModule
+	public sealed class PayPal : ISprocketModule
 	{
 		public event NotificationEventHandler<PayPalTransactionResponse> OnTransactionResponse;
 		public event NotificationEventHandler<PayPalTransactionResponse> OnInstantPaymentNotification;
-		private IMerchantDataProvider dataProvider = null;
+		private IMerchantDataProvider dataProvider;
 
 		void WebEvents_OnLoadRequestedPath(HandleFlag handled)
 		{
@@ -156,6 +156,15 @@ namespace Sprocket.Web.Merchant.PayPal
 
 		void DatabaseManager_OnDatabaseHandlerLoaded(IDatabaseHandler source)
 		{
+			foreach (Type t in Core.Modules.GetInterfaceImplementations(typeof(IMerchantDataProvider)))
+			{
+				IMerchantDataProvider dp = (IMerchantDataProvider)Activator.CreateInstance(t);
+				if (dp.DatabaseHandlerType == source.GetType())
+				{
+					dataProvider = dp;
+					break;
+				}
+			}
 			source.OnInitialise += new InterruptableEventHandler(Database_OnInitialise);
 		}
 

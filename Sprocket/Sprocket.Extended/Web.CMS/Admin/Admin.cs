@@ -11,6 +11,7 @@ using Sprocket.Web.CMS.Content;
 using Sprocket.Web.Cache;
 using Sprocket.Utility;
 using Sprocket.Data;
+using Sprocket.Security;
 
 namespace Sprocket.Web.CMS.Admin
 {
@@ -18,6 +19,7 @@ namespace Sprocket.Web.CMS.Admin
 	[ModuleDependency(typeof(AjaxRequestHandler))]
 	[ModuleDependency(typeof(SprocketSettings))]
 	[ModuleDependency(typeof(WebAuthentication))]
+	[ModuleDependency(typeof(SecurityProvider))]
 	[ModuleDescription("The base platform upon which the Sprocket CMS web interface is built. Most modules for the CMS plug into this module.")]
 	[ModuleTitle("Website Administration Module")]
 	public partial class AdminHandler : ISprocketModule
@@ -192,7 +194,7 @@ namespace Sprocket.Web.CMS.Admin
 		{
 			if (!HttpContext.Current.Response.ContentType.Contains("html"))
 				return;
-			if (IsAdminRequest)
+			if (!IsAdminRequest)
 				return;
 			if (!WebAuthentication.VerifyAccess(PermissionType.AccessAdminArea))
 				return;
