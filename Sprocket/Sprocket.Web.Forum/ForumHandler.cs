@@ -158,7 +158,7 @@ namespace Sprocket.Web.Forums
 				//msg.AuthorName =
 			}
 
-			topic.DateCreated = SprocketDate.Now;
+			topic.DateCreated = DateTime.UtcNow;
 			topic.ForumID = forum.ForumID;
 			topic.ForumTopicID = 0;
 
@@ -211,7 +211,7 @@ namespace Sprocket.Web.Forums
 #warning to do: signatures need to be appended to the output
 
 			msg.ForumTopicMessageID = 0;
-			msg.DateCreated = SprocketDate.Now;
+			msg.DateCreated = DateTime.UtcNow;
 
 			if (forum.RequireModeration)
 				msg.Moderation = ForumModerationState.Pending;
@@ -308,7 +308,7 @@ namespace Sprocket.Web.Forums
 			else
 				throw new NotImplementedException("need to put in anonymous author name.");
 
-			msg.DateCreated = SprocketDate.Now;
+			msg.DateCreated = DateTime.UtcNow;
 			msg.ForumTopicMessageID = 0;
 
 #warning to do: administrators should be able to specify a URL Token
@@ -413,7 +413,7 @@ namespace Sprocket.Web.Forums
 			if (cat == null)
 			{
 				cat = new ForumCategory(DatabaseManager.GetUniqueID(), SecurityProvider.ClientSpaceID,
-					categoryCode, categoryCode, null, SprocketDate.Now, 0, false);
+					categoryCode, categoryCode, null, DateTime.UtcNow, 0, false);
 				DataLayer.Store(cat);
 			}
 
@@ -480,7 +480,7 @@ namespace Sprocket.Web.Forums
 			forum.ShowSignatures = Request.Form["show-signatures"] == "1";
 			forum.AllowImagesInSignatures = Request.Form["signature-images"] == "1";
 			forum.Locked = Request.Form["lock-forum"] == "1";
-			forum.DateCreated = SprocketDate.Now;
+			forum.DateCreated = DateTime.UtcNow;
 
 			Result r = dataLayer.Store(forum);
 			if (!r.Succeeded)

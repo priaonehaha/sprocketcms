@@ -52,17 +52,43 @@ function trim(str) {
 	return str.replace(/^\s*((\S|(\S\s+\S))*)\s*$/, '$1');
 }
 
+function readFromNameValueCollection(nvcstr, key) {
+	var arr = nvcstr.split(/&/g);
+	for(var i=0; i<arr.length; i++) {
+		var nvp = arr[i].split(/=/);
+		if(nvp.length == 2 && nvp[0] == key)
+			return unescape(nvp[1]);
+	}
+	return null;
+}
+
 function queryString(arg) {
 	var qn = location.href.indexOf('?');
 	if(qn == -1 || qn == location.href.length - 1) return null;
 	var qs = location.href.substring(qn+1);
-	var arr = qs.split(/&/g);
-	for(var i=0; i<arr.length; i++) {
-		var nvp = arr[i].split(/=/);
-		if(nvp.length == 2 && nvp[0] == arg)
-			return unescape(nvp[1]);
+	return readFromNameValueCollection(qs, arg);
+}
+
+function readCookie(name) {
+	function _getValue(name) {
+		var nameEQ = name + "=";
+		var ca = document.cookie.split(';');
+		for(var i=0;i < ca.length;i++) {
+			var c = ca[i];
+			while (c.charAt(0)==' ') c = c.substring(1,c.length);
+			if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+		}
+		return null;
 	}
-	return null;
+	var val = _getValue(name);
+	if(arguments.length == 1)
+		return val;
+	if(arguments.length == 2)
+		return readFromNameValueCollection(val, arguments[1]);
+	var arr = [];
+	for(var i=1; i<arguments.length; i++)
+		arr[arr.length] = readFromNameValueCollection(val, arguments[i]);
+	return arr;
 }
 
 function parseDate(dateString) {
