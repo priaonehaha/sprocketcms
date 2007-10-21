@@ -112,18 +112,28 @@ namespace Sprocket.Web
 				if (CurrentRequest.Value["CurrentUser_Authenticated"] == null)
 				{
 					HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
-					if (cookie == null)
-						return false;
-					if (cookie.Value == "")
-						return false;
+					bool noCookie = false;
+					if (cookie == null || cookie.Value == "")
+						noCookie = true;
 
 					string passkey;
 					bool result;
 					try
 					{
+						string a, k;
+						if (noCookie)
+						{
+							a = HttpContext.Current.Request.QueryString["$usr"];
+							k = HttpContext.Current.Request.QueryString["$key"];
+						}
+						else
+						{
+							a = cookie["a"];
+							k = cookie["k"];
+						}
 						WebAuthentication auth = Instance;
-						passkey = auth.PasswordHashFromPassKey(cookie["k"]);
-						result = auth.ValidateLogin(cookie["a"], passkey).Succeeded;
+						passkey = auth.PasswordHashFromPassKey(k);
+						result = auth.ValidateLogin(a, passkey).Succeeded;
 					}
 					catch
 					{
@@ -215,7 +225,8 @@ namespace Sprocket.Web
 			get
 			{
 				HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
-				if(cookie == null) return "";
+				if(cookie == null)
+					return HttpContext.Current.Request.QueryString["$usr"];
 				return cookie["a"];
 			}
 		}

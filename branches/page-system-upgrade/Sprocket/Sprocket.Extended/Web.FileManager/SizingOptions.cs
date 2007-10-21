@@ -277,6 +277,7 @@ namespace Sprocket.Web.FileManager
 		public long SprocketFileID
 		{
 			get { return sprocketFileID; }
+			set { sprocketFileID = value; }
 		}
 
 		public Image Image
