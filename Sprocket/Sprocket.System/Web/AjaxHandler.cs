@@ -33,21 +33,21 @@ namespace Sprocket.Web
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(OnBeginHttpRequest);
+			//WebEvents.Instance.OnBeginHttpRequest += new WebEvents.HttpApplicationCancellableEventHandler(OnBeginHttpRequest);
 			WebEvents.Instance.OnEndHttpRequest += new WebEvents.HttpApplicationEventHandler(OnEndHttpRequest);
 		}
 
-		void OnBeginHttpRequest(HandleFlag handled)
-		{
-			if (handled.Handled)
-				return;
+		//void OnBeginHttpRequest(HandleFlag handled)
+		//{
+		//    if (handled.Handled)
+		//        return;
 
-			if (IsAjaxRequest)
-			{
-				handled.Set();
-				ProcessRequest(HttpContext.Current);
-			}
-		}
+		//    if (IsAjaxRequest)
+		//    {
+		//        handled.Set();
+		//        ProcessRequest(HttpContext.Current);
+		//    }
+		//}
 
 		void OnEndHttpRequest()
 		{
@@ -128,7 +128,15 @@ namespace Sprocket.Web
 				//}
 
 				// extract the module and method name
-				string fullname = data["ModuleName"].ToString();
+				string fullname;
+				try
+				{
+					fullname = data["ModuleName"].ToString();
+				}
+				catch(Exception ex)
+				{
+					throw;
+				}
 				int n = fullname.LastIndexOf(".");
 				if(n == -1)
 					throw new AjaxException("Method name specified incorrectly. Expected format ModuleNamespace.MethodName.\nThe following incorrect format was supplied: " + data["ModuleName"]);

@@ -124,6 +124,7 @@
     <Compile Include="Web\Controls\MultiPageNav.cs" />
     <Compile Include="Web\Controls\WebControls.cs" />
     <Compile Include="Web\DatabaseSetup.cs" />
+    <Compile Include="ErrorNotifier.cs" />
     <Compile Include="Web\JavaScriptCondenser.cs" />
     <Compile Include="Web\JSONParser.cs" />
     <Compile Include="Web\LogFile.cs" />

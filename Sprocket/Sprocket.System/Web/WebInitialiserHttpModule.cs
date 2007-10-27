@@ -2,6 +2,7 @@ using System;
 using System.Web;
 using Sprocket;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Sprocket.Web
 {
@@ -12,16 +13,27 @@ namespace Sprocket.Web
 	public class WebInitialiserHttpModule : IHttpModule
 	{
 		private Core coreInstance;
+
 		public WebInitialiserHttpModule()
 		{
 			coreInstance = new Core();
 			RememberCore();
 			coreInstance.Initialise();
+			ForgetCore();
 		}
+		
+		private const string coreKeyName = "__{Sprocket:Core}__";
 
 		private void RememberCore()
 		{
-			HttpContext.Current.Items["__{Sprocket:Core}__"] = coreInstance;
+			Monitor.Enter(coreInstance);
+			HttpContext.Current.Items[coreKeyName] = coreInstance;
+		}
+
+		private void ForgetCore()
+		{
+			HttpContext.Current.Items.Remove(coreKeyName);
+			Monitor.Exit(coreInstance);
 		}
 
 		/// <summary>
@@ -44,6 +56,7 @@ namespace Sprocket.Web
 		void app_EndRequest(object sender, EventArgs e)
 		{
 			WebEvents.Instance.FireEndRequest(sender, e);
+			ForgetCore();
 		}
 
 		void app_AcquireRequestState(object sender, EventArgs e)
@@ -60,6 +73,10 @@ namespace Sprocket.Web
 
 		public void Dispose()
 		{
+			if (HttpContext.Current != null)
+				if (HttpContext.Current.Items != null)
+					if (HttpContext.Current.Items.Contains(coreKeyName))
+						ForgetCore();
 		}
 	}
 }

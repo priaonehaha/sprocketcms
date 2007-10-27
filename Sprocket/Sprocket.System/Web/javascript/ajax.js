@@ -144,6 +144,7 @@ SprocketAjax = {
 				} catch(e) {
 				}
 				if(!SprocketAjax) return;
+				var hasServerArgs = serverArgs.length > 0;
 				var contextArgs = context ? context : [];
 				var callnum = cnum;
 				SprocketAjax.WriteConsole('&lt;-[' + cnum + ']: ' + moduleName +
@@ -175,8 +176,10 @@ SprocketAjax = {
 					var call;
 					if(callbackObject)
 						call = 'callback.call(callbackObject, response.Data, callnum';
-					else
+					else if(hasServerArgs)
 						call = 'callback(response.Data, callnum';
+					else
+						call = 'callback(callnum';
 					for(var i=0; i<contextArgs.length; i++)
 						call += ', contextArgs[' + i + ']';
 					call += ');';
@@ -186,7 +189,7 @@ SprocketAjax = {
 		}
 		
 		// prepare the request for transmission
-		req.open('POST', this.ApplicationRoot + 'AjaxRequest.ajax', true);
+		req.open('POST', 'AjaxRequest.ajax?' + Math.random(), true);
 		
 		// prepare the data object for transmission
 		var preparedArgs = []

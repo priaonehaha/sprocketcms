@@ -32,7 +32,7 @@ namespace Sprocket.Web
 
 		public void AttachEventHandlers(ModuleRegistry registry)
 		{
-			if(registry.IsRegistered("WebClientScripts"))
+			if (registry.IsRegistered("WebClientScripts"))
 				WebClientScripts.Instance.OnBeforeRenderJavaScript += new Sprocket.Web.WebClientScripts.BeforeRenderJavaScriptHandler(OnPreRenderJavaScript);
 		}
 
@@ -43,14 +43,14 @@ namespace Sprocket.Web
 
 		public string GetUsername(Guid key)
 		{
-			if(!usersByKey.ContainsKey(key))
+			if (!usersByKey.ContainsKey(key))
 				return "";
 			return usersByKey[key].ToString();
 		}
 
 		public string GetAuthKey(string username)
 		{
-			if(!keysByUser.ContainsKey(username))
+			if (!keysByUser.ContainsKey(username))
 				return "";
 			return keysByUser[username].ToString();
 		}
@@ -76,7 +76,7 @@ namespace Sprocket.Web
 			cookie.Values.Add("k", key);
 			cookie.Values.Add("c", Guid.NewGuid().ToString());
 			cookie.Expires = DateTime.Now.AddMinutes(timeoutMinutes);
-			#warning how is this affected by UTC?
+#warning how is this affected by UTC?
 			HttpContext.Current.Response.Cookies.Add(cookie);
 		}
 
@@ -111,26 +111,30 @@ namespace Sprocket.Web
 			{
 				if (CurrentRequest.Value["CurrentUser_Authenticated"] == null)
 				{
-					HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
-					bool noCookie = false;
-					if (cookie == null || cookie.Value == "")
-						noCookie = true;
+					string a, k;
+					Guid guid;
+					ReadLoginInfo(out a, out k, out guid);
+					//HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
+					//bool noCookie = false;
+					//if (cookie == null || cookie.Value == "")
+					//    noCookie = true;
 
 					string passkey;
 					bool result;
 					try
 					{
-						string a, k;
-						if (noCookie)
-						{
-							a = HttpContext.Current.Request.QueryString["$usr"];
-							k = HttpContext.Current.Request.QueryString["$key"];
-						}
-						else
-						{
-							a = cookie["a"];
-							k = cookie["k"];
-						}
+						//string a, k;
+						//if (noCookie)
+						//{
+						//    a = HttpContext.Current.Request.QueryString["$usr"];
+						//    k = HttpContext.Current.Request.QueryString["$key"];
+						//}
+						//else
+						//{
+						//    a = cookie["a"];
+						//    k = cookie["k"];
+						//}
+						CurrentRequest.Value["WebAuthentication.CurrentUsername"] = a;
 						WebAuthentication auth = Instance;
 						passkey = auth.PasswordHashFromPassKey(k);
 						result = auth.ValidateLogin(a, passkey).Succeeded;
@@ -145,6 +149,34 @@ namespace Sprocket.Web
 				}
 				else
 					return (bool)CurrentRequest.Value["CurrentUser_Authenticated"];
+			}
+		}
+
+		private static void ReadLoginInfo(out string username, out string passwordHash, out Guid ajaxKey)
+		{
+			HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
+			bool noCookie = false;
+			if (cookie == null || cookie.Value == "")
+				noCookie = true;
+
+			if (noCookie)
+			{
+				username = HttpContext.Current.Request.QueryString["$usr"];
+				passwordHash = HttpContext.Current.Request.QueryString["$key"];
+				ajaxKey = Guid.Empty;
+			}
+			else
+			{
+				username = cookie["a"];
+				passwordHash = cookie["k"];
+				try
+				{
+					ajaxKey = new Guid(cookie["c"]);
+				}
+				catch
+				{
+					ajaxKey = Guid.Empty;
+				}
 			}
 		}
 
@@ -207,14 +239,14 @@ namespace Sprocket.Web
 		{
 			Guid key = Guid.NewGuid(); //new unique key for the user
 			usersByKey.Add(key, username); //add the new key to the list
-			if(keysByUser.ContainsKey(username)) //if an existing login for this user exists, remove it
+			if (keysByUser.ContainsKey(username)) //if an existing login for this user exists, remove it
 			{
 				usersByKey.Remove(keysByUser[username]); //only one login window at a time, please
 				keysByUser.Remove(username); //remove the old username-to-key mapping
 			}
 			keysByUser.Add(username, key); //add a new username-to-key mapping
 
-			if(OnAjaxAuthKeyStored != null)
+			if (OnAjaxAuthKeyStored != null)
 				OnAjaxAuthKeyStored(username, key);
 
 			return key;
@@ -225,7 +257,7 @@ namespace Sprocket.Web
 			get
 			{
 				HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieKey];
-				if(cookie == null)
+				if (cookie == null)
 					return HttpContext.Current.Request.QueryString["$usr"];
 				return cookie["a"];
 			}

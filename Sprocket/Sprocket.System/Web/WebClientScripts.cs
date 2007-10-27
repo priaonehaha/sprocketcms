@@ -22,7 +22,7 @@ namespace Sprocket.Web
 	/// JavaScriptCondenser class, which strips out comments, whitespace, etc. Data formatting
 	/// for transfer between the client and server is provided by the open-source JSON format.
 	/// </summary>
-	[ModuleDescription( "Handles javascript aggregation and rendering to the page.")]
+	[ModuleDescription("Handles javascript aggregation and rendering to the page.")]
 	[ModuleTitle("Web Client Script Renderer")]
 	public class WebClientScripts : ISprocketModule
 	{
@@ -99,6 +99,18 @@ namespace Sprocket.Web
 			}
 
 			return sb.ToString();
+		}
+
+		public string GetStandardScripts(params string[] restrictToAjaxModules)
+		{
+			string str = ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
+							+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
+							+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.ajax.js")
+							+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.browser-tools.js")
+								.Replace("$APPLICATIONROOT$", WebUtility.BasePath)
+								.Replace("$LOADTIMESTAMP$", AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString())
+							+ GetAjaxMethodsScript(restrictToAjaxModules);
+			return CompressJavaScript ? JavaScriptCondenser.Condense(str) : str;
 		}
 
 		private class AjaxModuleRef
@@ -258,8 +270,8 @@ namespace Sprocket.Web
 	/// </summary>
 	public class JavaScriptCollection
 	{
-		private Dictionary<string, string> scripts = new Dictionary<string,string>();
-		private Dictionary<string, object> keys = new Dictionary<string,object>();
+		private Dictionary<string, string> scripts = new Dictionary<string, string>();
+		private Dictionary<string, object> keys = new Dictionary<string, object>();
 		/// <summary>
 		/// Adds a new javascript block to the collection.
 		/// </summary>
@@ -318,7 +330,7 @@ namespace Sprocket.Web
 	/// a client-side object for the class that will contain matching methods for
 	/// each server-side method marked with this attribute.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Method, AllowMultiple=false)]
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 	public class AjaxMethodAttribute : Attribute
 	{
 		private bool requiresAuthentication = false;
@@ -335,7 +347,7 @@ namespace Sprocket.Web
 	/// the AjaxMethodHandler attribute or it will be ignored when
 	/// Ajax javascript code is generated.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple=false)]
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 	public class AjaxMethodHandlerAttribute : Attribute
 	{
 		private string ajaxTypeName = null;

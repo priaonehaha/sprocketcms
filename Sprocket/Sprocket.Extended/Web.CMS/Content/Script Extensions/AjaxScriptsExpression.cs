@@ -20,18 +20,18 @@ namespace Sprocket.Web.CMS.Content.Expressions
 				types[c++] = o.ToString();
 			}
 
-			string scr =
-				ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
-				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
-				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.ajax.js")
-				+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.browser-tools.js")
-					.Replace("$APPLICATIONROOT$", WebUtility.BasePath)
-					.Replace("$LOADTIMESTAMP$", AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString())
-				+ WebClientScripts.Instance.GetAjaxMethodsScript(types);
-			if (WebClientScripts.CompressJavaScript)
-				return JavaScriptCondenser.Condense(scr);
-			else
-				return scr;
+			return WebClientScripts.Instance.GetStandardScripts(types);
+				//ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.generic.js")
+				//+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.json.js")
+				//+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.ajax.js")
+				//+ ResourceLoader.LoadTextResource(typeof(WebClientScripts).Assembly, "Sprocket.Web.javascript.browser-tools.js")
+				//    .Replace("$APPLICATIONROOT$", WebUtility.BasePath)
+				//    .Replace("$LOADTIMESTAMP$", AjaxRequestHandler.Instance.PageTimeStamp.Ticks.ToString())
+				//+ WebClientScripts.Instance.GetAjaxMethodsScript(types);
+			//if (WebClientScripts.CompressJavaScript)
+			//    return JavaScriptCondenser.Condense(scr);
+			//else
+			//    return scr;
 		}
 
 		public object Evaluate(ExecutionState state, Token contextToken)
