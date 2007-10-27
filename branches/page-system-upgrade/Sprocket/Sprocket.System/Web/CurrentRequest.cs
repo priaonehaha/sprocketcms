@@ -17,14 +17,23 @@ namespace Sprocket.Web
 	public class CurrentRequest : ISprocketModule
 	{
 		private static CurrentRequest cr = null;
+		private static object lockobj = new object();
 		public static CurrentRequest Value
 		{
 			get
 			{
-				if (cr == null)
-					cr = new CurrentRequest();
-				return cr;
+				lock (lockobj)
+				{
+					if (cr == null)
+						cr = new CurrentRequest();
+					return cr;
+				}
 			}
+		}
+
+		public static bool Exists(string key)
+		{
+			return Value.Values.ContainsKey(key);
 		}
 
 		private Dictionary<string, object> dict;

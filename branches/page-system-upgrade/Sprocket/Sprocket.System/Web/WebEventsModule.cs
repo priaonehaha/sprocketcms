@@ -103,6 +103,8 @@ namespace Sprocket.Web
 			if (HttpContext.Current.Request.Path.EndsWith(".ajax"))
 			{
 				AjaxRequestHandler.IsAjaxRequest = true;
+				AjaxRequestHandler.Instance.ProcessRequest(HttpContext.Current);
+				HttpContext.Current.Response.End();
 			}
 			else
 			{
@@ -312,15 +314,14 @@ namespace Sprocket.Web
 		/// <param name="e"></param>
 		internal void FireError(object sender, EventArgs e)
 		{
+			HttpApplication app = (HttpApplication)sender;
+			Exception ex = app.Server.GetLastError();
+			ErrorNotifier.Process(ex);
+			SystemEvents.Instance.NotifyExceptionThrown(ex);
 			if (OnApplicationError != null)
-			{
-				HttpApplication app = (HttpApplication)sender;
-				SystemEvents.Instance.NotifyExceptionThrown(app.Server.GetLastError());
-				if (OnApplicationError != null)
-					OnApplicationError(app.Server.GetLastError());
-				if (SprocketSettings.Instance.HasErrors)
-					Core.Instance.Reset();
-			}
+				OnApplicationError(ex);
+			if (SprocketSettings.Instance.HasErrors)
+				Core.Instance.Reset();
 		}
 
 		/// <summary>
