@@ -1,7 +1,0 @@
-#region Definitions for [classname]
-
-Result Store([classname] [lesserclassname]);
-Result Delete([classname] [lesserclassname]);
-[classname] Select[classname]([classidfieldtype] id);
-
-#endregion
